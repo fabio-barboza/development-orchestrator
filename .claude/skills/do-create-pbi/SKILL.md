@@ -1,0 +1,79 @@
+---
+name: do-create-pbi
+description: Creates Product Backlog Items (PBIs) from feature requests following a structured workflow of clarification, planning, and drafting. Outputs a standardized PBI to the project pbis directory. Use when the user asks to create a PBI, define requirements, or document a new feature. Do not use for technical specifications, task breakdowns, or implementation planning.
+---
+
+# PBI Creation
+
+## Role
+You are a senior product manager specialized in writing clear, actionable PBIs for development and product teams.
+
+## Procedures
+
+**Step 1: Validate Prerequisites**
+1. Confirm the feature name or description has been provided by the user.
+2. Derive the slug in kebab-case for the output directory: `./pbis/pbi-[feature-slug]/`.
+
+**Step 2: Clarify Requirements (Mandatory)**
+1. Ask the user clarification questions using the AskUserQuestion tool before generating any content.
+2. Cover all areas from the clarification checklist:
+   - **Problem and Objectives**: What problem to solve, measurable goals.
+   - **Users and Stories**: Primary users, user stories, main flows.
+   - **Core Functionality**: Data inputs/outputs, actions.
+   - **Scope and Planning**: What is NOT included, dependencies.
+   - **Design and Experience**: UI/UX guidelines and accessibility.
+3. Do NOT proceed to Step 3 until clarification answers are received.
+
+**Step 3: Plan the PBI (Mandatory)**
+1. Create a development plan including:
+   - Section-by-section approach.
+   - Areas requiring research (use Web Search for business rules).
+   - Assumptions and dependencies.
+2. Present the plan to the user for alignment.
+
+**Step 4: Draft the PBI (Mandatory)**
+1. Read the template at `.claude/skills/do-create-pbi/assets/pbi-template.md`.
+2. Focus on WHAT and WHY, never on HOW (implementation belongs in Tech Spec).
+3. Include numbered functional requirements.
+4. Keep the document under 2,000 words.
+5. Do NOT deviate from the template structure.
+
+**Step 5: Save the PBI (Mandatory)**
+1. Create the directory: `./pbis/pbi-[feature-slug]/`.
+2. Save the PBI to: `./pbis/pbi-[feature-slug]/pbi.md`.
+
+**Step 6: Report Results & Sync Progress (Mandatory)**
+1. **SYNC INTERNAL PROGRESS**: Once the PBI is saved, use the `TaskUpdate` tool to mark all corresponding items in your internal task tracking as `completed`.
+2. Provide the final file path.
+3. Provide a brief summary of the PBI outcome.
+4. **COMPLIANCE CHECK**: Before responding to the user, verify:
+    - Is the PBI file saved correctly?
+    - Is the internal task tracking synchronized?
+    - Did you follow the template structure?
+
+## Output Language
+All generated artifacts (PBI document, summaries) must be written in Brazilian Portuguese (PT-BR). Code examples, variable names, and technical terms remain in English.
+
+## Core Principles
+- Clarify before planning; plan before drafting.
+- Minimize ambiguity; prefer measurable statements.
+- PBI defines outcomes and constraints, NOT implementation.
+- Always consider usability and accessibility.
+
+## Quality Checklist
+- [ ] Clarification questions completed and answered.
+- [ ] Detailed plan created.
+- [ ] PBI generated using the template.
+- [ ] Numbered functional requirements included.
+- [ ] File saved to `./pbis/pbi-[feature-slug]/pbi.md`.
+- [ ] Final path provided.
+
+## Error Handling
+- If the user provides insufficient context, ask follow-up clarification questions before proceeding.
+- If the template file (`.claude/skills/do-create-pbi/assets/pbi-template.md`) is missing, report the error and halt — do not generate a PBI without the template.
+- If the output directory already exists, confirm with the user before overwriting.
+- If the output file cannot be written (permission error, invalid path), report the error to the user.
+
+## References
+- Template: `.claude/skills/do-create-pbi/assets/pbi-template.md`
+- Output: `./pbis/pbi-[feature-slug]/pbi.md`

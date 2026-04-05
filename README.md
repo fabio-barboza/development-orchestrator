@@ -1,2 +1,526 @@
-# development-orchestrator
-Framework AI-driven que orquestra o ciclo completo de desenvolvimento de software: desde a idea inicial ate QA final com testes E2E automatizados via MCP (Model Context Protocol).
+# Development Orchestrator (DO Framework)
+
+Framework AI-driven que orquestra o ciclo completo de desenvolvimento de software: desde a ideia inicial até QA final com testes E2E automatizados via MCP (Model Context Protocol).
+
+## Para Que Serve
+
+O DO Framework elimina trabalho manual e garante qualidade consistente ao automatizar:
+
+| Área                  | Benefício                                                                 |
+|-----------------------|---------------------------------------------------------------------------|
+| **Planejamento**      | PBIs padronizadas, critérios claros, sem ambiguidades                     |
+| **Arquitetura**       | TechSpecs profundas com pesquisa automática em documentação oficial       |
+| **Decomposição**      | Tasks atômicas e testáveis, ordenadas por dependência                     |
+| **Execução**          | Implementação com testes E2E via MCP, review automático                   |
+| **QA**                | Validação sistemática, screenshots como evidência, bugs documentados      |
+| **Bugfix**            | Correção com testes de regressão, priorizada por severidade               |
+
+Resultado: features entregues mais rápido, com menos retrabalho e qualidade verificável.
+
+## Fluxo do Framework — Pipeline Completa
+
+### FASE 1: PLANEJAMENTO
+
+```
+┌──────────┐    ┌───────────┐    ┌──────────────┐    ┌─────────────┐
+│ do-setup │───▶│do-create- │───▶│do-create-    │───▶│do-create-   │
+│  (1x)    │    │   pbi     │    │  techspec    │    │   tasks     │
+└──────────┘    └───────────┘    └──────────────┘    └─────────────┘
+                                                              │
+                                                              ▼
+```
+
+### FASE 2: EXECUÇÃO (Loop por Task)
+
+```
+                    ┌─────────────────────────────────────────────┐
+                    │       LOOP POR CADA TASK NA ORDEM           │
+                    │                                             │
+                   ◀│◀   do-execute-task [num]                    │
+tasks.md            │   - Implementação + tests                   │
+[15 tasks] ────────▶│   - E2E via MCP se aplicável                │
+(sequencial)        │   - Gera [num]_task_review.md               │
+                    │   - Marca task como [x] em tasks.md         │
+                    └─────────────────────────────────────────────┘
+                                    │
+                          (todas tasks completas)
+                                    ▼
+```
+
+### FASE 3: CODE REVIEW GERAL (Loop até Aprovado)
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                        do-execute-review                                    │
+│                                                                             │
+│   Verifica:                                                                 │
+│   - Conformidade com TechSpec                                               │
+│   - Suite completa de testes (unit/integration/typecheck)                   │
+│   - E2E via MCP conforme disponível                                         │
+│   - Padrões de código                                                       │
+│                                                                             │
+│   Status:                                                                   │
+│   - ACCEPTED → prossegue para FASE 4 (QA)                                   │
+│   - NEEDS_REVISION / REJECTED → corrige e reinicia do-execute-review        │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                    │
+                          (review aprovado)
+                                    ▼
+```
+
+### FASE 4: VALIDAÇÃO E2E + BUGFIX (Loop até Zero Bugs HIGH)
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    LOOP DE QUALIDADE                                        │
+│                                                                             │
+│   ┌──────────────────────┐                                                  │
+│   │  do-execute-qa       │                                                  │
+│   │                      │                                                  │
+│   │  - E2E completo via  │                                                  │
+│   │    MCP (Playwright)  │                                                  │
+│   │  - Checklist PBI     │                                                  │
+│   │  - Accessibility     │────────────┐                                     │
+│   │  - Visual verification│           │                                     │
+│   │  - Gera bugs.md      │            │                                     │
+│   └──────────┬───────────┘            │                                     │
+│              │                        │                                     │
+│              │ (se houver bugs)       │ (zero bugs HIGH)                    │
+│              ▼                        │                                     │
+│   ┌──────────────────────┐            │                                     │
+│   │  do-execute-bugfix   │◀───────────┘                                     │
+│   │                      │                                                  │
+│   │  - Corrige por       │                                                  │
+│   │    severidade        │                                                  │
+│   │  - Tests de regressão│                                                  │
+│   │  - E2E via MCP       │                                                  │
+│   │  - Atualiza bugs.md  │                                                  │
+│   └──────────┬───────────┘                                                  │
+│              │                                                              │
+│              └─────────────▶ (repetir do-execute-qa) ◀──────────────────────┘
+│                              até zero bugs HIGH
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Visão Geral do Fluxo
+
+```
+PLANEJAMENTO       EXECUÇÃO           REVIEW GERAL      VALIDAÇÃO
+    │                   │                   │                  │
+    ▼                   ▼                   ▼                  ▼
+┌───────┐          ┌───────────┐       ┌─────────────┐     ┌──────────────┐
+│PBI +  │─────────▶│ Loop por  │──────▶│ Review      │────▶│ QA + Bugfix  │
+│Tasks  │          │ cada task │       │ (loop até   │     │ (loop até    │
+│       │          │           │       │ aprovado)   │     │ zero HIGH)   │
+└───────┘          └───────────┘       └─────────────┘     └──────────────┘
+```
+
+## Skills do Framework — O Que Cada Uma Faz
+
+### `do-setup` — Inicialização do Projeto (1x)
+
+**Quando usar:** Primeira vez no projeto ou ao reinstalar o ambiente.
+
+**O que faz:**
+1. Executa `/init` para gerar `CLAUDE.md` inicial
+2. Analisa profundamente o codebase (tech stack, arquitetura, padrões)
+3. Identifica skills tecnológicas relevantes em `.claude/skills/`
+4. Atualiza `CLAUDE.md` com summary do projeto e convenções
+
+**Output:** `CLAUDE.md` configurado com contexto do projeto
+
+---
+
+### `do-create-pbi` — Criar Product Backlog Item
+
+**Quando usar:** Nova feature, melhoria ou correção a ser desenvolvida.
+
+**O que faz:**
+1. **Clarification (interativo)**: Perguntas ao usuário sobre problema, objetivos, usuários, flows
+2. **Planning (interativo)**: Apresenta plano de seções para aprovação
+3. **Drafting**: Gera PBI padronizada com requisitos numerados e critérios de aceitação
+
+**Output:** `./pbis/pbi-[slug]/pbi.md`
+
+**Foco:** WHAT e WHY (nunca HOW — isso é do TechSpec)
+
+---
+
+### `do-create-techspec` — Especificação Técnica
+
+**Quando usar:** PBI já criada, hora de definir arquitetura e implementação.
+
+**O que faz:**
+1. Analisa PBI profundamente
+2. Explora codebase para entender contexto técnico (chamadas, interfaces, persistence)
+3. **Research via MCP**: Usa Context7 para consultar documentação oficial de frameworks
+4. **Clarifications (interativo)**: Perguntas técnicas focadas ao usuário
+5. Gera TechSpec com arquitetura, component design, data models, endpoints, test strategy
+
+**Output:** `./pbis/pbi-[slug]/techspec.md`
+
+**Foco:** HOW (implementação, não requisitos de negócio)
+
+---
+
+### `do-create-tasks` — Decomposição em Tarefas
+
+**Quando usar:** TechSpec pronta, hora de criar tasks executáveis.
+
+**O que faz:**
+1. Analisa PBI + TechSpec
+2. Research via Context7 para estimar complexidade das libs envolvidas
+3. **High-level list (interativo)**: Apresenta lista de tasks para aprovação
+4. Gera files com tasks detalhadas e subtasks numeradas
+
+**Output:**
+- `./pbis/pbi-[slug]/tasks/tasks.md` (index)
+- `./pbis/pbi-[slug]/tasks/[num]_task.md` (cada task)
+
+**Regra de ouro:** Cada task deve ser funcional e ter seus próprios testes.
+
+---
+
+### `do-execute-task` — Implementar Task
+
+**Quando usar:** Task específica para implementar (ex: "execute task 3").
+
+**O que faz:**
+1. Le PBI, TechSpec, tasks.md e `[num]_task.md`
+2. **MCP Discovery**: Descobre quais MCPs estão configurados e aplicável
+3. Implementa com testes unit/integration
+4. **E2E via MCP**: Roda testes E2E usando tools do MCP (Playwright para browser, RabbitMQ para message queue, etc.)
+5. Code review automático contra checklist de padrões
+6. Marca task como `[x]` em `tasks.md`
+7. **Cria review artifact obrigatório**
+
+**Output:**
+- Implementação no codebase
+- `[num]_task_review.md` (MANDATÓRIO — sem isso, task NÃO está completa)
+
+**Regras críticas:**
+- TESTES DEVEM PASSAR — tarefa NUNCA completa com testes failing
+- Review file MANDATÓRIO — sem artifact = não conta
+- Execução AUTÔNOMA — zero pausas para confirmação do usuário
+
+---
+
+### `do-execute-review` — Code Review Geral (Gate antes do QA)
+
+**Quando usar:** Todas tasks implementadas ([x] em tasks.md), obrigatório antes de ir para QA.
+
+**O que faz:**
+1. Le git diff ou lista manual de files modified durante as tasks
+2. Verifica conformidade com TechSpec e padrões de código do projeto
+3. Roda test suite completa (unit, integration, typecheck)
+4. **E2E via MCP**: Valida features frontend/backend conforme MCPs disponíveis
+5. Classifica issues: CRITICAL / MAJOR / MINOR / POSITIVE
+6. Gera review report com status final
+
+**Loop de Correção:**
+- Se status = **NEEDS_REVISION** ou **REJECTED**: corrige as issues e roda `do-execute-review` novamente
+- Se status = **APPROVED**: prossegue para FASE 4 (QA)
+
+**Output:** `./pbis/pbi-[slug]/review-report.md`
+
+**Status:** ACCEPTED / NEEDS_REVISION / REJECTED
+
+---
+
+### `do-execute-qa` — Quality Assurance E2E
+
+**Quando usar:** Implementação completa, hora de validação final.
+
+**O que faz:**
+1. Cria checklist baseado nos requisitos do PBI
+2. **MCP Discovery**: Identifica MCPs disponíveis e aplica capability guard
+3. **E2E Tests via MCP**: Roda flows completos capturando screenshots
+4. **Accessibility**: Verifica WCAG 2.2 (keyboard nav, labels, contrast, etc.)
+5. **Visual verification**: Screenshots de estados diferentes
+6. Documenta bugs encontrados com evidência visual
+
+**Output:**
+- `./pbis/pbi-[slug]/qa-report.md`
+- `./pbis/pbi-[slug]/bugs.md` (se houver bugs)
+
+**Status:** APPROVED apenas se TODOS requisitos verificados e funcionando
+
+---
+
+### `do-execute-bugfix` — Correção de Bugs
+
+**Quando usar:** Bugs documentados em `bugs.md` precisam ser corrigidos.
+
+**O que faz:**
+1. Le todos bugs de `bugs.md`
+2. Analisa causa raiz de cada um
+3. Implementa correções por severidade (HIGH → MEDIUM → LOW)
+4. Cria testes de regressão para cada bug
+5. **E2E via MCP**: Valida correção no fluxo completo
+6. Atualiza `bugs.md` com status "Fixed" e descrição do fix
+7. Gera report final
+
+**Output:**
+- Correções no codebase
+- `bugs.md` atualizado
+- `./pbis/pbi-[slug]/bugfix-report.md`
+
+---
+
+## MCP Integration — Testes E2E Dinâmicos
+
+O DO Framework usa **Model Context Protocol (MCP)** para descoberta dinâmica de ferramentas de teste. Não é hardcoded — tudo configurável via registry.
+
+### Como Funciona a Descoberta
+
+1. Le `.mcp.json` na raiz → lista MCP servers configurados
+2. Le `do-mcp-capabilities.md` → mapeia cada server a capacidades e tools
+3. Constroi mapa interno: `{ "browser-testing": ["playwright"], "message-queue": ["rabbitmq"] }`
+4. Aplica **capability guard**: usa MCP disponível conforme tipo da feature
+
+### Capability Guard — Tabela de Decisão
+
+| Tipo Feature | MCP Disponível | Ação |
+|--------------|----------------|------|
+| Frontend + `browser-testing` | Sim | Rodar E2E browser via Playwright MCP |
+| Backend + `message-queue`/`database`/`cache` | Sim | Rodar E2E backend via MCP correspondente |
+| Frontend + Backend + ambos | Sim | Rodar ambos E2Es |
+| Feature + nenhum MCP relevante | Não | Pular E2E, documentar gap, continuar com unit/integration |
+
+### MCPs Configurados no Projeto
+
+**Arquivo:** `.mcp.json`
+
+```json
+{
+  "mcpServers": {
+    "playwright": { /* browser-testing */ },
+    "context7": { /* documentation research */ },
+    "rabbitmq": { /* message-queue validation */ }
+  }
+}
+```
+
+### Registry de Capacidades
+
+**Arquivo:** `.claude/skills/do-shared/do-mcp-capabilities.md`
+
+Documenta cada MCP com:
+- Capacidades (browser-testing, documentation, message-queue, etc.)
+- Prefixo de tools (`mcp__playwright__browser_*`)
+- Quando usar
+- Requer app rodando? (Sim/Não)
+- Handling se indisponível
+- Lista de tools principais
+
+### Adicionar Novo MCP (Zero Code Changes)
+
+1. Configurar no `.mcp.json`
+2. Adicionar entrada em `do-mcp-capabilities.md`
+3. **Pronto** — skills descobrem automaticamente, nenhuma edição nas skills necessária
+
+## Prerequisitos do Ambiente
+
+### Ferramentas Obrigatórias (Comuns a Todas as Stacks)
+
+```bash
+# Node.js + npx (necessário para MCPs)
+node --version  # 18+
+npm --version   # 9+
+
+# Git (para versionamento e diff analysis)
+git --version
+```
+
+### Ferramentas Específicas por Stack
+
+```bash
+# Para projetos React/Node.js
+npm install -g supabase  # Supabase CLI (opcional, para DB operations)
+
+# Para projetos Flutter
+flutter --version
+
+# Para projetos Python
+python3 --version
+
+# Escolha conforme sua stack
+```
+
+### Ferramentas Opcionais (para MCPs)
+
+```bash
+# uv (para MCPs Python-based como RabbitMQ)
+uvx --version
+# Install: curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+### Configurar um MCP
+
+**Exemplo: Playwright (browser-testing)**
+
+1. Adicionar no `.mcp.json`:
+   ```json
+   {
+     "playwright": {
+       "type": "stdio",
+       "command": "npx",
+       "args": ["@playwright/mcp@latest"],
+       "env": {}
+     }
+   }
+   ```
+
+2. Adicionar entrada em `do-mcp-capabilities.md`:
+   ```markdown
+   ### playwright
+   - **Capacidades:** browser-testing
+   - **Prefixo de tools:** mcp__playwright__browser_*
+   - **Quando usar:** E2E frontend, validação visual
+   - **Requer app rodando:** Sim
+   - **Se indisponível:** Reportar erro, documentar gap no relatório
+   ```
+
+3. Instalar dependências se necessário:
+   ```bash
+   npx @playwright/mcp@latest --help  # Verifica install
+   ```
+
+## Estrutura de Pastas Gerada
+
+```
+./pbis/
+└── pbi-[feature-slug]/
+    ├── pbi.md                  # Product Backlog Item (do-create-pbi)
+    ├── techspec.md             # Tech Spec (do-create-techspec)
+    ├── bugs.md                 # Bugs encontrados (do-execute-qa/bugfix)
+    ├── qa-report.md            # Relatório QA (do-execute-qa)
+    ├── review-report.md        # Relatório Review (do-execute-review)
+    ├── bugfix-report.md        # Relatório Bugfix (do-execute-bugfix)
+    └── tasks/
+        ├── tasks.md            # Index de tasks (do-create-tasks)
+        ├── 1_task.md           # Task 1 detalhada
+        ├── 1_task_review.md    # Review artifact task 1
+        ├── 2_task.md
+        ├── 2_task_review.md
+        └── ...
+```
+
+## Convenções do Framework
+
+| Convenção | Descrição |
+|-----------|-----------|
+| **Prefixo `do-`** | Todas skills usam `do-` para identificar como parte do framework |
+| **Slug kebab-case** | Pastas usam kebab-case: `pbi-dark-mode`, `pbi-user-auth` |
+| **Numeração de tasks** | Tasks numeradas sequencialmente: `1_task.md`, `2_task.md` |
+| **Artefatos obrigatórios** | Sem artifact = task incompleta (review files, reports) |
+| **Testes devem passar** | Task NUNCA completa com failing tests |
+| **Execução autônoma** | Skills executam sem pausas para confirmação (exceto steps interativos explícitos) |
+| **Língua dos artifacts** | PT-BR para documentos, English para code/tech terms |
+
+## Quando Usar Cada Skill — Guia Rápido
+
+| Cenário | Command | Loop? |
+|---------|---------|-------|
+| Novo projeto, primeira vez | `/do-setup` | Não (1x) |
+| Nova feature (ideia vaga) | `/do-create-pbi` | Não |
+| PBI criada, definir arquitetura | `/do-create-techspec` | Não |
+| TechSpec pronta, criar tasks | `/do-create-tasks` | Não |
+| Implementar task específica | `/do-execute-task 1` | Sim (por cada task) |
+| **Review geral (OBIGATÓRIO antes do QA)** | `/do-execute-review` | **Sim (até APPROVED)** |
+| QA E2E da feature completa | `/do-execute-qa` | Sim (com bugfix) |
+| Corrigir bugs encontrados no QA | `/do-execute-bugfix` | **Sim (até zero HIGH)** |
+
+## Fluxo Completo — Exemplo Prático
+
+**Feature:** "Modo escuro no app"
+
+```bash
+# FASE 1: PLANEJAMENTO
+# ------------------------------------------------
+# 1. Criar PBI
+/do-create-pbi
+> Feature: Dark Mode
+> [responde perguntas sobre problema, usuários, flows]
+
+# 2. Criar TechSpec
+/do-create-techspec dark-mode
+> [pesquisa docs via Context7 MCP + responde clarifications técnicas]
+
+# 3. Criar Tasks
+/do-create-tasks dark-mode
+> [aprova high-level task list]
+
+# FASE 2: EXECUÇÃO
+# ------------------------------------------------
+# 4. Executar cada task em sequência (loop)
+/do-execute-task 1  # implementa + testa + review file
+/do-execute-task 2  # implementa + testa + review file
+/do-execute-task 3  # implementa + testa + review file
+... (até todas tasks [x] em tasks.md)
+
+# FASE 3: CODE REVIEW GERAL (LOOP até APPROVED)
+# ------------------------------------------------
+# 5. Review geral do PBI (OBIGATÓRIO antes do QA)
+/do-execute-review dark-mode
+> Status: NEEDS_REVISION? → corrige issues → /do-execute-review dark-mode
+> Status: APPROVED? → prossegue para QA
+
+# FASE 4: VALIDAÇÃO E2E + BUGFIX (LOOP até zero bugs HIGH)
+# ------------------------------------------------
+# 6. QA final com E2E completo
+/do-execute-qa dark-mode
+> [roda E2E via Playwright MCP, accessibility, visual verification]
+> [gera qa-report.md + bugs.md se houver problemas]
+
+# 7. Se houver bugs HIGH/MEDIUM: loop de correção
+[se bugs.md tem entries] → /do-execute-bugfix dark-mode
+> [corrige por severidade + tests de regressão]
+
+# 8. Revalida com QA novamente
+/do-execute-qa dark-mode
+> [reteste apenas areas corrigidas ou E2E completo]
+
+# 9. Repetir steps 7-8 até zero bugs HIGH
+[se ainda tem bugs HIGH] → /do-execute-bugfix dark-mode → /do-execute-qa dark-mode
+[zero bugs HIGH] → FEATURE READY! ✅
+```
+
+## Referências
+
+| Arquivo | Propósito |
+|---------|-----------|
+| `do-mcp-capabilities.md` | Registry central de MCPs e suas capacidades |
+| `do-mcp-discovery-instructions.md` | Procedimento de descoberta dinâmica de MCPs |
+| `.mcp.json` | Configuração de MCP servers ativos no projeto |
+| `CLAUDE.md` | Contexto do projeto gerado por `do-setup` |
+
+## Dicas Importantes
+
+1. **Não pule steps**: PBI → TechSpec → Tasks → Execute (ordem é importante)
+2. **MCPs são opcionais mas recomendados**: Sem MCP, perde-se E2E automatizado
+3. **Review files são obrigatórios**: Sem `[num]_task_review.md`, a task NÃO está completa
+4. **Testes failing bloqueiam progresso**: Não prossiga até todos passarem
+5. **Bugs HIGH devem ser corrigidos antes de considerar feature done**
+
+---
+
+## Sobre o Autor
+
+**Fabio Barboza de Oliveira** — Desenvolvedor Senior especializado em arquitetura de software e desenvolvimento de ferramentas que aumentam a produtividade de equipes de engenharia.
+
+### Sobre mim
+
+Desenvolvedor com experiência em criar soluções que automatizam processos e melhoram a qualidade de código. Este framework (DO - Development Orchestrator) representa minha abordagem para orquestrar o ciclo completo de desenvolvimento de software, desde o planejamento até a validação final.
+
+### Contato
+
+- **LinkedIn:** [linkedin.com/in/fabio-oliveira-20a977a1](https://www.linkedin.com/in/fabio-oliveira-20a977a1/)
+- **Email:** barboza.oliveira@gmail.com
+
+---
+
+## Licença
+
+Este projeto é software de código aberto.
