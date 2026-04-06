@@ -31,6 +31,9 @@ When an `Edit` tool call fails, follow this escalation ladder:
 
 **Exception for tasks.md**: When using Write as fallback for `tasks.md`, you MUST first `read_file` the entire file, then reproduce ALL existing content exactly (preserving every line, every completed task), changing ONLY the target task's `[ ]` to `[x]`. After Write, immediately `read_file` to verify no lines were lost.
 
+## Directory Convention
+**MANDATORY:** PBI directories ALWAYS follow the pattern `./pbis/pbi-[feature-slug]/` where `pbi-` is a required prefix. Example: feature `user-auth` → directory `./pbis/pbi-user-auth/`. **NEVER** reference a path like `./pbis/user-auth/`. When scanning `./pbis/` to auto-select a PBI, look for folders matching the `pbi-*` pattern.
+
 ## Procedures
 
 **Step 0: Detect AI Tool Environment (execute silently)**

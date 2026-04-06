@@ -8,11 +8,14 @@ description: Creates Product Backlog Items (PBIs) from feature requests followin
 ## Role
 You are a senior product manager specialized in writing clear, actionable PBIs for development and product teams.
 
+## Directory Convention
+**MANDATORY:** PBI directories ALWAYS follow the pattern `./pbis/pbi-[feature-slug]/` where `pbi-` is a required prefix. Example: feature `user-auth` → directory `./pbis/pbi-user-auth/`. **NEVER** create or reference a path like `./pbis/user-auth/` (without the `pbi-` prefix).
+
 ## Procedures
 
 **Step 1: Validate Prerequisites**
 1. Confirm the feature name or description has been provided by the user.
-2. Derive the slug in kebab-case for the output directory: `./pbis/pbi-[feature-slug]/`.
+2. Derive the slug in kebab-case and apply the mandatory `pbi-` prefix for the output directory: `./pbis/pbi-[feature-slug]/`. Example: `user-auth` → `./pbis/pbi-user-auth/`.
 
 **Step 2: Clarify Requirements (Mandatory)**
 1. Ask the user clarification questions using the AskUserQuestion tool before generating any content.
@@ -43,13 +46,20 @@ You are a senior product manager specialized in writing clear, actionable PBIs f
 2. Save the PBI to: `./pbis/pbi-[feature-slug]/pbi.md`.
 
 **Step 6: Report Results & Sync Progress (Mandatory)**
-1. **SYNC INTERNAL PROGRESS**: Once the PBI is saved, use the `TaskUpdate` tool to mark all corresponding items in your internal task tracking as `completed`.
+1. **SYNC INTERNAL PROGRESS**: Once the PBI is saved, if `TaskUpdate` is available (Claude Code), use it to mark all corresponding items in your internal task tracking as `completed`. Otherwise, skip this step.
 2. Provide the final file path.
 3. Provide a brief summary of the PBI outcome.
 4. **COMPLIANCE CHECK**: Before responding to the user, verify:
     - Is the PBI file saved correctly?
     - Is the internal task tracking synchronized?
     - Did you follow the template structure?
+
+## Environment Detection
+Before anything else, determine the execution environment:
+1. Check for `.claude/` directory → **Claude Code** → skills dir: `.claude/skills/`
+2. Check for `.github/` directory → **GitHub Copilot** → skills dir: not applicable
+3. **AskUserQuestion**: available in Claude Code; in Copilot, ask questions directly in the chat response and wait for the user to reply
+4. **TaskUpdate**: available in Claude Code; in Copilot, skip gracefully
 
 ## Output Language
 All generated artifacts (PBI document, summaries) must be written in Brazilian Portuguese (PT-BR). Code examples, variable names, and technical terms remain in English.
@@ -70,10 +80,10 @@ All generated artifacts (PBI document, summaries) must be written in Brazilian P
 
 ## Error Handling
 - If the user provides insufficient context, ask follow-up clarification questions before proceeding.
-- If the template file (`.claude/skills/do-create-pbi/assets/pbi-template.md`) is missing, report the error and halt — do not generate a PBI without the template.
+- If the template file is missing at the skills directory path (e.g., `.claude/skills/do-create-pbi/assets/pbi-template.md` for Claude Code), report the error and halt — do not generate a PBI without the template.
 - If the output directory already exists, confirm with the user before overwriting.
 - If the output file cannot be written (permission error, invalid path), report the error to the user.
 
 ## References
-- Template: `.claude/skills/do-create-pbi/assets/pbi-template.md`
+- Template: resolved by environment (e.g., `.claude/skills/do-create-pbi/assets/pbi-template.md` for Claude Code)
 - Output: `./pbis/pbi-[feature-slug]/pbi.md`

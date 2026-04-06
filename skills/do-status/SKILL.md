@@ -5,12 +5,15 @@ description: Shows current progress of a PBI — completed tasks, next pending t
 
 # Status Report
 
+## Directory Convention
+**MANDATORY:** PBI directories ALWAYS follow the pattern `./pbis/pbi-[feature-slug]/` where `pbi-` is a required prefix. Example: feature `user-auth` → directory `./pbis/pbi-user-auth/`. When scanning `./pbis/`, only consider folders matching the `pbi-*` pattern.
+
 ## Procedures
 
 **Step 1: Identify Target PBI**
-1. If the user did not provide `[feature-slug]`, scan `./pbis/` to list available PBI folders.
-2. If only one folder exists, use it automatically. If multiple exist, select the most recently modified.
-3. If `./pbis/` does not exist or is empty, halt: "No PBIs found — run `do-create-pbi` first."
+1. If the user did not provide `[feature-slug]`, scan `./pbis/` for folders matching `pbi-*`.
+2. If only one `pbi-*` folder exists, use it automatically. If multiple exist, select the most recently modified.
+3. If `./pbis/` does not exist or contains no `pbi-*` folders, halt: "No PBIs found — run `do-create-pbi` first."
 
 **Step 2: Read Tasks**
 1. Read `./pbis/pbi-[feature-slug]/tasks/tasks.md`. If it does not exist, halt: "tasks.md not found — run `do-create-tasks` first."

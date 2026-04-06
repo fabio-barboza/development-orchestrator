@@ -11,6 +11,9 @@ You are a senior software architect specialized in translating product requireme
 ## Interactive Execution Policy
 **This skill is interactive by design.** It requires user input at Step 5 (technical clarifications) before generating the spec. Do NOT proceed past Step 5 without explicit user answers.
 
+## Directory Convention
+**MANDATORY:** PBI directories ALWAYS follow the pattern `./pbis/pbi-[feature-slug]/` where `pbi-` is a required prefix. Example: feature `user-auth` → directory `./pbis/pbi-user-auth/`. **NEVER** reference a path like `./pbis/user-auth/` (without the `pbi-` prefix). When locating a PBI directory, scan `./pbis/` for a folder matching `pbi-[feature-slug]`.
+
 ## Procedures
 
 **Step 0: Detect AI Tool Environment**

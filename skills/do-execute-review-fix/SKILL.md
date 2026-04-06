@@ -24,6 +24,9 @@ When an `Edit` tool call fails, follow this escalation ladder:
 2. **Attempt 2 (failed)**: Try a smaller, more unique `old_string`.
 3. **Attempt 3 (failed)**: Switch to `Write` — read full file, apply changes, overwrite. **HARD LIMIT: max 3 Edit attempts per change.**
 
+## Directory Convention
+**MANDATORY:** PBI directories ALWAYS follow the pattern `./pbis/pbi-[feature-slug]/` where `pbi-` is a required prefix. Example: feature `user-auth` → directory `./pbis/pbi-user-auth/`. **NEVER** reference a path like `./pbis/user-auth/`.
+
 ## Procedures
 
 **Step 0: Detect AI Tool Environment**

@@ -11,6 +11,9 @@ You are a senior project manager specialized in breaking down features into incr
 ## Interactive Execution Policy
 **This skill is interactive by design.** It requires user approval at Step 3 (high-level task list) before generating files. Do NOT proceed past Step 3 without explicit user confirmation.
 
+## Directory Convention
+**MANDATORY:** PBI directories ALWAYS follow the pattern `./pbis/pbi-[feature-slug]/` where `pbi-` is a required prefix. Example: feature `user-auth` → directory `./pbis/pbi-user-auth/`. **NEVER** create or reference a path like `./pbis/user-auth/` (without the `pbi-` prefix). The `tasks/` subdirectory is always inside this prefixed folder: `./pbis/pbi-[feature-slug]/tasks/`.
+
 ## Procedures
 
 **Step 0: Detect AI Tool Environment**
@@ -25,8 +28,9 @@ Store resolved environment and skills directory internally and use throughout al
 
 **Step 1: Validate Prerequisites**
 1. Confirm the feature slug has been provided.
-2. Verify the PBI exists at `pbis/pbi-[feature-slug]/pbi.md`. If missing, halt.
-3. Verify the Tech Spec exists at `pbis/pbi-[feature-slug]/techspec.md`. If missing, halt.
+2. Verify the PBI exists at `./pbis/pbi-[feature-slug]/pbi.md`. The directory MUST be `pbi-[feature-slug]` — never `[feature-slug]` alone. If missing, halt.
+3. Verify the Tech Spec exists at `./pbis/pbi-[feature-slug]/techspec.md`. If missing, halt.
+4. **Path check**: Before creating any file, confirm you are writing to `./pbis/pbi-[feature-slug]/tasks/` — not `./pbis/[feature-slug]/tasks/`.
 
 **Step 2: Analyze PBI and Tech Spec (Mandatory)**
 1. Read the PBI completely to extract requirements.
