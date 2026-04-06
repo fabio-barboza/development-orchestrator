@@ -11,13 +11,6 @@ You are a senior software architect specialized in translating product requireme
 ## Interactive Execution Policy
 **This skill is interactive by design.** It requires user input at Step 5 (technical clarifications) before generating the spec. Do NOT proceed past Step 5 without explicit user answers.
 
-## Resumption Detection (GitHub Copilot only)
-In GitHub Copilot, each user message starts a fresh invocation — the agent has no memory of previous turns. To handle resumption:
-
-1. **On every invocation**, before running Step 0, check if a `techspec-answers.md` file exists at `pbis/pbi-[feature-slug]/techspec-answers.md`.
-2. **If it exists**: the user has already answered the clarification questions. Skip Steps 1–5 and resume from **Step 6**, using the answers stored in that file.
-3. **After presenting questions (Step 5, Copilot path)**: immediately save the questions to `pbis/pbi-[feature-slug]/techspec-answers.md` as a placeholder (with empty answer fields) so the resumption file exists. Instruct the user: *"Edite o arquivo `techspec-answers.md` com suas respostas e invoque `/do-create-techspec` novamente para continuar."*
-4. **On resumption**: read `techspec-answers.md`, use the answers, then delete the file after the tech spec is successfully generated.
 
 ## Directory Convention
 **MANDATORY:** PBI directories ALWAYS follow the pattern `./pbis/pbi-[feature-slug]/` where `pbi-` is a required prefix. Example: feature `user-auth` → directory `./pbis/pbi-user-auth/`. **NEVER** reference a path like `./pbis/user-auth/` (without the `pbi-` prefix). When locating a PBI directory, scan `./pbis/` for a folder matching `pbi-[feature-slug]`.
@@ -29,7 +22,7 @@ Before anything else, determine the execution environment:
 1. Check for `.claude/` directory in the project root → **Claude Code** → skills dir: `.claude/skills/`
 2. Check for `.github/copilot-instructions.md` or `.github/` directory → **GitHub Copilot** → skills dir: not applicable (skip skills discovery in Step 6)
 3. Resolve available tools based on environment:
-   - **AskUserQuestion**: available in Claude Code; in Copilot, send ALL questions in a **single message** using **numbered options** wherever possible — always including a final option like `0. Outro: ___` for custom input — so the user can reply with a number instead of typing. Reserve fully open-ended questions only for information that cannot be listed as options.
+   - **AskUserQuestion**: available in Claude Code; in Copilot, send ALL questions in a **single message** using **numbered questions with lettered alternatives (a, b, c…)** — always including a final alternative `z. Outro: ___` for custom input. Example: `1. Título da pergunta / a. Opção A / b. Opção B / z. Outro: ___`. Reserve fully open-ended questions only for information that cannot be listed as options.
    - **TaskUpdate**: available in Claude Code; in Copilot, skip gracefully
    - **Context7 MCP**: available if configured; fallback to Web Search otherwise
 
@@ -64,7 +57,7 @@ Store resolved environment and tool availability internally and use throughout a
    - Key interfaces.
    - Test scenarios.
    - If `AskUserQuestion` is available (Claude Code), use it and halt until answers are received.
-   - Otherwise (GitHub Copilot), send ALL questions in a **single message** with **numbered options** wherever possible — always including a final option like `0. Outro: ___` for custom input — so the user can reply with numbers instead of typing full answers.
+   - Otherwise (GitHub Copilot), send ALL questions in a **single message** with **lettered options (a, b, c…)** — always including a final option `z. Outro: ___` for custom input — so the user can reply with a letter instead of typing full answers.
 3. Do NOT proceed until answers are received.
 
 **Step 6: Standards Compliance Mapping (Mandatory)**
