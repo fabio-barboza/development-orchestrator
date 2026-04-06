@@ -23,7 +23,7 @@ You are a senior QA engineer specialized in E2E testing, accessibility validatio
 
 **Step 2: MCP Discovery & Capability Guard (starts immediately after Step 1 — no pause, no confirmation)**
 1. **MCP Discovery**: Execute the discovery procedure from `.claude/skills/do-shared/do-mcp-discovery-instructions.md`:
-   a. Read `.mcp.json` at the project root to list configured MCP servers.
+   a. Read the MCP configuration file for the current AI tool (`.mcp.json` for Claude Code, `.vscode/mcp.json` for GitHub Copilot, `.cursor/mcp.json` for Cursor) to list configured MCP servers.
    b. Read `.claude/skills/do-shared/do-mcp-capabilities.md` to map each server to its capabilities and tools.
    c. Build an internal capability map (e.g., `{ "browser-testing": ["playwright"], "message-queue": ["rabbitmq"] }`).
 2. **Capability Guard**: Analyze the PBI, Tech Spec, and Tasks to determine if the feature involves **frontend/UI**, **backend**, or **both**. Apply the capability guard from the discovery instructions:

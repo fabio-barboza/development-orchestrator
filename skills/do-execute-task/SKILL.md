@@ -49,7 +49,7 @@ When an `Edit` tool call fails, follow this escalation ladder:
 5. Read the Tech Spec at `./pbis/pbi-[feature-slug]/techspec.md` for technical requirements. If the TechSpec file does not exist, **HALT IMMEDIATELY** with a clear error: "TechSpec file missing. Run `do-create-techspec` first." — do NOT ask permission or wait for user response.
 6. Read `./pbis/pbi-[feature-slug]/tasks/tasks.md` to understand the full task list and verify dependencies. If `tasks.md` does not exist, **HALT IMMEDIATELY** with a clear error: "Tasks file missing. Run `do-create-tasks` first." — do NOT ask permission or wait for user response.
 7. Identify dependencies from previous tasks and verify they are complete.
-8. If the task file contains a `<skills>` section listing relevant skills, read those skill files from `.claude/skills/` and incorporate their guidance during implementation.
+8. If the task file contains a `<skills>` section listing relevant skills, read those skill files from the AI tool's skills directory (e.g., `.claude/skills/` for Claude Code) and incorporate their guidance during implementation.
 9. Do NOT skip any of these reads.
 
 **Step 2: Load Required Skills**
@@ -64,13 +64,13 @@ When an `Edit` tool call fails, follow this escalation ladder:
 
 **Step 4: Implementation (SAME response as Step 3 — zero latency, zero user interaction)**
 1. Implementation begins in the same response as analysis. There is no separate "planning" message.
-2. Follow all project standards established in CLAUDE.md and project rules.
+2. Follow all project standards established in the project configuration file (CLAUDE.md or equivalent) and project rules.
 3. Implement solutions without workarounds.
 4. Respect ALL `<critical>` tags identified in Step 3 — they are mandatory constraints, not suggestions.
 5. As you complete each subtask listed in the task file (X.1, X.2, etc.), mark it as `[x]` in the `[num]_task.md` file.
 6. Detect the project's package manager from lock files (`bun.lockb` → bun, `pnpm-lock.yaml` → pnpm, `package-lock.json` → npm, default: `npm`).
 7. **MCP Discovery & E2E tests — WHEN TO RUN**: Execute the MCP discovery procedure from `.claude/skills/do-shared/do-mcp-discovery-instructions.md`:
-   a. Read `.mcp.json` to list configured MCP servers.
+   a. Read the MCP configuration file for the current AI tool (`.mcp.json` for Claude Code, `.vscode/mcp.json` for GitHub Copilot, `.cursor/mcp.json` for Cursor) to list configured MCP servers.
    b. Read `.claude/skills/do-shared/do-mcp-capabilities.md` to map each server to capabilities and tools.
    c. Build capability map and apply the **capability guard**:
       - Frontend task + `browser-testing` MCP available → run browser E2E.
@@ -134,7 +134,7 @@ The ONLY permitted modification to `tasks.md` is changing `[ ]` to `[x]` for the
 **Step 6: Code Review**
 1. Re-read the task file to ensure you have the latest content (context compression may have discarded earlier reads).
 2. Check if the project is a git repository by running `git rev-parse --is-inside-work-tree`. If git is available, use `git diff` and `git log` to identify files changed as part of this task and read the full context of modified files, not just the diffs. If git is NOT available, manually list all files you created or modified during implementation and read their full content for review.
-3. Read `.claude/skills/do-execute-task/references/code-standards.md` for the standards checklist. Review the code against those criteria and verify compliance with CLAUDE.md if it exists.
+3. Read the `code-standards.md` file from the task references (in the skills directory). Review the code against those criteria and verify compliance with the project configuration file (CLAUDE.md or equivalent) if it exists.
 4. For each issue found, classify as:
    - **CRITICAL**: Bugs, security issues, broken functionality, missing error handling.
    - **MAJOR**: Code standard violations, missing tests, bad naming.

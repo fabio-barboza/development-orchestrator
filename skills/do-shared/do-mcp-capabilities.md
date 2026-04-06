@@ -70,7 +70,10 @@ Fonte de verdade sobre as capacidades de cada MCP server configurado no projeto.
 
 ## Como Adicionar Novo MCP Server
 
-1. Adicione o server ao `.mcp.json` na raiz do projeto
+1. Adicione o server ao arquivo de configuração MCP da sua ferramenta de IA:
+   - **Claude Code:** `.mcp.json` na raiz do projeto (ou `~/.mcp.json` para configuração global)
+   - **GitHub Copilot:** `.vscode/mcp.json`
+   - **Cursor:** `.cursor/mcp.json`
 2. Adicione uma entrada neste arquivo sob "Servidores Conhecidos" com:
    - Capacidades (usando as categorias da tabela acima)
    - Prefixo de tools

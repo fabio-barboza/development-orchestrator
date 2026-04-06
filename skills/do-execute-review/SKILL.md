@@ -62,7 +62,7 @@ You are a senior code reviewer focused on quality, standards compliance, and pro
 **Step 6: Test Execution (Mandatory)**
 1. Detect the project's package manager from lock files (`bun.lockb` → bun, `pnpm-lock.yaml` → pnpm, `package-lock.json` → npm). Default to `npm` if none found.
 2. Run the test suite using the detected package manager (e.g., `npm test`).
-3. **E2E tests via MCP**: Execute the MCP discovery procedure from `.claude/skills/do-shared/do-mcp-discovery-instructions.md` — read `.mcp.json` and `.claude/skills/do-shared/do-mcp-capabilities.md` to build the capability map. Apply the capability guard:
+3. **E2E tests via MCP**: Execute the MCP discovery procedure from `do-mcp-discovery-instructions.md` (in the shared skills directory) — read the MCP configuration file for the current AI tool (`.mcp.json` for Claude Code, `.vscode/mcp.json` for GitHub Copilot, `.cursor/mcp.json` for Cursor) and `do-mcp-capabilities.md` to build the capability map. Apply the capability guard:
    - Frontend changes + `browser-testing` MCP → run browser E2E via MCP tools. CLI fallback (`npx playwright test --reporter=list`) is also permitted if MCP is unavailable.
    - Backend changes + backend-capable MCP (`message-queue`, `database`, `cache`, `api-testing`) → run backend E2E via MCP tools.
    - Changes type + no relevant MCP → skip E2E, document gap in review report.

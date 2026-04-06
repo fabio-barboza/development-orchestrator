@@ -55,7 +55,7 @@ You are a senior software engineer specialized in root-cause analysis and implem
 
 **Step 5: MCP Discovery & Validation (Mandatory for bugs that can be validated via MCP)**
 1. Execute the MCP discovery procedure from `.claude/skills/do-shared/do-mcp-discovery-instructions.md`:
-   a. Read `.mcp.json` to list configured MCP servers.
+   a. Read the MCP configuration file for the current AI tool (`.mcp.json` for Claude Code, `.vscode/mcp.json` for GitHub Copilot, `.cursor/mcp.json` for Cursor) to list configured MCP servers.
    b. Read `.claude/skills/do-shared/do-mcp-capabilities.md` to map each server to capabilities.
    c. Build capability map and apply the capability guard.
 2. For bugs affecting the **UI** (and `browser-testing` MCP available):

@@ -44,7 +44,7 @@ You are a senior software architect specialized in translating product requireme
 3. Do NOT proceed until answers are received.
 
 **Step 6: Standards Compliance Mapping (Mandatory)**
-1. Identify project skills in `.claude/skills/` that apply to this spec.
+1. Identify project skills in the AI tool's skills directory (e.g., `.claude/skills/` for Claude Code) that apply to this spec.
 2. Highlight deviations with justification and compliant alternatives.
 
 **Step 7: Generate Tech Spec (Mandatory)**

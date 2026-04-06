@@ -4,8 +4,12 @@ Procedimento padrao referenciado pelas skills de execucao (do-execute-task, do-e
 
 ## Procedimento de Descoberta
 
-1. Ler `.mcp.json` na raiz do projeto para listar MCP servers configurados.
-2. Ler `.claude/skills/do-shared/do-mcp-capabilities.md` para mapear cada server as suas capacidades e tools.
+1. Identificar e ler o arquivo de configuração de MCP servers do projeto. O arquivo varia conforme a ferramenta de IA utilizada:
+   - **Claude Code:** `.mcp.json` na raiz do projeto
+   - **GitHub Copilot:** `.vscode/mcp.json`
+   - **Cursor:** `.cursor/mcp.json`
+   Ler o arquivo encontrado para listar os MCP servers configurados.
+2. Ler o registry de capacidades MCP em `do-mcp-capabilities.md` (localizado no diretório de skills compartilhadas) para mapear cada server as suas capacidades e tools.
 3. Construir mapa interno de capacidades. Exemplo:
    ```
    { "browser-testing": ["playwright"], "message-queue": ["rabbitmq"], "documentation": ["context7"] }
@@ -17,7 +21,7 @@ Procedimento padrao referenciado pelas skills de execucao (do-execute-task, do-e
    d. **Se nao existe**: documentar o gap no relatorio ("MCP com capacidade [X] nao configurado — validacao [Y] nao executada") e continuar com testes unitarios/integracao.
 5. Para MCPs que requerem app rodando: verificar se o servico esta acessivel antes de invocar tools. Se nao estiver, tentar iniciar (dev server para browser-testing, verificar broker para message-queue, etc.).
 6. Se MCP configurado mas indisponivel em runtime (erro de conexao, tools nao respondem): seguir o handling de indisponibilidade descrito na entrada do registry.
-7. Se um MCP em `.mcp.json` NAO esta listado no registry: tentar usar tools com prefixo `mcp__<server-name>__` e documentar no relatorio que o MCP nao esta registrado em `mcp-capabilities.md`.
+7. Se um MCP no arquivo de configuração NAO esta listado no registry: tentar usar tools com prefixo `mcp__<server-name>__` e documentar no relatorio que o MCP nao esta registrado em `mcp-capabilities.md`.
 
 ## Guard de Capacidade (substitui o frontend guard binario)
 

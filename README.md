@@ -290,7 +290,7 @@ O DO Framework usa **Model Context Protocol (MCP)** para descoberta dinâmica de
 
 ### Como Funciona a Descoberta
 
-1. Le `.mcp.json` na raiz → lista MCP servers configurados
+1. Le o arquivo de configuração MCP da ferramenta de IA (`.mcp.json`, `.vscode/mcp.json`, etc.) → lista MCP servers configurados
 2. Le `do-mcp-capabilities.md` → mapeia cada server a capacidades e tools
 3. Constroi mapa interno: `{ "browser-testing": ["playwright"], "message-queue": ["rabbitmq"] }`
 4. Aplica **capability guard**: usa MCP disponível conforme tipo da feature
@@ -306,15 +306,19 @@ O DO Framework usa **Model Context Protocol (MCP)** para descoberta dinâmica de
 
 ### Como Configurar MCPs no Seu Projeto
 
-**Passo 1:** Crie o arquivo `.mcp.json` na raiz do seu projeto com os MCPs que deseja usar.
+A localização e o formato do arquivo de configuração de MCPs **varia conforme a ferramenta de IA** utilizada:
 
-Os MCPs ja configurados no DO Framework já estão configurados em `skills/do-shared/do-mcp-capabilities.md`. Você pode adicioná-los:
-- **No projeto:** criando um `.mcp.json` local
-- **Globalmente:** configurando no seu `~/.mcp.json` (serão disponíveis em todos os projetos)
+| Ferramenta | Arquivo de Configuração | Chave principal |
+|-----------|------------------------|----------------|
+| **Claude Code** | `.mcp.json` (raiz do projeto) ou `~/.mcp.json` (global) | `mcpServers` |
+| **GitHub Copilot** | `.vscode/mcp.json` | `servers` |
+| **Cursor** | `.cursor/mcp.json` | `mcpServers` |
 
-Obs: Você pode adicionar novos MCPs e configura-los no `skills/do-shared/do-mcp-capabilities.md`
+Os MCPs disponíveis para o DO Framework estão documentados em `skills/do-shared/do-mcp-capabilities.md`. Você pode adicioná-los no arquivo correspondente à sua ferramenta.
 
-**Exemplo de `.mcp.json`:**
+Obs: Você pode adicionar novos MCPs e configurá-los no `skills/do-shared/do-mcp-capabilities.md`
+
+**Claude Code — `.mcp.json` (raiz do projeto):**
 
 ```json
 {
@@ -330,6 +334,37 @@ Obs: Você pode adicionar novos MCPs e configura-los no `skills/do-shared/do-mcp
       "command": "npx",
       "args": ["-y", "@upstash/context7-mcp@latest"],
       "env": {}
+    },
+    "rabbitmq": {
+      "type": "stdio",
+      "command": "uvx",
+      "args": [
+        "mcp-server-rabbitmq@latest",
+        "--rabbitmq-host", "localhost",
+        "--port", "5672",
+        "--username", "guest",
+        "--password", "guest",
+        "--api-port", "15672"
+      ]
+    }
+  }
+}
+```
+
+**GitHub Copilot — `.vscode/mcp.json`:**
+
+```json
+{
+  "servers": {
+    "playwright": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["@playwright/mcp@latest"]
+    },
+    "context7": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp@latest"]
     },
     "rabbitmq": {
       "type": "stdio",
@@ -369,7 +404,7 @@ Documenta cada MCP com:
 
 ### Adicionar Novo MCP (Zero Code Changes)
 
-1. Configurar no `.mcp.json`
+1. Configurar no arquivo MCP da sua ferramenta (`.mcp.json`, `.vscode/mcp.json`, etc.)
 2. Adicionar entrada em `do-mcp-capabilities.md`
 3. **Pronto** — skills descobrem automaticamente, nenhuma edição nas skills necessária
 
@@ -413,7 +448,7 @@ uvx --version
 
 **Exemplo: Playwright (browser-testing)**
 
-1. Adicionar no `.mcp.json`:
+1. Adicionar no arquivo de configuração MCP da sua ferramenta (veja a tabela acima):
    ```json
    {
      "playwright": {
@@ -474,20 +509,24 @@ uvx --version
 
 ## Quando Usar Cada Skill — Guia Rápido
 
-| Cenário | Command | Loop? |
-|---------|---------|-------|
-| Novo projeto, primeira vez | `/do-setup` | Não (1x) |
-| Nova feature (ideia vaga) | `/do-create-pbi` | Não |
-| PBI criada, definir arquitetura | `/do-create-techspec` | Não |
-| TechSpec pronta, criar tasks | `/do-create-tasks` | Não |
-| Implementar task específica | `/do-execute-task 1` | Sim (por cada task) |
-| **Review geral (OBIGATÓRIO antes do QA)** | `/do-execute-review` | **Sim (até APPROVED)** |
-| QA E2E da feature completa | `/do-execute-qa` | Sim (com bugfix) |
-| Corrigir bugs encontrados no QA | `/do-execute-bugfix` | **Sim (até zero HIGH)** |
+> Os exemplos abaixo usam a sintaxe do **Claude Code** (`/skill-name`). Consulte a documentação da sua ferramenta para a forma de invocar skills (GitHub Copilot, Cursor, etc. possuem sua própria sintaxe de invocação).
+
+| Cenário | Skill | Loop? |
+|---------|-------|-------|
+| Novo projeto, primeira vez | `do-setup` | Não (1x) |
+| Nova feature (ideia vaga) | `do-create-pbi` | Não |
+| PBI criada, definir arquitetura | `do-create-techspec` | Não |
+| TechSpec pronta, criar tasks | `do-create-tasks` | Não |
+| Implementar task específica | `do-execute-task 1` | Sim (por cada task) |
+| **Review geral (OBIGATÓRIO antes do QA)** | `do-execute-review` | **Sim (até APPROVED)** |
+| QA E2E da feature completa | `do-execute-qa` | Sim (com bugfix) |
+| Corrigir bugs encontrados no QA | `do-execute-bugfix` | **Sim (até zero HIGH)** |
 
 ## Fluxo Completo — Exemplo Prático
 
 **Feature:** "Modo escuro no app"
+
+> Os comandos abaixo usam a sintaxe do **Claude Code** (prefixo `/`). Para outras ferramentas, adapte a invocação conforme necessário.
 
 ```bash
 # FASE 1: PLANEJAMENTO
@@ -546,8 +585,22 @@ uvx --version
 |---------|-----------|
 | `do-mcp-capabilities.md` | Registry central de MCPs e suas capacidades |
 | `do-mcp-discovery-instructions.md` | Procedimento de descoberta dinâmica de MCPs |
-| `.mcp.json` | Configuração de MCP servers ativos no projeto |
-| Arquivo de configuração do projeto (CLAUDE.md, etc...) | Contexto do projeto gerado por `do-setup` |
+| Arquivo de configuração MCP (`.mcp.json`, `.vscode/mcp.json`, etc.) | Configuração de MCP servers ativos no projeto — localização varia por ferramenta de IA |
+| Arquivo de configuração do projeto (`CLAUDE.md`, `.github/copilot-instructions.md`, etc.) | Contexto do projeto gerado por `do-setup` — nome varia por ferramenta de IA |
+
+## Compatibilidade com Ferramentas de IA
+
+O DO Framework é agnóstico à ferramenta de IA. Os conceitos, o fluxo de trabalho e os artefatos gerados funcionam com qualquer ferramenta que suporte skills/instruções customizadas.
+
+**Convenções de caminho**: Os arquivos de skill referenciam internamente o diretório `.claude/skills/` (convenção do Claude Code). Se você usa outra ferramenta, os arquivos estarão no diretório equivalente dessa ferramenta (ex: `.github/` para GitHub Copilot).
+
+| Ferramenta | Diretório de Skills | Config do Projeto |
+|-----------|--------------------|--------------------|
+| **Claude Code** | `.claude/skills/` | `CLAUDE.md` |
+| **GitHub Copilot** | `.github/` (instructions) | `.github/copilot-instructions.md` |
+| **Cursor** | `.cursor/rules/` | `.cursorrules` |
+
+---
 
 ## Dicas Importantes
 
