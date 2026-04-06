@@ -123,12 +123,12 @@ PLANEJAMENTO       EXECUÇÃO           REVIEW GERAL      VALIDAÇÃO
 **Quando usar:** Primeira vez no projeto ou ao reinstalar o ambiente.
 
 **O que faz:**
-1. Executa `/init` para gerar `CLAUDE.md` inicial
+1. Executa `/init` para gerar o arquivo de configurações inicial do projeto
 2. Analisa profundamente o codebase (tech stack, arquitetura, padrões)
-3. Identifica skills tecnológicas relevantes em `.claude/skills/`
-4. Atualiza `CLAUDE.md` com summary do projeto e convenções
+3. Identifica skills tecnológicas relevantes em `skills/`
+4. Atualiza o arquivo de configuração do projeto com summary do projeto e convenções
 
-**Output:** `CLAUDE.md` configurado com contexto do projeto
+**Output:** O arquivo de configuração do projeto configurado com contexto do projeto
 
 ---
 
@@ -288,9 +288,17 @@ O DO Framework usa **Model Context Protocol (MCP)** para descoberta dinâmica de
 | Frontend + Backend + ambos | Sim | Rodar ambos E2Es |
 | Feature + nenhum MCP relevante | Não | Pular E2E, documentar gap, continuar com unit/integration |
 
-### MCPs Configurados no Projeto
+### Como Configurar MCPs no Seu Projeto
 
-**Arquivo:** `.mcp.json`
+**Passo 1:** Crie o arquivo `.mcp.json` na raiz do seu projeto com os MCPs que deseja usar.
+
+Os MCPs ja configurados no DO Framework já estão configurados em `skills/do-shared/do-mcp-capabilities.md`. Você pode adicioná-los:
+- **No projeto:** criando um `.mcp.json` local
+- **Globalmente:** configurando no seu `~/.mcp.json` (serão disponíveis em todos os projetos)
+
+Obs: Você pode adicionar novos MCPs e configura-los no `skills/do-shared/do-mcp-capabilities.md`
+
+**Exemplo de `.mcp.json`:**
 
 ```json
 {
@@ -323,9 +331,17 @@ O DO Framework usa **Model Context Protocol (MCP)** para descoberta dinâmica de
 }
 ```
 
+**MCPs Disponíveis (já documentados em `do-mcp-capabilities.md`):**
+
+| MCP | Capacidade | Quando Usar |
+|-----|------------|-------------|
+| `playwright` | browser-testing | E2E frontend, validação visual, accessibility |
+| `context7` | documentation research | Pesquisa de documentação oficial durante TechSpec/Tasks |
+| `rabbitmq` | message-queue validation | Validação de filas e mensagens em background jobs |
+
 ### Registry de Capacidades
 
-**Arquivo:** `.claude/skills/do-shared/do-mcp-capabilities.md`
+**Arquivo:** `skills/do-shared/do-mcp-capabilities.md`
 
 Documenta cada MCP com:
 - Capacidades (browser-testing, documentation, message-queue, etc.)
@@ -433,7 +449,7 @@ uvx --version
 | Convenção | Descrição |
 |-----------|-----------|
 | **Prefixo `do-`** | Todas skills usam `do-` para identificar como parte do framework |
-| **Slug kebab-case** | Pastas usam kebab-case: `pbi-dark-mode`, `pbi-user-auth` |
+| **Slug kebab-case** | Pastas usam kebab-case: `pbi-projeto-exemplo`, `pbi-user-auth` |
 | **Numeração de tasks** | Tasks numeradas sequencialmente: `1_task.md`, `2_task.md` |
 | **Artefatos obrigatórios** | Sem artifact = task incompleta (review files, reports) |
 | **Testes devem passar** | Task NUNCA completa com failing tests |
@@ -461,16 +477,16 @@ uvx --version
 # FASE 1: PLANEJAMENTO
 # ------------------------------------------------
 # 1. Criar PBI
-/do-create-pbi
-> Feature: Dark Mode
+/do-create-pbi *descrição ou arquivo de contexto*
+> Feature: Projeto Exemplo
 > [responde perguntas sobre problema, usuários, flows]
 
 # 2. Criar TechSpec
-/do-create-techspec dark-mode
+/do-create-techspec projeto-exemplo
 > [pesquisa docs via Context7 MCP + responde clarifications técnicas]
 
 # 3. Criar Tasks
-/do-create-tasks dark-mode
+/do-create-tasks projeto-exemplo
 > [aprova high-level task list]
 
 # FASE 2: EXECUÇÃO
@@ -484,27 +500,27 @@ uvx --version
 # FASE 3: CODE REVIEW GERAL (LOOP até APPROVED)
 # ------------------------------------------------
 # 5. Review geral do PBI (OBIGATÓRIO antes do QA)
-/do-execute-review dark-mode
-> Status: NEEDS_REVISION? → corrige issues → /do-execute-review dark-mode
+/do-execute-review projeto-exemplo
+> Status: NEEDS_REVISION? → corrige issues → /do-execute-review projeto-exemplo
 > Status: APPROVED? → prossegue para QA
 
 # FASE 4: VALIDAÇÃO E2E + BUGFIX (LOOP até zero bugs HIGH)
 # ------------------------------------------------
 # 6. QA final com E2E completo
-/do-execute-qa dark-mode
+/do-execute-qa projeto-exemplo
 > [roda E2E via Playwright MCP, accessibility, visual verification]
 > [gera qa-report.md + bugs.md se houver problemas]
 
 # 7. Se houver bugs HIGH/MEDIUM: loop de correção
-[se bugs.md tem entries] → /do-execute-bugfix dark-mode
+[se bugs.md tem entries] → /do-execute-bugfix projeto-exemplo
 > [corrige por severidade + tests de regressão]
 
 # 8. Revalida com QA novamente
-/do-execute-qa dark-mode
+/do-execute-qa projeto-exemplo
 > [reteste apenas areas corrigidas ou E2E completo]
 
 # 9. Repetir steps 7-8 até zero bugs HIGH
-[se ainda tem bugs HIGH] → /do-execute-bugfix dark-mode → /do-execute-qa dark-mode
+[se ainda tem bugs HIGH] → /do-execute-bugfix projeto-exemplo → /do-execute-qa projeto-exemplo
 [zero bugs HIGH] → FEATURE READY! ✅
 ```
 
@@ -515,7 +531,7 @@ uvx --version
 | `do-mcp-capabilities.md` | Registry central de MCPs e suas capacidades |
 | `do-mcp-discovery-instructions.md` | Procedimento de descoberta dinâmica de MCPs |
 | `.mcp.json` | Configuração de MCP servers ativos no projeto |
-| `CLAUDE.md` | Contexto do projeto gerado por `do-setup` |
+| Arquivo de configuração do projeto (CLAUDE.md, etc...) | Contexto do projeto gerado por `do-setup` |
 
 ## Dicas Importantes
 
