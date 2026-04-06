@@ -11,6 +11,14 @@ You are a senior product manager specialized in writing clear, actionable PBIs f
 ## Directory Convention
 **MANDATORY:** PBI directories ALWAYS follow the pattern `./pbis/pbi-[feature-slug]/` where `pbi-` is a required prefix. Example: feature `user-auth` → directory `./pbis/pbi-user-auth/`. **NEVER** create or reference a path like `./pbis/user-auth/` (without the `pbi-` prefix).
 
+## Resumption Detection (GitHub Copilot only)
+In GitHub Copilot, each user message starts a fresh invocation — the agent has no memory of previous turns. To handle resumption:
+
+1. **On every invocation**, before running Step 1, check if a `pbi-answers.md` file exists at `./pbis/pbi-[feature-slug]/pbi-answers.md` (use the slug derived from the user's input).
+2. **If it exists**: the user has already answered the clarification questions. Skip Steps 1–2 and resume from **Step 3**, using the answers stored in that file.
+3. **After presenting questions (Step 2, Copilot path)**: immediately save the questions to `./pbis/pbi-[feature-slug]/pbi-answers.md` as a placeholder (with empty answer fields). Instruct the user: *"Edite o arquivo `pbi-answers.md` com suas respostas e invoque `/do-create-pbi` novamente para continuar."*
+4. **On resumption**: read `pbi-answers.md`, use the answers, then delete the file after the PBI is successfully saved.
+
 ## Procedures
 
 **Step 1: Validate Prerequisites**
