@@ -17,6 +17,22 @@ O DO Framework elimina trabalho manual e garante qualidade consistente ao automa
 
 Resultado: features entregues mais rápido, com menos retrabalho e qualidade verificável.
 
+## Instalação
+
+### Instalar as Skills do DO Framework
+
+Para instalar todas as skills deste framework no seu ambiente:
+
+```bash
+npx skills add fabio-barboza/development-orchestrator
+```
+
+Este comando irá:
+1. Baixar todas as skills (`do-setup`, `do-create-pbi`, `do-create-techspec`, etc.)
+2. Configurar no seu ambiente de agente
+3. Fazer disponível para uso imediato nos seus projetos
+
+
 ## Fluxo do Framework — Pipeline Completa
 
 ### FASE 1: PLANEJAMENTO
