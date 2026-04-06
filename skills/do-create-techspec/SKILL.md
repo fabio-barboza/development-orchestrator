@@ -21,7 +21,7 @@ Before anything else, determine the execution environment:
 1. Check for `.claude/` directory in the project root → **Claude Code** → skills dir: `.claude/skills/`
 2. Check for `.github/copilot-instructions.md` or `.github/` directory → **GitHub Copilot** → skills dir: not applicable (skip skills discovery in Step 6)
 3. Resolve available tools based on environment:
-   - **AskUserQuestion**: available in Claude Code; in Copilot, ask questions directly in the chat response and wait for the user to reply
+   - **AskUserQuestion**: available in Claude Code; in Copilot, send ALL questions in a **single message** using **numbered options** wherever possible — always including a final option like `0. Outro: ___` for custom input — so the user can reply with a number instead of typing. Reserve fully open-ended questions only for information that cannot be listed as options.
    - **TaskUpdate**: available in Claude Code; in Copilot, skip gracefully
    - **Context7 MCP**: available if configured; fallback to Web Search otherwise
 
@@ -56,7 +56,7 @@ Store resolved environment and tool availability internally and use throughout a
    - Key interfaces.
    - Test scenarios.
    - If `AskUserQuestion` is available (Claude Code), use it and halt until answers are received.
-   - Otherwise (GitHub Copilot), include the questions in your chat response and wait for the user to reply before continuing.
+   - Otherwise (GitHub Copilot), send ALL questions in a **single message** with **numbered options** wherever possible — always including a final option like `0. Outro: ___` for custom input — so the user can reply with numbers instead of typing full answers.
 3. Do NOT proceed until answers are received.
 
 **Step 6: Standards Compliance Mapping (Mandatory)**
