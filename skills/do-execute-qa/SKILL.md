@@ -13,6 +13,16 @@ You are a senior QA engineer specialized in E2E testing, accessibility validatio
 
 ## Procedures
 
+**Step 0: Detect AI Tool Environment**
+Before anything else, determine the execution environment:
+1. Check for `.claude/` directory in the project root → **Claude Code** → skills dir: `.claude/skills/`
+2. Check for `.github/copilot-instructions.md` or `.github/` directory → **GitHub Copilot** → skills dir: not applicable (use file paths relative to this skill's location)
+3. Resolve available tools based on environment:
+   - **TaskUpdate**: available in Claude Code; in Copilot, skip gracefully
+   - **Context7 MCP**: available if configured; fallback to Web Search otherwise
+
+Store resolved environment and skills directory internally and use throughout all remaining steps.
+
 **Step 1: Documentation Analysis (Mandatory)**
 1. Read the PBI at `./pbis/pbi-[feature-slug]/pbi.md` and extract ALL numbered functional requirements. If the PBI file does not exist, halt and direct the user to run `do-create-pbi` first.
 2. Read the Tech Spec at `./pbis/pbi-[feature-slug]/techspec.md` and verify implemented technical decisions. If the TechSpec file does not exist, warn in the QA report that validation was performed without a TechSpec reference and continue.
@@ -22,9 +32,9 @@ You are a senior QA engineer specialized in E2E testing, accessibility validatio
 6. **DO NOT stop here. DO NOT present the checklist and wait for approval. Proceed IMMEDIATELY to Step 2.**
 
 **Step 2: MCP Discovery & Capability Guard (starts immediately after Step 1 — no pause, no confirmation)**
-1. **MCP Discovery**: Execute the discovery procedure from `.claude/skills/do-shared/do-mcp-discovery-instructions.md`:
+1. **MCP Discovery**: Execute the discovery procedure from the shared skills directory resolved in Step 0 (e.g., `.claude/skills/do-shared/do-mcp-discovery-instructions.md` for Claude Code):
    a. Read the MCP configuration file for the current AI tool (`.mcp.json` for Claude Code, `.vscode/mcp.json` for GitHub Copilot, `.cursor/mcp.json` for Cursor) to list configured MCP servers.
-   b. Read `.claude/skills/do-shared/do-mcp-capabilities.md` to map each server to its capabilities and tools.
+   b. Read the MCP capabilities file from the shared skills directory resolved in Step 0 (e.g., `.claude/skills/do-shared/do-mcp-capabilities.md` for Claude Code) to map each server to its capabilities and tools.
    c. Build an internal capability map (e.g., `{ "browser-testing": ["playwright"], "message-queue": ["rabbitmq"] }`).
 2. **Capability Guard**: Analyze the PBI, Tech Spec, and Tasks to determine if the feature involves **frontend/UI**, **backend**, or **both**. Apply the capability guard from the discovery instructions:
    - Frontend feature + `browser-testing` MCP available → proceed to Steps 3-5 using browser MCP tools.
@@ -32,7 +42,7 @@ You are a senior QA engineer specialized in E2E testing, accessibility validatio
    - Frontend + Backend + both MCPs available → proceed to Steps 3-5 using both types of MCP tools.
    - Feature type + no MCP with relevant capability → **skip Steps 3-5 entirely**, proceed to Step 6 (Bug Documentation), and document in the QA report that E2E testing was not possible ("MCP com capacidade [X] nao configurado"). Only unit/integration test results from `do-execute-task` or `do-execute-review` should be referenced.
 3. **Environment Preparation** (only if MCP tools will be used):
-   - For MCPs that require a running app (check "Requer app rodando" in registry): verify the service is accessible. If not, start it (e.g., dev server for browser-testing, check broker for message-queue).
+   - For MCPs that require a running app (check "Requer app rodando" in registry): verify the service is accessible. If not, start only the dev server using known-safe commands (`npm run dev`, `npm start`, `bun dev`, `pnpm dev`) — do NOT automatically start brokers or external services; document the gap instead.
    - Detect the package manager from lock files (`bun.lockb` → bun, `pnpm-lock.yaml` → pnpm, `package-lock.json` → npm, default: `npm`).
    - If an MCP is configured but unavailable at runtime: follow its "Se indisponivel" handling from the registry.
 
@@ -44,15 +54,9 @@ You are a senior QA engineer specialized in E2E testing, accessibility validatio
 3. Mark each requirement as PASSED or FAILED.
 
 **Step 4: Accessibility Verification (Mandatory — only if browser-testing MCP is available)**
-1. Verify for each screen/component:
-   - Keyboard navigation works (Tab, Enter, Escape).
-   - Interactive elements have descriptive labels.
-   - Images have appropriate alt text.
-   - Color contrast is adequate.
-   - Forms have labels associated to inputs.
-   - Error messages are clear and accessible.
-2. Use browser MCP tools to test keyboard navigation and verify labels/semantic structure.
-3. Follow WCAG 2.2 standard.
+1. Read `references/wcag-checklist.md` for the full WCAG 2.2 verification items and browser MCP testing instructions.
+2. Verify all checklist items applicable to the feature under test.
+3. Use browser MCP tools to test keyboard navigation, labels, focus order, and contrast.
 
 **Step 5: Visual Verification (Mandatory — only if browser-testing MCP is available)**
 1. Capture screenshots of main screens using the browser MCP screenshot tool.
@@ -67,14 +71,14 @@ You are a senior QA engineer specialized in E2E testing, accessibility validatio
 3. If a blocking bug is found, document and report immediately.
 
 **Step 7: Generate QA Report (Mandatory)**
-1. Read the report template at `.claude/skills/do-execute-qa/assets/qa-report-template.md`.
+1. Read the report template from the skills directory resolved in Step 0 (e.g., `.claude/skills/do-execute-qa/assets/qa-report-template.md` for Claude Code).
 2. Fill in all sections with actual results.
 3. Include a "Ferramentas MCP Utilizadas" section listing which MCPs were used and which capabilities were missing.
 4. Save the report to `./pbis/pbi-[feature-slug]/qa-report.md`.
 5. Set status to APPROVED only when ALL PBI requirements are verified and functioning.
 
 **Step 8: Report Results & Sync Progress (Mandatory)**
-1. **SYNC INTERNAL PROGRESS**: Once the QA report is generated and bugs are documented, use the `TaskUpdate` tool to mark all corresponding items in your internal task tracking as `completed`.
+1. **SYNC INTERNAL PROGRESS**: Once the QA report is generated and bugs are documented, if `TaskUpdate` is available (Claude Code), use it to mark all corresponding items in your internal task tracking as `completed`. Otherwise, skip this step.
 2. Provide the final QA report to the user.
 3. **COMPLIANCE CHECK**: Before responding to the user, verify:
     - Is the QA report generated and saved?
@@ -93,9 +97,10 @@ All generated artifacts (QA report, bugs.md entries) must be written in Brazilia
 - If `bugs.md` already exists, append new bugs — never overwrite previous findings.
 
 ## References
-- Template: `.claude/skills/do-execute-qa/assets/qa-report-template.md`
-- MCP Discovery: `.claude/skills/do-shared/do-mcp-discovery-instructions.md`
-- MCP Registry: `.claude/skills/do-shared/do-mcp-capabilities.md`
+- Template: resolved in Step 0 (e.g., `.claude/skills/do-execute-qa/assets/qa-report-template.md` for Claude Code)
+- Accessibility checklist: resolved in Step 0 (e.g., `.claude/skills/do-execute-qa/references/wcag-checklist.md` for Claude Code)
+- MCP Discovery: resolved in Step 0 (e.g., `.claude/skills/do-shared/do-mcp-discovery-instructions.md` for Claude Code)
+- MCP Registry: resolved in Step 0 (e.g., `.claude/skills/do-shared/do-mcp-capabilities.md` for Claude Code)
 - PBI: `./pbis/pbi-[feature-slug]/pbi.md`
 - TechSpec: `./pbis/pbi-[feature-slug]/techspec.md`
 - Tasks: `./pbis/pbi-[feature-slug]/tasks/tasks.md`

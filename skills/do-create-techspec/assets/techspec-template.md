@@ -112,6 +112,15 @@ interface NomeServico {
 - Trade-offs considerados
 - Alternativas rejeitadas e por quê]
 
+### Suposições Técnicas
+
+[Liste suposições feitas durante o design que, se incorretas, invalidariam esta especificação:
+
+- [Suposição sobre comportamento de API ou serviço externo]
+- [Suposição sobre volume de dados ou performance aceitável]
+- [Suposição sobre disponibilidade de infraestrutura]
+- [Suposição sobre interface com módulo não investigado em detalhe]]
+
 ### Riscos Conhecidos
 
 [Identifique riscos técnicos:

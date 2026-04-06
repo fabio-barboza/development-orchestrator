@@ -1,5 +1,5 @@
 ---
-name: do-execute-bugfix
+name: do-execute-qa-bugfix
 description: Reads documented bugs from bugs.md, analyzes root causes, implements fixes with regression tests, and validates the full test suite. Prioritizes fixes by severity (high to low). Updates bugs.md with correction status and generates a final bugfix report. Use when the user asks to fix bugs, resolve issues, or run the bugfix workflow for a feature. Do not use for new feature implementation, code review, or QA testing.
 ---
 
@@ -12,6 +12,16 @@ You are a senior software engineer specialized in root-cause analysis and implem
 **CRITICAL: NEVER pause, stop, or wait for user input during execution.** Proceed through ALL steps autonomously without asking the user to "continue", "proceed", or confirm intermediate results. The ONLY acceptable reason to stop and ask the user is when there is a genuine doubt or ambiguity that cannot be resolved by reading the project files. Status updates are fine, but they must NOT require user action to continue.
 
 ## Procedures
+
+**Step 0: Detect AI Tool Environment**
+Before anything else, determine the execution environment:
+1. Check for `.claude/` directory in the project root → **Claude Code** → skills dir: `.claude/skills/`
+2. Check for `.github/copilot-instructions.md` or `.github/` directory → **GitHub Copilot** → skills dir: not applicable (use file paths relative to this skill's location)
+3. Resolve available tools based on environment:
+   - **TaskUpdate**: available in Claude Code; in Copilot, skip gracefully
+   - **Context7 MCP**: available if configured; fallback to Web Search otherwise
+
+Store resolved environment and skills directory internally and use throughout all remaining steps.
 
 **Step 1: Context Analysis (Mandatory)**
 1. Read the bugs file at `./pbis/pbi-[feature-slug]/bugs.md` and extract ALL documented bugs. If `bugs.md` does not exist, halt and report to the user — there are no bugs to fix.
@@ -38,25 +48,23 @@ You are a senior software engineer specialized in root-cause analysis and implem
    a. Locate and read the affected code.
    b. Reason about the flow causing the bug.
    c. Implement the root-cause fix — no superficial workarounds.
-   d. If a `typecheck` script exists in `package.json`, run it after each fix.
-   e. Run existing tests to ensure no regressions.
+   d. If a `typecheck` script exists in `package.json`, run it after each fix. Only `typecheck`, `test`, and `build` scripts are permitted for automatic execution — do not run arbitrary scripts.
+   e. Run existing tests using only known-safe commands (`npm test`, `npm run test`, `bun test`, `pnpm test`) to ensure no regressions.
 
 **Edit Failure Recovery**: When an `Edit` tool call fails, follow this escalation: (1) `read_file` to get current content, retry Edit with exact string. (2) Try a smaller, more unique `old_string`. (3) After 3 failed Edit attempts on the same file, switch to `Write` (read full file, apply changes, overwrite). **HARD LIMIT: max 3 Edit retries per file per change.**
 
 **Step 4: Create Regression Tests (Mandatory)**
-1. For each fixed bug, create tests that:
-   - Simulate the original bug scenario (test must fail if the fix is reverted).
-   - Validate the correct behavior with the fix applied.
-   - Cover related edge cases.
-2. Choose test type based on bug nature:
-   - **Unit test**: Bug in isolated function/method logic.
-   - **Integration test**: Bug in module communication (e.g., controller + service).
-   - **E2E test**: Bug visible in the UI or full flow.
+1. Read `references/regression-test-patterns.md` for patterns and naming conventions by test type.
+2. For each fixed bug, create a test that:
+   - Simulates the original bug scenario (must fail when the fix is reverted).
+   - Validates the correct behavior with the fix applied.
+   - Covers at least one related edge case.
+3. Choose test type based on bug nature (unit / integration / E2E) as described in the reference.
 
 **Step 5: MCP Discovery & Validation (Mandatory for bugs that can be validated via MCP)**
-1. Execute the MCP discovery procedure from `.claude/skills/do-shared/do-mcp-discovery-instructions.md`:
+1. Execute the MCP discovery procedure from the shared skills directory resolved in Step 0 (e.g., `.claude/skills/do-shared/do-mcp-discovery-instructions.md` for Claude Code):
    a. Read the MCP configuration file for the current AI tool (`.mcp.json` for Claude Code, `.vscode/mcp.json` for GitHub Copilot, `.cursor/mcp.json` for Cursor) to list configured MCP servers.
-   b. Read `.claude/skills/do-shared/do-mcp-capabilities.md` to map each server to capabilities.
+   b. Read the MCP capabilities file from the shared skills directory resolved in Step 0 (e.g., `.claude/skills/do-shared/do-mcp-capabilities.md` for Claude Code) to map each server to capabilities.
    c. Build capability map and apply the capability guard.
 2. For bugs affecting the **UI** (and `browser-testing` MCP available):
    a. Verify the app is running (check "Requer app rodando" in registry). Start if needed.
@@ -82,12 +90,12 @@ You are a senior software engineer specialized in root-cause analysis and implem
 2. For any unresolved bugs, update status to "Unresolved" with a description of the blocker.
 
 **Step 8: Generate Final Report (Mandatory)**
-1. Read the report template at `.claude/skills/do-execute-bugfix/assets/bugfix-report-template.md`.
+1. Read the report template from the skills directory resolved in Step 0 (e.g., `.claude/skills/do-execute-qa-bugfix/assets/bugfix-report-template.md` for Claude Code).
 2. Fill in all sections with actual results.
 3. Save the report to `./pbis/pbi-[feature-slug]/bugfix-report.md`.
 
 **Step 9: Report Results & Sync Progress (Mandatory)**
-1. **SYNC INTERNAL PROGRESS**: Once all bugs are fixed and the report is generated, use the `TaskUpdate` tool to mark all corresponding items in your internal task tracking as `completed`.
+1. **SYNC INTERNAL PROGRESS**: Once all bugs are fixed and the report is generated, if `TaskUpdate` is available (Claude Code), use it to mark all corresponding items in your internal task tracking as `completed`. Otherwise, skip this step.
 2. Provide the final bugfix report to the user.
 3. **COMPLIANCE CHECK**: Before responding to the user, verify:
     - Is `bugs.md` updated with the status "Fixed" (or "Unresolved")?
@@ -109,9 +117,10 @@ All generated artifacts (bugfix report, status updates in bugs.md) must be writt
 
 ## References
 - Bugs: `./pbis/pbi-[feature-slug]/bugs.md`
-- Template: `.claude/skills/do-execute-bugfix/assets/bugfix-report-template.md`
-- MCP Discovery: `.claude/skills/do-shared/do-mcp-discovery-instructions.md`
-- MCP Registry: `.claude/skills/do-shared/do-mcp-capabilities.md`
+- Template: resolved in Step 0 (e.g., `.claude/skills/do-execute-qa-bugfix/assets/bugfix-report-template.md` for Claude Code)
+- Regression test patterns: resolved in Step 0 (e.g., `.claude/skills/do-execute-qa-bugfix/references/regression-test-patterns.md` for Claude Code)
+- MCP Discovery: resolved in Step 0 (e.g., `.claude/skills/do-shared/do-mcp-discovery-instructions.md` for Claude Code)
+- MCP Registry: resolved in Step 0 (e.g., `.claude/skills/do-shared/do-mcp-capabilities.md` for Claude Code)
 - PBI: `./pbis/pbi-[feature-slug]/pbi.md`
 - TechSpec: `./pbis/pbi-[feature-slug]/techspec.md`
 - Bugfix Report output: `./pbis/pbi-[feature-slug]/bugfix-report.md`

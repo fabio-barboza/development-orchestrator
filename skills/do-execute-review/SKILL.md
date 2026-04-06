@@ -13,12 +13,21 @@ You are a senior code reviewer focused on quality, standards compliance, and pro
 
 ## Procedures
 
+**Step 0: Detect AI Tool Environment**
+Before anything else, determine the execution environment:
+1. Check for `.claude/` directory in the project root → **Claude Code** → skills dir: `.claude/skills/`
+2. Check for `.github/copilot-instructions.md` or `.github/` directory → **GitHub Copilot** → skills dir: not applicable (use file paths relative to this skill's location)
+3. Resolve available tools based on environment:
+   - **TaskUpdate**: available in Claude Code; in Copilot, skip gracefully
+   - **Context7 MCP**: available if configured; fallback to Web Search otherwise
+
+Store resolved environment and skills directory internally and use throughout all remaining steps.
+
 **Step 1: Documentation Analysis (Mandatory)**
 1. Read the PBI at `./pbis/pbi-[feature-slug]/pbi.md` to understand the feature requirements and expected outcomes. If the PBI file does not exist, warn in the review report and continue.
 2. Read the Tech Spec at `./pbis/pbi-[feature-slug]/techspec.md` to understand expected architectural decisions. If the TechSpec file does not exist, warn in the review report that the review was performed without a TechSpec reference and continue.
 3. Read the Tasks at `./pbis/pbi-[feature-slug]/tasks/tasks.md` to verify the scope implemented. If `tasks.md` does not exist, warn in the review report and continue.
 4. Read the project rules to know the required standards.
-5. Do NOT skip this step — understanding context is fundamental for the review.
 
 **Step 2: Code Change Analysis (Mandatory)**
 1. Check if the project is a git repository by running `git rev-parse --is-inside-work-tree`.
@@ -51,6 +60,9 @@ You are a senior code reviewer focused on quality, standards compliance, and pro
    - Data models as documented.
    - Endpoints/APIs as specified.
    - Integrations implemented correctly.
+2. For each deviation found, classify as:
+   - **NON-ADHERENT**: Differs without technical justification → log as MAJOR issue.
+   - **DESVIO JUSTIFICADO**: Differs for a valid technical reason (better approach found, spec constraint was impractical, new information emerged during implementation) → document in the report but do NOT fail the review solely for this. Recommend updating the TechSpec to reflect the actual approach.
 
 **Step 5: Task Completeness Verification (Mandatory)**
 1. For each task marked as complete (if `tasks.md` is available):
@@ -62,8 +74,8 @@ You are a senior code reviewer focused on quality, standards compliance, and pro
 **Step 6: Test Execution (Mandatory)**
 1. Detect the project's package manager from lock files (`bun.lockb` → bun, `pnpm-lock.yaml` → pnpm, `package-lock.json` → npm). Default to `npm` if none found.
 2. Run the test suite using the detected package manager (e.g., `npm test`).
-3. **E2E tests via MCP**: Execute the MCP discovery procedure from `do-mcp-discovery-instructions.md` (in the shared skills directory) — read the MCP configuration file for the current AI tool (`.mcp.json` for Claude Code, `.vscode/mcp.json` for GitHub Copilot, `.cursor/mcp.json` for Cursor) and `do-mcp-capabilities.md` to build the capability map. Apply the capability guard:
-   - Frontend changes + `browser-testing` MCP → run browser E2E via MCP tools. CLI fallback (`npx playwright test --reporter=list`) is also permitted if MCP is unavailable.
+3. **E2E tests via MCP**: Execute the MCP discovery procedure from the shared skills directory resolved in Step 0 (e.g., `.claude/skills/do-shared/do-mcp-discovery-instructions.md` for Claude Code) — read the MCP configuration file for the current AI tool (`.mcp.json` for Claude Code, `.vscode/mcp.json` for GitHub Copilot, `.cursor/mcp.json` for Cursor) and the MCP capabilities file from the shared skills directory to build the capability map. Apply the capability guard:
+   - Frontend changes + `browser-testing` MCP → run browser E2E via MCP tools. If MCP is unavailable, document the E2E gap in the review report — do NOT use CLI fallback.
    - Backend changes + backend-capable MCP (`message-queue`, `database`, `cache`, `api-testing`) → run backend E2E via MCP tools.
    - Changes type + no relevant MCP → skip E2E, document gap in review report.
 4. If a `typecheck` script exists in `package.json`, run it. Otherwise, skip type checking.
@@ -75,12 +87,12 @@ You are a senior code reviewer focused on quality, standards compliance, and pro
 6. The review CANNOT be approved if any test fails.
 
 **Step 7: Code Quality Analysis (Mandatory)**
-1. Read `.claude/skills/do-execute-review/references/code-quality-checklist.md` for the full checklist.
+1. Read the code quality checklist from the skills directory resolved in Step 0 (e.g., `.claude/skills/do-execute-review/references/code-quality-checklist.md` for Claude Code).
 2. Use Context7 MCP (`resolve-library-id` → `query-docs`) to verify correct API usage, best practices, and recommended patterns for the frameworks/libraries used in the reviewed code. If Context7 MCP is unavailable, proceed without it.
 3. Assess: complexity, DRY, SOLID, naming, comments, error handling, security, performance.
 
 **Step 8: Generate Review Report (Mandatory)**
-1. Read the report template at `.claude/skills/do-execute-review/assets/review-report-template.md`.
+1. Read the report template from the skills directory resolved in Step 0 (e.g., `.claude/skills/do-execute-review/assets/review-report-template.md` for Claude Code).
 2. Fill in all sections with actual findings.
 3. Save the report to `./pbis/pbi-[feature-slug]/review-report.md`.
 4. **Important**: This skill only reports findings — it does NOT implement fixes. All issues are documented for the developer to address.
@@ -90,7 +102,7 @@ You are a senior code reviewer focused on quality, standards compliance, and pro
    - **REJECTED**: Tests failing, severe rule violations, Tech Spec non-adherence, or security issues.
 
 **Step 9: Report Results & Sync Progress (Mandatory)**
-1. **SYNC INTERNAL PROGRESS**: Once the review report is generated, use the `TaskUpdate` tool to mark all corresponding items in your internal task tracking as `completed`.
+1. **SYNC INTERNAL PROGRESS**: Once the review report is generated, if `TaskUpdate` is available (Claude Code), use it to mark all corresponding items in your internal task tracking as `completed`. Otherwise, skip this step.
 2. Provide the final review report to the user.
 3. **COMPLIANCE CHECK**: Before responding to the user, verify with actual tool calls:
     - Call `read_file` on `./pbis/pbi-[feature-slug]/review-report.md` to confirm the report was saved. If missing, go back to Step 8 and create it.
@@ -104,15 +116,15 @@ All generated artifacts (review report) must be written in Brazilian Portuguese 
 - If git is not initialized, fall back to manual file listing and document this in the report.
 - If tests fail, the review status MUST be REJECTED regardless of other findings.
 - If PBI/TechSpec/tasks.md are missing, proceed with the review but document the missing context in the report.
-- If a configured MCP is unavailable at runtime, follow its "Se indisponivel" handling from the registry (`.claude/skills/do-shared/do-mcp-capabilities.md`). For browser-testing, CLI fallback (`npx playwright test --reporter=list`) is also permitted. If both MCP and CLI are unavailable, document the E2E gap in the review report.
+- If a configured MCP is unavailable at runtime, follow its "Se indisponivel" handling from the registry. Do NOT use CLI fallback (e.g., `npx playwright test`) — document the E2E gap in the review report instead.
 - Check if there are files that SHOULD have been modified but were not.
 - Be constructive in criticism — always suggest alternatives.
 
 ## References
-- Template: `.claude/skills/do-execute-review/assets/review-report-template.md`
-- Code quality checklist: `.claude/skills/do-execute-review/references/code-quality-checklist.md`
-- MCP Discovery: `.claude/skills/do-shared/do-mcp-discovery-instructions.md`
-- MCP Registry: `.claude/skills/do-shared/do-mcp-capabilities.md`
+- Template: resolved in Step 0 (e.g., `.claude/skills/do-execute-review/assets/review-report-template.md` for Claude Code)
+- Code quality checklist: resolved in Step 0 (e.g., `.claude/skills/do-execute-review/references/code-quality-checklist.md` for Claude Code)
+- MCP Discovery: resolved in Step 0 (e.g., `.claude/skills/do-shared/do-mcp-discovery-instructions.md` for Claude Code)
+- MCP Registry: resolved in Step 0 (e.g., `.claude/skills/do-shared/do-mcp-capabilities.md` for Claude Code)
 - PBI: `./pbis/pbi-[feature-slug]/pbi.md`
 - TechSpec: `./pbis/pbi-[feature-slug]/techspec.md`
 - Tasks: `./pbis/pbi-[feature-slug]/tasks/tasks.md`

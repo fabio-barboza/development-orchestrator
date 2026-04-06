@@ -9,23 +9,15 @@ description: Implements feature tasks by loading required skills, reading PBI/Te
 You are a senior software engineer responsible for implementing tasks correctly, completely, and according to project standards.
 
 ## Autonomous Execution Policy — ABSOLUTE RULE
-**YOU MUST BEGIN EXECUTING IMMEDIATELY UPON INVOCATION. NO EXCEPTIONS. NO USER INTERACTION REQUIRED.**
+**Begin executing immediately on invocation. No user interaction permitted at any point.**
 
-This is the single most important rule in this skill:
-1. **NEVER** pause, stop, or wait for user input at any point during execution.
-2. **NEVER** present a summary, plan, analysis, or findings and then wait for the user to respond before continuing.
-3. **NEVER** use phrases like "I'll now proceed", "Let me know if you'd like me to continue", "Here's my plan — shall I proceed?", "Ready to implement", or any similar language that implies waiting.
-4. **NEVER** output a plan or analysis as a standalone message. If you mention a plan, it must be immediately followed by implementation actions in the SAME response — no round-trip to the user.
-5. **NEVER ASK THE USER ANY QUESTIONS.** This is MANDATORY. You MUST resolve all ambiguities yourself using context clues (recent git activity, task numbers, file dates, folder timestamps). If multiple PBI folders exist, pick the most recent one or the one matching the task number. If prerequisites are missing (PBI, TechSpec, tasks.md), HALT with an ERROR REPORT — do NOT ask "should I proceed?" or "do you want me to create this?".
-6. Status updates are permitted but must be brief and must NOT require or imply any user action to continue. They are informational only.
+1. **NEVER** pause, stop, or wait for user input.
+2. **NEVER** output a plan/analysis as a standalone message — begin implementation tool calls in the SAME response.
+3. **NEVER** use phrases like "I'll now proceed", "Shall I proceed?", "Ready to implement", or anything implying a pause.
+4. **NEVER** ask the user questions. Resolve ambiguities using context clues (git history, timestamps, task numbers). If prerequisites are missing, HALT with a clear error report — do NOT ask "should I proceed?".
+5. Status updates are fine but must NOT imply user action to continue.
 
-**If you find yourself about to send a message that does NOT include a tool call or concrete implementation action, STOP — you are probably about to pause unnecessarily. Attach a tool call and keep working.**
-
-**ZERO INTERACTION POLICY**: This skill is designed for FULLY AUTONOMOUS execution. The user invokes it and expects results. There is NO intermediate interaction phase. If something is missing or ambiguous, either (a) resolve it yourself using heuristics, or (b) fail fast with a clear error report. Never ask questions.
-
-## Edit Failure Recovery — ANTI-LOOP RULE
-
-**This rule exists because the model has entered infinite loops of 20+ failed Edit calls on the same file without ever changing strategy. This is UNACCEPTABLE.**
+## Edit Failure Recovery
 
 When an `Edit` tool call fails, follow this escalation ladder:
 
@@ -41,6 +33,15 @@ When an `Edit` tool call fails, follow this escalation ladder:
 
 ## Procedures
 
+**Step 0: Detect AI Tool Environment (execute silently)**
+1. Check for `.claude/` directory in the project root → **Claude Code** → skills dir: `.claude/skills/`
+2. Check for `.github/copilot-instructions.md` or `.github/` directory → **GitHub Copilot** → skills dir: not applicable
+3. Resolve available tools:
+   - **TaskUpdate**: available in Claude Code; in Copilot, skip gracefully
+   - **Context7 MCP**: available if configured; fallback to Web Search otherwise
+
+Store resolved environment and skills directory internally.
+
 **Step 1: Pre-Task Configuration (Mandatory — execute silently, do NOT present results to user)**
 1. If the user did not provide the `[feature-slug]`, scan the `./pbis/` directory to identify the target PBI folder. **AUTOMATIC SELECTION RULE**: If only one PBI folder exists, use it automatically. If multiple exist, select based on this priority: (a) match with task number mentioned by user, (b) most recently modified folder (check timestamps), (c) alphabetically first. **NEVER ask the user to choose.**
 2. If the user said "task 3", interpret it as `3.0_task.md`. If the file doesn't exist, try `3_task.md` as a fallback.
@@ -49,8 +50,7 @@ When an `Edit` tool call fails, follow this escalation ladder:
 5. Read the Tech Spec at `./pbis/pbi-[feature-slug]/techspec.md` for technical requirements. If the TechSpec file does not exist, **HALT IMMEDIATELY** with a clear error: "TechSpec file missing. Run `do-create-techspec` first." — do NOT ask permission or wait for user response.
 6. Read `./pbis/pbi-[feature-slug]/tasks/tasks.md` to understand the full task list and verify dependencies. If `tasks.md` does not exist, **HALT IMMEDIATELY** with a clear error: "Tasks file missing. Run `do-create-tasks` first." — do NOT ask permission or wait for user response.
 7. Identify dependencies from previous tasks and verify they are complete.
-8. If the task file contains a `<skills>` section listing relevant skills, read those skill files from the AI tool's skills directory (e.g., `.claude/skills/` for Claude Code) and incorporate their guidance during implementation.
-9. Do NOT skip any of these reads.
+8. If the task file contains a `<skills>` section listing relevant skills, read those skill files from the skills directory resolved in Step 0 and incorporate their guidance during implementation.
 
 **Step 2: Load Required Skills**
 1. Identify the technologies involved in the task.
@@ -69,15 +69,15 @@ When an `Edit` tool call fails, follow this escalation ladder:
 4. Respect ALL `<critical>` tags identified in Step 3 — they are mandatory constraints, not suggestions.
 5. As you complete each subtask listed in the task file (X.1, X.2, etc.), mark it as `[x]` in the `[num]_task.md` file.
 6. Detect the project's package manager from lock files (`bun.lockb` → bun, `pnpm-lock.yaml` → pnpm, `package-lock.json` → npm, default: `npm`).
-7. **MCP Discovery & E2E tests — WHEN TO RUN**: Execute the MCP discovery procedure from `.claude/skills/do-shared/do-mcp-discovery-instructions.md`:
+7. **MCP Discovery & E2E tests — WHEN TO RUN**: Execute the MCP discovery procedure from the shared skills directory resolved in Step 0 (e.g., `.claude/skills/do-shared/do-mcp-discovery-instructions.md` for Claude Code):
    a. Read the MCP configuration file for the current AI tool (`.mcp.json` for Claude Code, `.vscode/mcp.json` for GitHub Copilot, `.cursor/mcp.json` for Cursor) to list configured MCP servers.
-   b. Read `.claude/skills/do-shared/do-mcp-capabilities.md` to map each server to capabilities and tools.
+   b. Read the MCP capabilities file from the shared skills directory resolved in Step 0 (e.g., `.claude/skills/do-shared/do-mcp-capabilities.md` for Claude Code) to map each server to capabilities and tools.
    c. Build capability map and apply the **capability guard**:
       - Frontend task + `browser-testing` MCP available → run browser E2E.
       - Backend task + backend-capable MCP available (`message-queue`, `database`, `cache`, `api-testing`) → run backend E2E via that MCP.
       - Frontend + Backend + both available → run both.
       - Task type + no relevant MCP → skip E2E, continue with unit/integration tests, document gap in review.
-8. **HOW TO RUN E2E tests**: MUST be executed via the appropriate MCP tools as listed in the capability registry — **NEVER via CLI**. Use the tools described in each MCP's registry entry. For MCPs that require a running service (check "Requer app rodando" in registry), verify the service is accessible before invoking tools. If not running, start it using the detected package manager or document the gap.
+8. **HOW TO RUN E2E tests**: MUST be executed via the appropriate MCP tools as listed in the capability registry — **NEVER via CLI**. Use the tools described in each MCP's registry entry. For MCPs that require a running service (check "Requer app rodando" in registry), verify the service is accessible before invoking tools. If not running, attempt to start only the dev server using known-safe commands (`npm run dev`, `npm start`, `bun dev`, `pnpm dev`) — for brokers or external services, document the gap instead of attempting to start them automatically.
 9. **If an MCP is unavailable** (connection error, tools not responding): Follow the "Se indisponivel" handling from the MCP's registry entry. Continue with unit/integration tests and document the E2E gap in the review.
 
 **Step 4B: ALL TESTS MUST PASS — NON-NEGOTIABLE GATE**
@@ -111,7 +111,7 @@ When an `Edit` tool call fails, follow this escalation ladder:
 3. Change the task status from `[ ]` (or equivalent) to `[x]` (or equivalent "Concluída"/"Done") in `tasks.md`.
 4. **IMMEDIATE VERIFICATION (MANDATORY)**: Right after the edit tool call, you MUST call `read_file` on `tasks.md` in the SAME response to verify the `[x]` is actually present in the file content. If the `[x]` is NOT visible in the read output, the edit FAILED — redo it.
 5. Mark all subtasks (X.1, X.2, etc.) as `[x]` in the `[num]_task.md` file. Then call `read_file` on `[num]_task.md` to verify.
-6. **SYNC INTERNAL PROGRESS**: Use the `TaskUpdate` tool to mark all corresponding items in your internal task tracking as `completed`.
+6. **SYNC INTERNAL PROGRESS**: If `TaskUpdate` is available (Claude Code), use it to mark all corresponding items in your internal task tracking as `completed`. Otherwise, skip this step.
 
 **TASKS.MD PROTECTION RULE — ABSOLUTE, NON-NEGOTIABLE:**
 The ONLY permitted modification to `tasks.md` is changing `[ ]` to `[x]` for the CURRENT task being executed. Everything else in the file is READ-ONLY. Specifically, you are **PROHIBITED** from:
@@ -134,7 +134,7 @@ The ONLY permitted modification to `tasks.md` is changing `[ ]` to `[x]` for the
 **Step 6: Code Review**
 1. Re-read the task file to ensure you have the latest content (context compression may have discarded earlier reads).
 2. Check if the project is a git repository by running `git rev-parse --is-inside-work-tree`. If git is available, use `git diff` and `git log` to identify files changed as part of this task and read the full context of modified files, not just the diffs. If git is NOT available, manually list all files you created or modified during implementation and read their full content for review.
-3. Read the `code-standards.md` file from the task references (in the skills directory). Review the code against those criteria and verify compliance with the project configuration file (CLAUDE.md or equivalent) if it exists.
+3. Read the `code-standards.md` file from the skills directory resolved in Step 0 (e.g., `.claude/skills/do-execute-task/references/code-standards.md` for Claude Code). Review the code against those criteria and verify compliance with the project configuration file (CLAUDE.md or equivalent) if it exists.
 4. For each issue found, classify as:
    - **CRITICAL**: Bugs, security issues, broken functionality, missing error handling.
    - **MAJOR**: Code standard violations, missing tests, bad naming.
@@ -143,11 +143,9 @@ The ONLY permitted modification to `tasks.md` is changing `[ ]` to `[x]` for the
 5. Run the test suite using the detected package manager. If a `typecheck` script exists in `package.json`, run it. Include any failures as critical issues.
 6. Address any issues identified. **Iteration limit**: You may perform a maximum of 3 fix-and-review cycles. If critical issues persist after 3 cycles, mark as **CHANGES REQUESTED** in Step 7.
 
-**Step 7: CREATE REVIEW FILE (MANDATORY — THIS STEP HAS BEEN SKIPPED IN THE PAST AND THAT IS UNACCEPTABLE)**
+**Step 7: Create Review File (Mandatory)**
 
-**This is a DEDICATED step because the review file creation was repeatedly skipped when it was bundled with other work. It is now isolated to ensure it ALWAYS happens.**
-
-1. Read the template at `.claude/skills/do-execute-task/assets/review-artifact-template.md`.
+1. Read the template from the skills directory resolved in Step 0 (e.g., `.claude/skills/do-execute-task/assets/review-artifact-template.md` for Claude Code).
 2. Determine the review status based on Step 6 findings:
    - **APPROVED**: No critical/major issues.
    - **APPROVED WITH OBSERVATIONS**: No critical, minor or few non-blocking major issues.
@@ -163,13 +161,11 @@ The ONLY permitted modification to `tasks.md` is changing `[ ]` to `[x]` for the
 
 **ANTI-HALLUCINATION RULE**: "Review file created" without a successful `Write` tool call followed by a successful `read_file` showing content is a LIE. You MUST have BOTH tool calls executed successfully.
 
-**Step 8: FINAL GATE — MANDATORY ARTIFACT VERIFICATION WITH TOOL CALLS (YOU ARE PROHIBITED FROM RESPONDING TO THE USER UNTIL THIS PASSES)**
+**Step 8: Final Gate — Mandatory Artifact Verification**
 
-This step exists because in past executions the model CLAIMED to have updated files but DID NOT actually do it. This is the MOST IMPORTANT step in the entire skill.
+**Every check requires an actual tool call. Do NOT rely on memory — re-read files from disk. Fix any failure before sending the final response.**
 
-**CRITICAL ANTI-HALLUCINATION RULE**: Every CHECK below requires an ACTUAL tool call (`read_file`, `ls`, or `Bash`). You MUST NOT rely on your memory of what you did — you MUST re-read the actual files from disk. Context compression, tool call failures, or simple hallucination can cause you to believe you did something you didn't. **TRUST ONLY WHAT THE TOOL RETURNS, NOT WHAT YOU REMEMBER.**
-
-You MUST perform ALL of the following checks as actual tool calls in this step. If ANY check fails, you MUST fix it BEFORE sending your final response to the user.
+Perform ALL checks below. If ANY fails, fix it first.
 
 1. **CHECK 1 — All tests pass**: Confirm that the last test run had ALL tests passing (zero failures). If tests were not run or any test failed → **STOP. Go back to Step 4B. You CANNOT mark the task as complete with failing tests.**
 
@@ -221,8 +217,8 @@ All generated artifacts (including the review file) must be written in Brazilian
 - PBI: `./pbis/pbi-[feature-slug]/pbi.md`
 - TechSpec: `./pbis/pbi-[feature-slug]/techspec.md`
 - Tasks: `./pbis/pbi-[feature-slug]/tasks/tasks.md`
-- Review template: `.claude/skills/do-execute-task/assets/review-artifact-template.md`
-- Code standards: `.claude/skills/do-execute-task/references/code-standards.md`
-- MCP Discovery: `.claude/skills/do-shared/do-mcp-discovery-instructions.md`
-- MCP Registry: `.claude/skills/do-shared/do-mcp-capabilities.md`
+- Review template: resolved in Step 0 (e.g., `.claude/skills/do-execute-task/assets/review-artifact-template.md` for Claude Code)
+- Code standards: resolved in Step 0 (e.g., `.claude/skills/do-execute-task/references/code-standards.md` for Claude Code)
+- MCP Discovery: resolved in Step 0 (e.g., `.claude/skills/do-shared/do-mcp-discovery-instructions.md` for Claude Code)
+- MCP Registry: resolved in Step 0 (e.g., `.claude/skills/do-shared/do-mcp-capabilities.md` for Claude Code)
 - Review output: `[num]_task_review.md` (same directory as the task file)

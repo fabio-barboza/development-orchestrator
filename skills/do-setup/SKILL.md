@@ -13,13 +13,22 @@ You are a senior developer advocate responsible for project initialization, tool
 
 ## Procedures
 
+**Step 0: Detect AI Tool Environment**
+Before doing anything else, determine which AI tool is executing this skill:
+1. Check for `.claude/` directory in the project root → **Claude Code** → config file: `CLAUDE.md`
+2. Check if `.github/copilot-instructions.md` already exists → **GitHub Copilot** → config file: `.github/copilot-instructions.md`
+3. Check if `.github/` directory exists but `copilot-instructions.md` does not → likely **GitHub Copilot** → config file: `.github/copilot-instructions.md`
+4. If none of the above, infer from the current tool context. When in doubt, default to `CLAUDE.md`.
+
+Store the resolved config file path internally and use it consistently throughout all remaining steps.
+
 **Step 1: Initialize Project Configuration**
-1. If your AI tool provides a built-in project initialization command (e.g., `/init` in Claude Code), execute it to generate the initial project configuration file (e.g., `CLAUDE.md` for Claude Code, `.github/copilot-instructions.md` for GitHub Copilot).
+1. If your AI tool provides a built-in project initialization command (e.g., `/init` in Claude Code), execute it to generate the initial project configuration file determined in Step 0.
 2. Wait for the initialization to complete before proceeding.
-3. If no built-in init command exists, locate or create the project configuration file manually before proceeding.
+3. If no built-in init command exists, locate or create the config file at the path determined in Step 0.
 
 **Step 2: Deep Project Analysis**
-1. Read the project configuration file generated in Step 1 (e.g., `CLAUDE.md`) and `README.md` if it exists.
+1. Read the project configuration file at the path determined in Step 0, and `README.md` if it exists.
 2. Read root config files if they exist: `package.json`, `go.mod`, `pom.xml`, `build.gradle`, `build.gradle.kts`, `docker-compose.yml`, `tsconfig.json`, `settings.gradle`, `.nvmrc`, `Makefile`, `Dockerfile`.
 3. Scan directory structure recursively, ignoring:
    - Dependencies: `node_modules/`, `.venv/`, `venv/`, `vendor/`, `.gradle/`, `.m2/`
@@ -33,6 +42,10 @@ You are a senior developer advocate responsible for project initialization, tool
    - Naming and organization patterns
    - System purpose
    - External integrations (queues, databases, APIs)
+6. Check test infrastructure:
+   - Look for a `test` script in `package.json` (or equivalent for the stack).
+   - Scan for test files (`*.test.*`, `*.spec.*`, `__tests__/`, `test/`, `tests/`).
+   - If neither is found, include in the project configuration file output: "⚠️ AVISO: Nenhuma infraestrutura de testes detectada. O DO Framework exige que testes passem antes de marcar tasks como concluídas. Configure um test runner antes de usar `do-execute-task`."
 
 **Step 3: Identify Relevant Skills**
 1. List all available skills in the AI tool's skills directory (e.g., `.claude/skills/` for Claude Code).
@@ -45,7 +58,7 @@ You are a senior developer advocate responsible for project initialization, tool
    - An identified pattern or integration (queues, database, API, etc.)
 
 **Step 4: Update the project configuration file**
-Merge the following sections into the project configuration file generated in Step 1 (e.g., `CLAUDE.md` for Claude Code). Preserve all existing content and append or update only the sections below:
+Merge the following sections into the project configuration file at the path determined in Step 0. Preserve all existing content and append or update only the sections below:
 
 ```markdown
 ## Project Summary

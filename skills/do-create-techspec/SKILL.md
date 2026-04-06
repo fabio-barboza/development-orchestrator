@@ -13,6 +13,17 @@ You are a senior software architect specialized in translating product requireme
 
 ## Procedures
 
+**Step 0: Detect AI Tool Environment**
+Before anything else, determine the execution environment:
+1. Check for `.claude/` directory in the project root → **Claude Code** → skills dir: `.claude/skills/`
+2. Check for `.github/copilot-instructions.md` or `.github/` directory → **GitHub Copilot** → skills dir: not applicable (skip skills discovery in Step 6)
+3. Resolve available tools based on environment:
+   - **AskUserQuestion**: available in Claude Code; in Copilot, ask questions directly in the chat response and wait for the user to reply
+   - **TaskUpdate**: available in Claude Code; in Copilot, skip gracefully
+   - **Context7 MCP**: available if configured; fallback to Web Search otherwise
+
+Store resolved environment and tool availability internally and use throughout all remaining steps.
+
 **Step 1: Validate Prerequisites**
 1. Confirm the feature slug has been provided.
 2. Verify the PBI exists at `pbis/pbi-[feature-slug]/pbi.md`. If missing, halt and report.
@@ -35,20 +46,22 @@ You are a senior software architect specialized in translating product requireme
 
 **Step 5: Technical Clarifications (Mandatory)**
 1. Explore the project BEFORE asking questions.
-2. Ask focused clarification questions using the AskUserQuestion tool covering:
+2. Ask focused clarification questions covering:
    - Domain positioning.
    - Data flow.
    - External dependencies.
    - Key interfaces.
    - Test scenarios.
+   - If `AskUserQuestion` is available (Claude Code), use it and halt until answers are received.
+   - Otherwise (GitHub Copilot), include the questions in your chat response and wait for the user to reply before continuing.
 3. Do NOT proceed until answers are received.
 
 **Step 6: Standards Compliance Mapping (Mandatory)**
-1. Identify project skills in the AI tool's skills directory (e.g., `.claude/skills/` for Claude Code) that apply to this spec.
+1. Identify project skills using the skills directory resolved in Step 0. Skip this sub-step if the skills directory is not applicable (e.g., GitHub Copilot without a configured skills path).
 2. Highlight deviations with justification and compliant alternatives.
 
 **Step 7: Generate Tech Spec (Mandatory)**
-1. Read the template at `.claude/skills/do-create-techspec/assets/techspec-template.md`.
+1. Read the template at the path resolved in Step 0 (e.g., `.claude/skills/do-create-techspec/assets/techspec-template.md` for Claude Code, or the equivalent path for the current tool).
 2. Provide: architecture overview, component design, interfaces, data models, endpoints, integration points, impact analysis, test strategy, observability.
 3. Focus on HOW, not WHAT (the PBI owns what/why).
 4. Avoid repeating functional requirements from the PBI.
@@ -62,7 +75,7 @@ You are a senior software architect specialized in translating product requireme
 2. Confirm the write operation and path.
 
 **Step 9: Report Results & Sync Progress (Mandatory)**
-1. **SYNC INTERNAL PROGRESS**: Once the Tech Spec is saved, use the `TaskUpdate` tool to mark all corresponding items in your internal task tracking as `completed`.
+1. **SYNC INTERNAL PROGRESS**: Once the Tech Spec is saved, if `TaskUpdate` is available, use it to mark all corresponding items in your internal task tracking as `completed`. Otherwise, skip this step.
 2. Provide the final file path.
 3. **COMPLIANCE CHECK**: Before responding to the user, verify:
     - Is the Tech Spec file saved correctly?
@@ -89,11 +102,11 @@ All generated artifacts (Tech Spec document) must be written in Brazilian Portug
 
 ## Error Handling
 - If the PBI does not exist at the expected path, halt and ask the user to create it first via the `do-create-pbi` skill.
-- If the template file (`.claude/skills/do-create-techspec/assets/techspec-template.md`) is missing, report the error and halt — do not generate a Tech Spec without the template.
+- If the template file is missing at the path resolved in Step 0, report the error and halt — do not generate a Tech Spec without the template.
 - If Context7 MCP is unavailable, fall back to Web Search for technical documentation.
 - If the output file already exists, confirm with the user before overwriting.
 
 ## References
-- Template: `.claude/skills/do-create-techspec/assets/techspec-template.md`
+- Template: resolved in Step 0 (e.g., `.claude/skills/do-create-techspec/assets/techspec-template.md` for Claude Code)
 - PBI: `pbis/pbi-[feature-slug]/pbi.md`
 - Output: `pbis/pbi-[feature-slug]/techspec.md`

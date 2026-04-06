@@ -1,6 +1,6 @@
 # Descoberta e Roteamento de MCPs
 
-Procedimento padrao referenciado pelas skills de execucao (do-execute-task, do-execute-qa, do-execute-bugfix, do-execute-review). Substitui a logica hardcoded de Playwright por descoberta dinamica baseada em capacidades.
+Procedimento padrao referenciado pelas skills de execucao (do-execute-task, do-execute-qa, do-execute-qa-bugfix, do-execute-review). Substitui a logica hardcoded de Playwright por descoberta dinamica baseada em capacidades.
 
 ## Procedimento de Descoberta
 

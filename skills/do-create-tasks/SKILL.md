@@ -13,6 +13,16 @@ You are a senior project manager specialized in breaking down features into incr
 
 ## Procedures
 
+**Step 0: Detect AI Tool Environment**
+Before anything else, determine the execution environment:
+1. Check for `.claude/` directory in the project root → **Claude Code** → skills dir: `.claude/skills/`
+2. Check for `.github/copilot-instructions.md` or `.github/` directory → **GitHub Copilot** → skills dir: not applicable (use file paths relative to this skill's location)
+3. Resolve available tools based on environment:
+   - **TaskUpdate**: available in Claude Code; in Copilot, skip gracefully
+   - **Context7 MCP**: available if configured; fallback to Web Search otherwise
+
+Store resolved environment and skills directory internally and use throughout all remaining steps.
+
 **Step 1: Validate Prerequisites**
 1. Confirm the feature slug has been provided.
 2. Verify the PBI exists at `pbis/pbi-[feature-slug]/pbi.md`. If missing, halt.
@@ -31,11 +41,12 @@ You are a senior project manager specialized in breaking down features into incr
 4. Each task MUST be a functional, incremental deliverable.
 5. Each task MUST have its own set of unit and integration tests.
 6. Limit to a maximum of 15 tasks (group as needed).
-7. Wait for user approval before proceeding to Step 4.
+7. **Scope guideline**: each task should represent approximately 100–200 lines of production code change. Tasks estimated to exceed this should be split — this prevents context overflow during `do-execute-task`.
+8. Wait for user approval before proceeding to Step 4.
 
 **Step 4: Generate Task Files (Mandatory)**
-1. Read the tasks summary template at `.claude/skills/do-create-tasks/assets/tasks-template.md`.
-2. Read the individual task template at `.claude/skills/do-create-tasks/assets/task-template.md`.
+1. Read the tasks summary template from the skills directory resolved in Step 0 (e.g., `.claude/skills/do-create-tasks/assets/tasks-template.md` for Claude Code).
+2. Read the individual task template from the skills directory resolved in Step 0 (e.g., `.claude/skills/do-create-tasks/assets/task-template.md` for Claude Code).
 3. Create the directory `./pbis/pbi-[feature-slug]/tasks/` if it does not exist.
 4. Create the summary file: `./pbis/pbi-[feature-slug]/tasks/tasks.md`.
 5. Create individual task files: `./pbis/pbi-[feature-slug]/tasks/[num]_task.md`.
@@ -43,7 +54,7 @@ You are a senior project manager specialized in breaking down features into incr
 6. Do NOT repeat implementation details already in the Tech Spec — reference it instead.
 
 **Step 5: Report Results & Sync Progress (Mandatory)**
-1. **SYNC INTERNAL PROGRESS**: Once the tasks are generated, use the `TaskUpdate` tool to mark all corresponding items in your internal task tracking as `completed`.
+1. **SYNC INTERNAL PROGRESS**: Once the tasks are generated, if `TaskUpdate` is available (Claude Code), use it to mark all corresponding items in your internal task tracking as `completed`. Otherwise, skip this step.
 2. Present all generated files to the user.
 3. Await confirmation before any implementation begins.
 4. **COMPLIANCE CHECK**: Before responding to the user, verify:
@@ -74,10 +85,10 @@ All generated artifacts (tasks.md, individual task files) must be written in Bra
 - If the PBI or Tech Spec is missing, halt and direct the user to the `do-create-pbi` or `do-create-techspec` skill.
 - If the user rejects the high-level task list, revise based on feedback and re-present for approval.
 - If the output directory (`./pbis/pbi-[feature-slug]/tasks/`) already contains task files, confirm with the user before overwriting.
-- If a template file (`.claude/skills/do-create-tasks/assets/tasks-template.md` or `.claude/skills/do-create-tasks/assets/task-template.md`) is missing, report the error and halt — do not generate tasks without the templates.
+- If a template file is missing at the paths resolved in Step 0, report the error and halt — do not generate tasks without the templates.
 
 ## References
-- Templates: `.claude/skills/do-create-tasks/assets/tasks-template.md`, `.claude/skills/do-create-tasks/assets/task-template.md`
+- Templates: resolved in Step 0 (e.g., `.claude/skills/do-create-tasks/assets/tasks-template.md`, `.claude/skills/do-create-tasks/assets/task-template.md` for Claude Code)
 - PBI: `pbis/pbi-[feature-slug]/pbi.md`
 - TechSpec: `pbis/pbi-[feature-slug]/techspec.md`
 - Output: `./pbis/pbi-[feature-slug]/tasks/tasks.md`, `./pbis/pbi-[feature-slug]/tasks/[num]_task.md`

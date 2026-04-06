@@ -12,8 +12,10 @@ O DO Framework elimina trabalho manual e garante qualidade consistente ao automa
 | **Arquitetura**       | TechSpecs profundas com pesquisa automática em documentação oficial       |
 | **Decomposição**      | Tasks atômicas e testáveis, ordenadas por dependência                     |
 | **Execução**          | Implementação com testes E2E via MCP, review automático                   |
+| **Review**            | Gate de qualidade com correção autônoma de findings antes do QA           |
 | **QA**                | Validação sistemática, screenshots como evidência, bugs documentados      |
 | **Bugfix**            | Correção com testes de regressão, priorizada por severidade               |
+| **Visibilidade**      | Status de progresso em tempo real, retomada de trabalho sem fricção       |
 
 Resultado: features entregues mais rápido, com menos retrabalho e qualidade verificável.
 
@@ -67,18 +69,31 @@ tasks.md            │   - Implementação + tests                   │
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                        do-execute-review                                    │
+│                    LOOP DE REVIEW                                           │
 │                                                                             │
-│   Verifica:                                                                 │
-│   - Conformidade com TechSpec                                               │
-│   - Suite completa de testes (unit/integration/typecheck)                   │
-│   - E2E via MCP conforme disponível                                         │
-│   - Padrões de código                                                       │
-│                                                                             │
-│   Status:                                                                   │
-│   - ACCEPTED → prossegue para FASE 4 (QA)                                   │
-│   - NEEDS_REVISION / REJECTED → corrige e reinicia do-execute-review        │
-│                                                                             │
+│   ┌──────────────────────┐                                                  │
+│   │  do-execute-review   │                                                  │
+│   │                      │                                                  │
+│   │  - Conformidade com  │                                                  │
+│   │    TechSpec          │                                                  │
+│   │  - Suite de testes   │                                                  │
+│   │  - E2E via MCP       │──────────────┐                                   │
+│   │  - Padrões de código │              │                                   │
+│   └──────────┬───────────┘              │                                   │
+│              │                          │                                   │
+│  (NEEDS_REVISION / REJECTED)            │ (APPROVED)                        │
+│              ▼                          │                                   │
+│   ┌──────────────────────┐              │                                   │
+│   │ do-execute-review-fix│              │                                   │
+│   │                      │              │                                   │
+│   │  - Corrige CRITICAL  │              │                                   │
+│   │    e MAJOR findings  │              │                                   │
+│   │  - Roda testes       │              │                                   │
+│   │  - Atualiza report   │              │                                   │
+│   └──────────┬───────────┘              │                                   │
+│              │                          │                                   │
+│              └──▶ (repetir review) ◀────┘                                   │
+│                   até APPROVED                                              │
 └─────────────────────────────────────────────────────────────────────────────┘
                                     │
                           (review aprovado)
@@ -105,7 +120,7 @@ tasks.md            │   - Implementação + tests                   │
 │              │ (se houver bugs)       │ (zero bugs HIGH)                    │
 │              ▼                        │                                     │
 │   ┌──────────────────────┐            │                                     │
-│   │  do-execute-bugfix   │◀───────────┘                                     │
+│   │  do-execute-qa-bugfix│◀───────────┘                                     │
 │   │                      │                                                  │
 │   │  - Corrige por       │                                                  │
 │   │    severidade        │                                                  │
@@ -139,12 +154,13 @@ PLANEJAMENTO       EXECUÇÃO           REVIEW GERAL      VALIDAÇÃO
 **Quando usar:** Primeira vez no projeto ou ao reinstalar o ambiente.
 
 **O que faz:**
-1. Executa `/init` para gerar o arquivo de configurações inicial do projeto
+1. Executa o comando de inicialização da ferramenta de IA (ex: `/init` no Claude Code), se disponível
 2. Analisa profundamente o codebase (tech stack, arquitetura, padrões)
-3. Identifica skills tecnológicas relevantes em `skills/`
-4. Atualiza o arquivo de configuração do projeto com summary do projeto e convenções
+3. Verifica infraestrutura de testes — avisa se não houver test runner configurado
+4. Identifica skills tecnológicas relevantes disponíveis
+5. Atualiza o arquivo de configuração do projeto com summary do projeto e convenções
 
-**Output:** O arquivo de configuração do projeto configurado com contexto do projeto
+**Output:** Arquivo de configuração do projeto (`CLAUDE.md`, `.github/copilot-instructions.md`, ou equivalente) atualizado com contexto do projeto
 
 ---
 
@@ -172,7 +188,7 @@ PLANEJAMENTO       EXECUÇÃO           REVIEW GERAL      VALIDAÇÃO
 2. Explora codebase para entender contexto técnico (chamadas, interfaces, persistence)
 3. **Research via MCP**: Usa Context7 para consultar documentação oficial de frameworks
 4. **Clarifications (interativo)**: Perguntas técnicas focadas ao usuário
-5. Gera TechSpec com arquitetura, component design, data models, endpoints, test strategy
+5. Gera TechSpec com arquitetura, component design, data models, endpoints, test strategy, **suposições técnicas** e riscos conhecidos
 
 **Output:** `./pbis/pbi-[slug]/techspec.md`
 
@@ -194,7 +210,7 @@ PLANEJAMENTO       EXECUÇÃO           REVIEW GERAL      VALIDAÇÃO
 - `./pbis/pbi-[slug]/tasks/tasks.md` (index)
 - `./pbis/pbi-[slug]/tasks/[num]_task.md` (cada task)
 
-**Regra de ouro:** Cada task deve ser funcional e ter seus próprios testes.
+**Regra de ouro:** Cada task deve ser funcional, ter seus próprios testes, e representar ~100–200 linhas de mudança de código (para evitar context overflow na execução).
 
 ---
 
@@ -231,16 +247,34 @@ PLANEJAMENTO       EXECUÇÃO           REVIEW GERAL      VALIDAÇÃO
 2. Verifica conformidade com TechSpec e padrões de código do projeto
 3. Roda test suite completa (unit, integration, typecheck)
 4. **E2E via MCP**: Valida features frontend/backend conforme MCPs disponíveis
-5. Classifica issues: CRITICAL / MAJOR / MINOR / POSITIVE
+5. Classifica issues: CRITICAL / MAJOR / MINOR / POSITIVE / **DESVIO JUSTIFICADO** (divergência técnica válida da TechSpec — não reprova, mas recomenda atualizar a TechSpec)
 6. Gera review report com status final
 
 **Loop de Correção:**
-- Se status = **NEEDS_REVISION** ou **REJECTED**: corrige as issues e roda `do-execute-review` novamente
+- Se status = **NEEDS_REVISION** ou **REJECTED**: rodar `do-execute-review-fix` → depois `do-execute-review` novamente
 - Se status = **APPROVED**: prossegue para FASE 4 (QA)
 
 **Output:** `./pbis/pbi-[slug]/review-report.md`
 
 **Status:** ACCEPTED / NEEDS_REVISION / REJECTED
+
+---
+
+### `do-execute-review-fix` — Corrigir Findings do Code Review
+
+**Quando usar:** Após `do-execute-review` retornar NEEDS_REVISION ou REJECTED.
+
+**O que faz:**
+1. Lê `review-report.md` e extrai todos os findings por severidade
+2. Implementa correções em ordem: CRITICAL → MAJOR → MINOR (opcional)
+3. Roda suite completa de testes — task nunca completa com testes failing
+4. Atualiza `review-report.md` com status de cada finding (Fixed / Unresolved)
+5. Gera fix report com resumo das correções aplicadas
+
+**Output:**
+- Correções no codebase
+- `review-report.md` atualizado
+- `./pbis/pbi-[slug]/fix-report.md`
 
 ---
 
@@ -264,7 +298,23 @@ PLANEJAMENTO       EXECUÇÃO           REVIEW GERAL      VALIDAÇÃO
 
 ---
 
-### `do-execute-bugfix` — Correção de Bugs
+### `do-status` — Progresso do PBI
+
+**Quando usar:** Para verificar o estado atual de um PBI, retomar trabalho após interrupção, ou saber qual é a próxima task.
+
+**O que faz:**
+1. Identifica o PBI alvo (pelo slug ou por seleção automática)
+2. Lê `tasks.md` e calcula progresso (X/Y tasks, Z%)
+3. Identifica a próxima task pendente e verifica dependências
+4. Detecta tasks marcadas como `[x]` mas sem review file (incompletas)
+
+**Output:** Relatório de progresso em tela (não gera arquivos)
+
+**Skill somente leitura** — não modifica nenhum arquivo.
+
+---
+
+### `do-execute-qa-bugfix` — Correção de Bugs
 
 **Quando usar:** Bugs documentados em `bugs.md` precisam ser corrigidos.
 
@@ -485,7 +535,8 @@ uvx --version
     ├── bugs.md                 # Bugs encontrados (do-execute-qa/bugfix)
     ├── qa-report.md            # Relatório QA (do-execute-qa)
     ├── review-report.md        # Relatório Review (do-execute-review)
-    ├── bugfix-report.md        # Relatório Bugfix (do-execute-bugfix)
+    ├── fix-report.md           # Relatório de correções do review (do-execute-review-fix)
+    ├── bugfix-report.md        # Relatório Bugfix (do-execute-qa-bugfix)
     └── tasks/
         ├── tasks.md            # Index de tasks (do-create-tasks)
         ├── 1_task.md           # Task 1 detalhada
@@ -517,10 +568,12 @@ uvx --version
 | Nova feature (ideia vaga) | `do-create-pbi` | Não |
 | PBI criada, definir arquitetura | `do-create-techspec` | Não |
 | TechSpec pronta, criar tasks | `do-create-tasks` | Não |
+| Verificar progresso / retomar trabalho | `do-status` | Não |
 | Implementar task específica | `do-execute-task 1` | Sim (por cada task) |
-| **Review geral (OBIGATÓRIO antes do QA)** | `do-execute-review` | **Sim (até APPROVED)** |
+| **Review geral (OBRIGATÓRIO antes do QA)** | `do-execute-review` | **Sim (até APPROVED)** |
+| Corrigir findings do review | `do-execute-review-fix` | **Sim (com do-execute-review)** |
 | QA E2E da feature completa | `do-execute-qa` | Sim (com bugfix) |
-| Corrigir bugs encontrados no QA | `do-execute-bugfix` | **Sim (até zero HIGH)** |
+| Corrigir bugs encontrados no QA | `do-execute-qa-bugfix` | **Sim (até zero HIGH)** |
 
 ## Fluxo Completo — Exemplo Prático
 
@@ -546,7 +599,10 @@ uvx --version
 
 # FASE 2: EXECUÇÃO
 # ------------------------------------------------
-# 4. Executar cada task em sequência (loop)
+# 4. Verificar progresso a qualquer momento (opcional, mas recomendado)
+/do-status  # mostra X/Y tasks, próxima task, artefatos ausentes
+
+# 5. Executar cada task em sequência (loop)
 /do-execute-task 1  # implementa + testa + review file
 /do-execute-task 2  # implementa + testa + review file
 /do-execute-task 3  # implementa + testa + review file
@@ -554,9 +610,9 @@ uvx --version
 
 # FASE 3: CODE REVIEW GERAL (LOOP até APPROVED)
 # ------------------------------------------------
-# 5. Review geral do PBI (OBIGATÓRIO antes do QA)
+# 5. Review geral do PBI (OBRIGATÓRIO antes do QA)
 /do-execute-review projeto-exemplo
-> Status: NEEDS_REVISION? → corrige issues → /do-execute-review projeto-exemplo
+> Status: NEEDS_REVISION / REJECTED? → /do-execute-review-fix projeto-exemplo → /do-execute-review projeto-exemplo
 > Status: APPROVED? → prossegue para QA
 
 # FASE 4: VALIDAÇÃO E2E + BUGFIX (LOOP até zero bugs HIGH)
@@ -567,7 +623,7 @@ uvx --version
 > [gera qa-report.md + bugs.md se houver problemas]
 
 # 7. Se houver bugs HIGH/MEDIUM: loop de correção
-[se bugs.md tem entries] → /do-execute-bugfix projeto-exemplo
+[se bugs.md tem entries] → /do-execute-qa-bugfix projeto-exemplo
 > [corrige por severidade + tests de regressão]
 
 # 8. Revalida com QA novamente
@@ -575,7 +631,7 @@ uvx --version
 > [reteste apenas areas corrigidas ou E2E completo]
 
 # 9. Repetir steps 7-8 até zero bugs HIGH
-[se ainda tem bugs HIGH] → /do-execute-bugfix projeto-exemplo → /do-execute-qa projeto-exemplo
+[se ainda tem bugs HIGH] → /do-execute-qa-bugfix projeto-exemplo → /do-execute-qa projeto-exemplo
 [zero bugs HIGH] → FEATURE READY! ✅
 ```
 
@@ -609,6 +665,8 @@ O DO Framework é agnóstico à ferramenta de IA. Os conceitos, o fluxo de traba
 3. **Review files são obrigatórios**: Sem `[num]_task_review.md`, a task NÃO está completa
 4. **Testes failing bloqueiam progresso**: Não prossiga até todos passarem
 5. **Bugs HIGH devem ser corrigidos antes de considerar feature done**
+6. **Use `do-status` para retomar trabalho**: Após qualquer interrupção, rode `do-status` para saber exatamente onde parou
+7. **Documente suposições na TechSpec**: Suposições não documentadas viram surpresas na task 7 de 12
 
 ---
 
