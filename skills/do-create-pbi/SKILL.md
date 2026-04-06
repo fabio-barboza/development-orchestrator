@@ -26,9 +26,7 @@ In GitHub Copilot, each user message starts a fresh invocation — the agent has
 2. Derive the slug in kebab-case and apply the mandatory `pbi-` prefix for the output directory: `./pbis/pbi-[feature-slug]/`. Example: `user-auth` → `./pbis/pbi-user-auth/`.
 
 **Step 2: Clarify Requirements (Mandatory)**
-1. Ask the user clarification questions before generating any content:
-   - If `AskUserQuestion` is available (Claude Code), use it.
-   - Otherwise (GitHub Copilot), send ALL questions in a **single message**. For each question, provide **numbered questions with lettered alternatives (a, b, c…)** wherever possible so the user can reply with the question number and letter (e.g., "1a" or "2b"). Always include a final option `z. Outro: ___` so the user can type a custom answer. Reserve fully open-ended questions only for information that genuinely cannot be listed as options.
+1. Use `AskUserQuestion` to ask the user clarification questions before generating any content. Halt until answers are received.
 2. Cover all areas from the clarification checklist:
    - **Problem and Objectives**: What problem to solve, measurable goals.
    - **Users and Stories**: Primary users, user stories, main flows.
@@ -68,7 +66,7 @@ In GitHub Copilot, each user message starts a fresh invocation — the agent has
 Before anything else, determine the execution environment:
 1. Check for `.claude/` directory → **Claude Code** → skills dir: `.claude/skills/`
 2. Check for `.github/` directory → **GitHub Copilot** → skills dir: not applicable
-3. **AskUserQuestion**: available in Claude Code; in Copilot, present questions in the chat response using **numbered questions with lettered alternatives (a, b, c…)** wherever possible — always including a final option `z. Outro: ___` for custom input — so the user can reply with a letter instead of typing a full answer. Group all questions in a single message — do NOT send one message per question.
+3. **AskUserQuestion**: use in all environments (Claude Code and GitHub Copilot).
 4. **TaskUpdate**: available in Claude Code; in Copilot, skip gracefully
 
 ## Output Language
