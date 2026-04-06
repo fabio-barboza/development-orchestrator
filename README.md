@@ -1,6 +1,6 @@
 # Development Orchestrator (DO Framework)
 
-Framework AI-driven que orquestra o ciclo completo de desenvolvimento de software: desde a ideia inicial até QA final com testes E2E automatizados via MCP (Model Context Protocol).
+**Framework de Skills AI-driven** que orquestra o ciclo completo de desenvolvimento de software: desde a ideia inicial até QA final com testes E2E automatizados via MCP (Model Context Protocol).
 
 ## Para Que Serve
 
@@ -295,9 +295,30 @@ O DO Framework usa **Model Context Protocol (MCP)** para descoberta dinâmica de
 ```json
 {
   "mcpServers": {
-    "playwright": { /* browser-testing */ },
-    "context7": { /* documentation research */ },
-    "rabbitmq": { /* message-queue validation */ }
+    "playwright": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["@playwright/mcp@latest"],
+      "env": {}
+    },
+    "context7": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp@latest"],
+      "env": {}
+    },
+    "rabbitmq": {
+      "type": "stdio",
+      "command": "uvx",
+      "args": [
+        "mcp-server-rabbitmq@latest",
+        "--rabbitmq-host", "localhost",
+        "--port", "5672",
+        "--username", "guest",
+        "--password", "guest",
+        "--api-port", "15672"
+      ]
+    }
   }
 }
 ```
