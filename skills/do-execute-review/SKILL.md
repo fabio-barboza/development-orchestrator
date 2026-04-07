@@ -64,8 +64,8 @@ Store resolved environment and skills directory internally and use throughout al
    - Endpoints/APIs as specified.
    - Integrations implemented correctly.
 2. For each deviation found, classify as:
-   - **NON-ADHERENT**: Differs without technical justification → log as MAJOR issue.
-   - **DESVIO JUSTIFICADO**: Differs for a valid technical reason (better approach found, spec constraint was impractical, new information emerged during implementation) → document in the report but do NOT fail the review solely for this. Recommend updating the TechSpec to reflect the actual approach.
+   - **NÃO-ADERENTE**: Difere sem justificativa técnica → registrar como problema MAIOR.
+   - **DESVIO JUSTIFICADO**: Difere por razão técnica válida (abordagem melhor encontrada, restrição da spec era impraticável, nova informação surgiu durante a implementação) → documentar no relatório mas NÃO reprovar o review somente por isso. Recomendar atualizar a TechSpec para refletir a abordagem real.
 
 **Step 5: Task Completeness Verification (Mandatory)**
 1. For each task marked as complete (if `tasks.md` is available):
@@ -100,24 +100,35 @@ Store resolved environment and skills directory internally and use throughout al
 3. Save the report to `./pbis/pbi-[feature-slug]/review-report.md`.
 4. **Important**: This skill only reports findings — it does NOT implement fixes. All issues are documented for the developer to address.
 5. Apply approval criteria:
-   - **APPROVED**: All criteria met, tests passing, code conforms to rules and Tech Spec.
-   - **APPROVED WITH OBSERVATIONS**: Main criteria met, minor or few non-blocking major issues.
-   - **REJECTED**: Tests failing, severe rule violations, Tech Spec non-adherence, or security issues.
+   - **APROVADO**: Todos os critérios atendidos, testes passando, código em conformidade com as regras e TechSpec.
+   - **APROVADO COM RESSALVAS**: Critérios principais atendidos, problemas menores ou poucos problemas maiores não bloqueantes.
+   - **REPROVADO**: Testes falhando, violações graves de regras, não-aderência à TechSpec ou problemas de segurança.
 
-**Step 9: Report Results & Sync Progress (Mandatory)**
+**Step 9: Create Fix Tasks (Mandatory when findings exist)**
+1. Read the fix task template from the skills directory resolved in Step 0 (e.g., `.claude/skills/do-execute-review/assets/fix-task-template.md` for Claude Code).
+2. For each finding listed in the "Problemas Encontrados" section of the review report:
+   a. Assign a sequential ID (R-01, R-02, …) if not already assigned.
+   b. Generate a `brief-slug` from the finding description (lowercase, hyphen-separated, max 5 words).
+   c. Fill the template with the finding's ID, severity, status (`pendente`), affected file/line, description, and suggested correction.
+   d. Save to `./pbis/pbi-[feature-slug]/review-fixes/fix-[R-XX]-[severidade-completa]-[brief-slug].md`, where `[severidade-completa]` is the full severity word in lowercase: `critico`, `maior` or `menor`. Do NOT abbreviate (e.g. `fix-R01-critico-campo-senha-exposto.md`, NOT `fix-R01-crit-campo-senha.md`).
+3. Create the `review-fixes/` directory automatically if it does not exist — no need to run `mkdir`, simply write the first file to the path.
+4. If there are no findings (status APROVADO), skip this step entirely — do NOT create an empty directory.
+
+**Step 10: Report Results & Sync Progress (Mandatory)**
 1. **SYNC INTERNAL PROGRESS**: Once the review report is generated, if `TaskUpdate` is available (Claude Code), use it to mark all corresponding items in your internal task tracking as `completed`. Otherwise, skip this step.
 2. Provide the final review report to the user.
 3. **COMPLIANCE CHECK**: Before responding to the user, verify with actual tool calls:
     - Call `read_file` on `./pbis/pbi-[feature-slug]/review-report.md` to confirm the report was saved. If missing, go back to Step 8 and create it.
+    - If findings exist, confirm that `./pbis/pbi-[feature-slug]/review-fixes/` contains one file per finding.
     - Do all findings match the `git diff` and code analysis?
 
 ## Output Language
-All generated artifacts (review report) must be written in Brazilian Portuguese (PT-BR). Code examples, variable names, and technical terms remain in English.
+Todos os artefatos gerados (relatório de review, arquivos de tarefa de correção) devem ser escritos em Português do Brasil (PT-BR). Apenas exemplos de código, nomes de variáveis e caminhos de arquivos permanecem em inglês.
 
 ## Error Handling
 - If no git changes are found and git is available, report that there is nothing to review.
 - If git is not initialized, fall back to manual file listing and document this in the report.
-- If tests fail, the review status MUST be REJECTED regardless of other findings.
+- If tests fail, the review status MUST be REPROVADO regardless of other findings.
 - If PBI/TechSpec/tasks.md are missing, proceed with the review but document the missing context in the report.
 - If a configured MCP is unavailable at runtime, follow its "Se indisponivel" handling from the registry. Do NOT use CLI fallback (e.g., `npx playwright test`) — document the E2E gap in the review report instead.
 - Check if there are files that SHOULD have been modified but were not.
@@ -125,6 +136,7 @@ All generated artifacts (review report) must be written in Brazilian Portuguese 
 
 ## References
 - Template: resolved in Step 0 (e.g., `.claude/skills/do-execute-review/assets/review-report-template.md` for Claude Code)
+- Fix Task template: resolved in Step 0 (e.g., `.claude/skills/do-execute-review/assets/fix-task-template.md` for Claude Code)
 - Code quality checklist: resolved in Step 0 (e.g., `.claude/skills/do-execute-review/references/code-quality-checklist.md` for Claude Code)
 - MCP Discovery: resolved in Step 0 (e.g., `.claude/skills/do-shared/do-mcp-discovery-instructions.md` for Claude Code)
 - MCP Registry: resolved in Step 0 (e.g., `.claude/skills/do-shared/do-mcp-capabilities.md` for Claude Code)
@@ -132,3 +144,4 @@ All generated artifacts (review report) must be written in Brazilian Portuguese 
 - TechSpec: `./pbis/pbi-[feature-slug]/techspec.md`
 - Tasks: `./pbis/pbi-[feature-slug]/tasks/tasks.md`
 - Review Report output: `./pbis/pbi-[feature-slug]/review-report.md`
+- Fix Tasks output dir: `./pbis/pbi-[feature-slug]/review-fixes/fix-[R-XX]-[severidade-completa]-[slug].md`

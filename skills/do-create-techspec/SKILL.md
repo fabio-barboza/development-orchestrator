@@ -86,7 +86,7 @@ Store resolved environment and tool availability internally and use throughout a
     - Does the spec follow the architecture guidelines?
 
 ## Output Language
-All generated artifacts (Tech Spec document) must be written in Brazilian Portuguese (PT-BR). Code examples, variable names, API names, and technical terms remain in English.
+Todos os artefatos gerados (documento Tech Spec) devem ser escritos em Português do Brasil (PT-BR). Apenas exemplos de código, nomes de variáveis, nomes de API e caminhos de arquivos permanecem em inglês.
 
 ## Core Principles
 - Tech Spec focuses on HOW, not WHAT (PBI owns the what/why).

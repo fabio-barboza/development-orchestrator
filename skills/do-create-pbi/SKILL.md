@@ -70,7 +70,7 @@ Before anything else, determine the execution environment:
 4. **TaskUpdate**: available in Claude Code; in Copilot, skip gracefully
 
 ## Output Language
-All generated artifacts (PBI document, summaries) must be written in Brazilian Portuguese (PT-BR). Code examples, variable names, and technical terms remain in English.
+Todos os artefatos gerados (documento PBI, resumos) devem ser escritos em Português do Brasil (PT-BR). Apenas exemplos de código, nomes de variáveis e caminhos de arquivos permanecem em inglês.
 
 ## Core Principles
 - Clarify before planning; plan before drafting.

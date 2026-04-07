@@ -91,7 +91,7 @@ Merge the following sections into the project configuration file at the path det
     - Did you accurately identify the project stack and skills?
 
 ## Output Language
-All generated artifacts (project configuration file sections, summaries) must be written in Brazilian Portuguese (PT-BR). Code examples, variable names, and technical terms remain in English.
+Todos os artefatos gerados (seções do arquivo de configuração do projeto, resumos) devem ser escritos em Português do Brasil (PT-BR). Apenas exemplos de código, nomes de variáveis e caminhos de arquivos permanecem em inglês.
 
 ## Error Handling
 - If no config files are found (no `package.json`, `go.mod`, etc.), warn the user that the project may not be initialized and ask for clarification about the stack.

@@ -139,20 +139,20 @@ The ONLY permitted modification to `tasks.md` is changing `[ ]` to `[x]` for the
 2. Check if the project is a git repository by running `git rev-parse --is-inside-work-tree`. If git is available, use `git diff` and `git log` to identify files changed as part of this task and read the full context of modified files, not just the diffs. If git is NOT available, manually list all files you created or modified during implementation and read their full content for review.
 3. Read the `code-standards.md` file from the skills directory resolved in Step 0 (e.g., `.claude/skills/do-execute-task/references/code-standards.md` for Claude Code). Review the code against those criteria and verify compliance with the project configuration file (CLAUDE.md or equivalent) if it exists.
 4. For each issue found, classify as:
-   - **CRITICAL**: Bugs, security issues, broken functionality, missing error handling.
-   - **MAJOR**: Code standard violations, missing tests, bad naming.
-   - **MINOR**: Style suggestions, minor improvements.
-   - **POSITIVE**: Well-done things worth recognizing.
+   - **CRÍTICO**: Bugs, problemas de segurança, funcionalidade quebrada, tratamento de erros ausente.
+   - **MAIOR**: Violações de padrão de código, testes ausentes, nomenclatura incorreta.
+   - **MENOR**: Sugestões de estilo, melhorias menores.
+   - **POSITIVO**: Coisas bem feitas que merecem reconhecimento.
 5. Run the test suite using the detected package manager. If a `typecheck` script exists in `package.json`, run it. Include any failures as critical issues.
-6. Address any issues identified. **Iteration limit**: You may perform a maximum of 3 fix-and-review cycles. If critical issues persist after 3 cycles, mark as **CHANGES REQUESTED** in Step 7.
+6. Address any issues identified. **Iteration limit**: You may perform a maximum of 3 fix-and-review cycles. If critical issues persist after 3 cycles, mark as **MUDANÇAS SOLICITADAS** in Step 7.
 
 **Step 7: Create Review File (Mandatory)**
 
 1. Read the template from the skills directory resolved in Step 0 (e.g., `.claude/skills/do-execute-task/assets/review-artifact-template.md` for Claude Code).
 2. Determine the review status based on Step 6 findings:
-   - **APPROVED**: No critical/major issues.
-   - **APPROVED WITH OBSERVATIONS**: No critical, minor or few non-blocking major issues.
-   - **CHANGES REQUESTED**: Critical issues or multiple major issues.
+   - **APROVADO**: Sem problemas críticos/maiores.
+   - **APROVADO COM OBSERVAÇÕES**: Sem críticos, problemas menores ou poucos maiores não bloqueantes.
+   - **MUDANÇAS SOLICITADAS**: Problemas críticos ou múltiplos problemas maiores.
 3. **CREATE THE FILE**: Use the `Write` tool to create `[num]_task_review.md` in `./pbis/pbi-[feature-slug]/`. This is the MOST IMPORTANT action in this step.
 4. **VERIFY THE FILE EXISTS**: Immediately after the Write tool call, call `read_file` on `./pbis/pbi-[feature-slug]/tasks/[num]_task_review.md`. You MUST see the file content returned. If the read fails or returns empty → **the Write FAILED. Redo it NOW.**
 5. If the `read_file` succeeds, the file is confirmed created. Proceed to Step 8.
@@ -213,7 +213,7 @@ Perform ALL checks below. If ANY fails, fix it first.
 - If an Edit tool call fails, follow the **Edit Failure Recovery** escalation ladder (see above): retry with exact content from read_file → try smaller old_string → switch to Write after 3 failures. NEVER retry Edit more than 3 times for the same change.
 
 ## Output Language
-All generated artifacts (including the review file) must be written in Brazilian Portuguese (PT-BR). Code examples, variable names, and technical terms remain in English.
+Todos os artefatos gerados (incluindo o arquivo de review) devem ser escritos em Português do Brasil (PT-BR). Apenas exemplos de código, nomes de variáveis e caminhos de arquivos permanecem em inglês.
 
 ## References
 - Task: `./pbis/pbi-[feature-slug]/tasks/[num]_task.md`

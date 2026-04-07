@@ -22,15 +22,15 @@
 [Liste cada problema crítico com arquivo, linha, descrição e correção sugerida]
 [Se nenhum: "Nenhum problema crítico encontrado."]
 
-### 🟡 Problemas Major
+### 🟡 Problemas Maiores
 
-[Liste cada problema major com arquivo, linha, descrição e correção sugerida]
-[Se nenhum: "Nenhum problema major encontrado."]
+[Liste cada problema maior com arquivo, linha, descrição e correção sugerida]
+[Se nenhum: "Nenhum problema maior encontrado."]
 
-### 🟢 Problemas Minor
+### 🟢 Problemas Menores
 
-[Liste cada problema minor com arquivo, linha, descrição e correção sugerida]
-[Se nenhum: "Nenhum problema minor encontrado."]
+[Liste cada problema menor com arquivo, linha, descrição e correção sugerida]
+[Se nenhum: "Nenhum problema menor encontrado."]
 
 ## ✅ Destaques Positivos
 

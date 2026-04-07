@@ -2,8 +2,8 @@
 
 ## Resumo
 - Data: [data]
-- Review Original: [status original — NEEDS_REVISION / REJECTED]
-- Total de Findings: [X] (CRITICAL: [a] | MAJOR: [b] | MINOR: [c])
+- Review Original: [status original — NECESSITA REVISÃO / REPROVADO]
+- Total de Findings: [X] (CRÍTICO: [a] | MAIOR: [b] | MENOR: [c])
 - Findings Corrigidos: [Y]
 - Findings Não Resolvidos: [Z]
 
@@ -11,9 +11,9 @@
 
 | ID | Severidade | Descrição | Status | Correção Aplicada |
 |----|------------|-----------|--------|-------------------|
-| R-01 | CRITICAL | [descrição do finding] | Corrigido / Não Resolvido | [descrição da correção ou bloqueio] |
-| R-02 | MAJOR | [descrição do finding] | Corrigido / Não Resolvido | [descrição da correção ou bloqueio] |
-| R-03 | MINOR | [descrição do finding] | Corrigido / Ignorado | [descrição ou justificativa] |
+| R-01 | CRÍTICO | [descrição do finding] | Corrigido / Não Resolvido | [descrição da correção ou bloqueio] |
+| R-02 | MAIOR | [descrição do finding] | Corrigido / Não Resolvido | [descrição da correção ou bloqueio] |
+| R-03 | MENOR | [descrição do finding] | Corrigido / Ignorado | [descrição ou justificativa] |
 
 ## Testes
 - Testes unitários: TODOS PASSANDO / [X] FALHANDO

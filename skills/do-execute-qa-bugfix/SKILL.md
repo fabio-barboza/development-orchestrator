@@ -1,6 +1,6 @@
 ---
 name: do-execute-qa-bugfix
-description: Reads documented bugs from bugs.md, analyzes root causes, implements fixes with regression tests, and validates the full test suite. Prioritizes fixes by severity (high to low). Updates bugs.md with correction status and generates a final bugfix report. Use when the user asks to fix bugs, resolve issues, or run the bugfix workflow for a feature. Do not use for new feature implementation, code review, or QA testing.
+description: Recebe o caminho de um arquivo de bug em qa-bugs/ (ex: qa-bugs/bug-01-alta-formulario.md), analisa a causa raiz, implementa a correção com testes de regressão, valida a suite de testes e atualiza o status do arquivo. Use quando o usuário pedir para corrigir um bug específico encontrado no QA. Não use para correções em lote — invoque uma vez por bug. Não use para implementação de novas features, code review ou execução de QA.
 ---
 
 # Bug Fix Execution
@@ -13,6 +13,13 @@ You are a senior software engineer specialized in root-cause analysis and implem
 
 ## Directory Convention
 **MANDATORY:** PBI directories ALWAYS follow the pattern `./pbis/pbi-[feature-slug]/` where `pbi-` is a required prefix. Example: feature `user-auth` → directory `./pbis/pbi-user-auth/`. **NEVER** reference a path like `./pbis/user-auth/`.
+
+## Invocation
+This skill fixes **one bug at a time**. The user must provide the path to the specific bug file to fix:
+```
+do-execute-qa-bugfix ./pbis/pbi-[feature-slug]/qa-bugs/bug-[XX]-[severidade]-[slug].md
+```
+If no file path is provided, list all `aberto` bug files in `qa-bugs/` and ask the user which one to fix.
 
 ## Procedures
 
@@ -27,103 +34,76 @@ Before anything else, determine the execution environment:
 Store resolved environment and skills directory internally and use throughout all remaining steps.
 
 **Step 1: Context Analysis (Mandatory)**
-1. Read the bugs file at `./pbis/pbi-[feature-slug]/bugs.md` and extract ALL documented bugs. If `bugs.md` does not exist, halt and report to the user — there are no bugs to fix.
-2. Read the PBI at `./pbis/pbi-[feature-slug]/pbi.md` to understand affected requirements. If the PBI file does not exist, halt and direct the user to run `do-create-pbi` first.
-3. Read the Tech Spec at `./pbis/pbi-[feature-slug]/techspec.md` to understand relevant technical decisions. If the TechSpec file does not exist, halt and direct the user to run `do-create-techspec` first.
-4. Review project rules for compliance in fixes.
-5. Do NOT skip this step — full context understanding is fundamental for quality fixes.
+1. Read the bug file provided by the user. If the file does not exist, halt and report.
+2. If `status` in the frontmatter is `corrigido`, halt: "Bug já corrigido — nada a fazer."
+3. Extract: ID, severidade, descrição, passos para reproduzir, resultado esperado/atual, componente afetado.
+4. Read the PBI at `./pbis/pbi-[feature-slug]/pbi.md` to understand affected requirements.
+5. Read the Tech Spec at `./pbis/pbi-[feature-slug]/techspec.md` for technical context.
+6. Read the project configuration file (CLAUDE.md or equivalent) for project conventions.
 
-**Step 2: Plan Fixes (Mandatory)**
-1. For each bug, generate a planning summary:
-   - Bug ID, Severity (High/Medium/Low), Affected Component.
-   - Root Cause analysis.
-   - Files to modify.
-   - Fix strategy description.
-   - Planned regression tests (unit, integration, E2E).
-2. Use Context7 MCP to analyze documentation of involved languages, frameworks, and libraries.
-3. **DO NOT stop here. DO NOT present the plan and wait for approval. Proceed IMMEDIATELY to Step 3.**
+**Step 2: Plan Fix (INTERNAL — do NOT output as standalone message)**
+1. Identify affected files and determine root cause from the bug description.
+2. Define fix strategy. Use Context7 MCP to verify documentation of involved libraries if needed.
+3. **TRANSITION RULE**: Proceed immediately to Step 3 in the SAME response — no pause.
 
-**Step 3: Implement Fixes (starts immediately after Step 2 — no pause, no confirmation)**
-1. Detect the project's package manager from lock files (`bun.lockb` → bun, `pnpm-lock.yaml` → pnpm, `package-lock.json` → npm). Default to `npm` if none found.
-2. Fix bugs in severity order: High first, then Medium, then Low.
-3. **Iteration limit**: You may perform a maximum of 3 fix-and-test cycles per bug. If a bug persists after 3 cycles, document the remaining issue in `bugs.md` with status "Unresolved" and report the blocker to the user.
-4. For each bug follow this sequence:
-   a. Locate and read the affected code.
-   b. Reason about the flow causing the bug.
-   c. Implement the root-cause fix — no superficial workarounds.
-   d. If a `typecheck` script exists in `package.json`, run it after each fix. Only `typecheck`, `test`, and `build` scripts are permitted for automatic execution — do not run arbitrary scripts.
-   e. Run existing tests using only known-safe commands (`npm test`, `npm run test`, `bun test`, `pnpm test`) to ensure no regressions.
+**Step 3: Implement Fix (starts immediately after Step 2 — no pause, no confirmation)**
+1. Detect package manager from lock files (`bun.lockb` → bun, `pnpm-lock.yaml` → pnpm, `package-lock.json` → npm, default: `npm`).
+2. Locate and read the affected code completely.
+3. Implement the root-cause fix — no superficial workarounds.
+4. If a `typecheck` script exists in `package.json`, run it after the fix.
+5. **Iteration limit**: Maximum 3 fix-and-test cycles. If the bug persists after 3 cycles, mark as `não-resolvido` and document the blocker.
 
-**Edit Failure Recovery**: When an `Edit` tool call fails, follow this escalation: (1) `read_file` to get current content, retry Edit with exact string. (2) Try a smaller, more unique `old_string`. (3) After 3 failed Edit attempts on the same file, switch to `Write` (read full file, apply changes, overwrite). **HARD LIMIT: max 3 Edit retries per file per change.**
+**Edit Failure Recovery**: When an `Edit` tool call fails: (1) `read_file` to get current content, retry with exact string. (2) Try a smaller, more unique `old_string`. (3) After 3 failed attempts, switch to `Write`. **HARD LIMIT: max 3 Edit retries per change.**
 
-**Step 4: Create Regression Tests (Mandatory)**
-1. Read `references/regression-test-patterns.md` for patterns and naming conventions by test type.
-2. For each fixed bug, create a test that:
+**Step 4: Create Regression Test (Mandatory)**
+1. Read `references/regression-test-patterns.md` for patterns and naming conventions.
+2. Create a test that:
    - Simulates the original bug scenario (must fail when the fix is reverted).
    - Validates the correct behavior with the fix applied.
    - Covers at least one related edge case.
 3. Choose test type based on bug nature (unit / integration / E2E) as described in the reference.
 
-**Step 5: MCP Discovery & Validation (Mandatory for bugs that can be validated via MCP)**
-1. Execute the MCP discovery procedure from the shared skills directory resolved in Step 0 (e.g., `.claude/skills/do-shared/do-mcp-discovery-instructions.md` for Claude Code):
-   a. Read the MCP configuration file for the current AI tool (`.mcp.json` for Claude Code, `.vscode/mcp.json` for GitHub Copilot, `.cursor/mcp.json` for Cursor) to list configured MCP servers.
-   b. Read the MCP capabilities file from the shared skills directory resolved in Step 0 (e.g., `.claude/skills/do-shared/do-mcp-capabilities.md` for Claude Code) to map each server to capabilities.
-   c. Build capability map and apply the capability guard.
-2. For bugs affecting the **UI** (and `browser-testing` MCP available):
-   a. Verify the app is running (check "Requer app rodando" in registry). Start if needed.
-   b. If MCP unavailable: follow "Se indisponivel" handling from registry. Document gap in bugfix report.
-   c. Navigate to the application, snapshot page state, reproduce the bug flow, capture screenshot evidence of the fix.
-3. For bugs affecting **backend behavior** (and backend-capable MCP available — `message-queue`, `database`, `cache`, `api-testing`):
-   a. Verify the required service is accessible. Document gap if unavailable.
-   b. Use the MCP tools to validate the fix end-to-end (e.g., verify messages are published/consumed correctly, verify data integrity).
-4. If no MCP with relevant capability exists for the bug type: document the validation gap in the bugfix report, rely on unit/integration tests only.
+**Step 5: MCP Validation (Mandatory when applicable)**
+1. Execute the MCP discovery procedure from the shared skills directory resolved in Step 0 (e.g., `.claude/skills/do-shared/do-mcp-discovery-instructions.md` for Claude Code).
+2. For bugs affecting the **UI** (and `browser-testing` MCP available): run `mkdir -p ./pbis/pbi-[feature-slug]/qa-screenshots` via Bash, then navigate, reproduce the fix flow, and capture screenshot evidence using `filename: pbis/pbi-[feature-slug]/qa-screenshots/fix-[BUG-XX]-[slug].png`.
+3. For bugs affecting **backend** (and backend-capable MCP available): validate end-to-end via MCP tools.
+4. If no relevant MCP available: document the validation gap in the fix report, rely on unit/integration tests only.
 
-**Step 6: Final Test Execution (Mandatory)**
-1. Run ALL project tests using the package manager detected in Step 3 (e.g., `npm test`).
-2. **E2E tests via MCP**: Only run E2E tests when a relevant MCP is available for the bug type (per the capability guard from Step 5). Use the MCP tools listed in the registry — **NEVER via CLI**.
-4. If a `typecheck` script exists in `package.json`, run it.
-5. Verify ALL pass with 100% success.
-6. The task is NOT complete if any test fails.
+**Step 6: Final Test Execution (Mandatory Gate)**
+1. Run ALL project tests using the detected package manager (e.g., `npm test`).
+2. If a `typecheck` script exists, run it.
+3. Verify ALL pass. The fix is NOT complete if any test fails.
 
-**Step 7: Update bugs.md (Mandatory)**
-1. For each fixed bug, append to its entry:
-   - **Status:** Fixed.
-   - **Applied fix:** Brief description.
-   - **Regression tests:** List of created tests.
-2. For any unresolved bugs, update status to "Unresolved" with a description of the blocker.
+**Step 7: Update Bug File (Mandatory)**
+1. Update the bug file's frontmatter `status`:
+   - Fixed: `corrigido`
+   - Blocked: `não-resolvido`
+2. Append a `## Resolução` section (if fixed) with: correção aplicada and testes de regressão criados.
+3. Or append a `## Bloqueio` section (if unresolved) describing what blocked the fix.
 
-**Step 8: Generate Final Report (Mandatory)**
-1. Read the report template from the skills directory resolved in Step 0 (e.g., `.claude/skills/do-execute-qa-bugfix/assets/bugfix-report-template.md` for Claude Code).
-2. Fill in all sections with actual results.
-3. Save the report to `./pbis/pbi-[feature-slug]/bugfix-report.md`.
-
-**Step 9: Report Results & Sync Progress (Mandatory)**
-1. **SYNC INTERNAL PROGRESS**: Once all bugs are fixed and the report is generated, if `TaskUpdate` is available (Claude Code), use it to mark all corresponding items in your internal task tracking as `completed`. Otherwise, skip this step.
-2. Provide the final bugfix report to the user.
-3. **COMPLIANCE CHECK**: Before responding to the user, verify:
-    - Is `bugs.md` updated with the status "Fixed" (or "Unresolved")?
-    - Is the final report generated?
-    - Did all regression tests pass?
+**Step 8: Report Results (Mandatory)**
+1. If `TaskUpdate` is available, mark internal tasks as `completed`.
+2. **Compliance check**: call `read_file` on the bug file to confirm `status` was updated.
+3. Inform the user: bug fixed (or blocked), tests passing, and which regression test was created.
+4. If other `aberto` bugs remain in `qa-bugs/`, list them so the user can invoke the skill again for the next one.
 
 ## Output Language
-All generated artifacts (bugfix report, status updates in bugs.md) must be written in Brazilian Portuguese (PT-BR). Code examples, variable names, and technical terms remain in English.
+Todos os artefatos gerados (atualizações no arquivo de bug, seções de resolução/bloqueio) devem ser escritos em Português do Brasil (PT-BR). Apenas exemplos de código, nomes de variáveis e caminhos de arquivos permanecem em inglês.
 
 ## Error Handling
-- If `bugs.md` does not exist, halt and report to the user.
-- If the PBI file does not exist, halt and direct the user to run `do-create-pbi`.
-- If the TechSpec file does not exist, halt and direct the user to run `do-create-techspec`.
+- If no file path is provided, list all `aberto` bug files in `qa-bugs/` and ask the user which one to fix.
+- If the bug file does not exist, halt and report.
+- If status is already `corrigido`, halt: nothing to do.
 - If a bug requires significant architectural changes, document the justification before proceeding.
-- If new bugs are discovered during fixes, document them in `bugs.md` with status "New" but do NOT fix them in this cycle — they will be addressed in the next bugfix run.
-- If a service required by an MCP is not running (app, broker, etc.), start it or document the gap.
-- If an MCP is unavailable, follow its "Se indisponivel" handling from the registry and document the gap in the bugfix report.
-- If implementation fails mid-way (compilation errors, incompatible dependencies), document what was completed and what remains, ensure the codebase compiles (revert broken partial changes if needed), and report the blocker to the user.
+- If new bugs are discovered during the fix, create a new bug file in `qa-bugs/` with status `novo` — do NOT fix in this cycle.
+- If an MCP is unavailable, follow its "Se indisponivel" handling from the registry and document the gap.
+- If implementation fails mid-way, revert broken partial changes, ensure the codebase compiles, and report the blocker.
 
 ## References
-- Bugs: `./pbis/pbi-[feature-slug]/bugs.md`
-- Template: resolved in Step 0 (e.g., `.claude/skills/do-execute-qa-bugfix/assets/bugfix-report-template.md` for Claude Code)
+- Bug file (input): `./pbis/pbi-[feature-slug]/qa-bugs/bug-[XX]-[severidade-completa]-[slug].md`
 - Regression test patterns: resolved in Step 0 (e.g., `.claude/skills/do-execute-qa-bugfix/references/regression-test-patterns.md` for Claude Code)
 - MCP Discovery: resolved in Step 0 (e.g., `.claude/skills/do-shared/do-mcp-discovery-instructions.md` for Claude Code)
 - MCP Registry: resolved in Step 0 (e.g., `.claude/skills/do-shared/do-mcp-capabilities.md` for Claude Code)
 - PBI: `./pbis/pbi-[feature-slug]/pbi.md`
 - TechSpec: `./pbis/pbi-[feature-slug]/techspec.md`
-- Bugfix Report output: `./pbis/pbi-[feature-slug]/bugfix-report.md`
+- Screenshots: `./pbis/pbi-[feature-slug]/qa-screenshots/`

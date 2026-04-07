@@ -67,7 +67,7 @@ Store resolved environment and skills directory internally and use throughout al
     - Does the task list follow the template structure?
 
 ## Output Language
-All generated artifacts (tasks.md, individual task files) must be written in Brazilian Portuguese (PT-BR). Code examples, variable names, and technical terms remain in English.
+Todos os artefatos gerados (tasks.md, arquivos de task individuais) devem ser escritos em Português do Brasil (PT-BR). Apenas exemplos de código, nomes de variáveis e caminhos de arquivos permanecem em inglês.
 
 ## Guidelines
 - Assume the primary reader is a junior developer — be as clear as possible.

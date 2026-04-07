@@ -51,10 +51,12 @@ Store resolved environment and skills directory internally and use throughout al
 
 **Step 3: E2E Tests via MCP (Mandatory — skipped only if capability guard determined no relevant MCP)**
 1. Use Context7 MCP (`resolve-library-id` → `query-docs`) to check documentation of frameworks/libraries involved in the feature under test — this helps validate expected component behavior, API responses, and correct usage patterns. If Context7 MCP is unavailable, proceed without it.
-2. For each functional requirement from the PBI, use the appropriate MCP tools (as identified in Step 2):
-   - **Browser-testing MCP** (frontend requirements): Navigate to the feature, execute the expected flow, verify results, capture screenshot evidence. Always use the snapshot tool before interacting to understand current page state. Check browser console for errors. Verify API calls via network requests tool.
+2. **Screenshot directory — MANDATORY SETUP**: Before taking any screenshot, run `mkdir -p ./pbis/pbi-[feature-slug]/qa-screenshots` via Bash to ensure the directory exists. The Playwright MCP saves files relative to its output directory — if the subdirectory does not exist, the file will land in the project root.
+3. **Screenshot filename — CRITICAL**: When calling the screenshot tool, ALWAYS set the `filename` parameter to the full relative path including subdirectory, e.g. `pbis/pbi-[feature-slug]/qa-screenshots/req-01-login-success.png`. Never pass just a filename without the path prefix.
+4. For each functional requirement from the PBI, use the appropriate MCP tools (as identified in Step 2):
+   - **Browser-testing MCP** (frontend requirements): Navigate to the feature, execute the expected flow, verify results, capture screenshot with `filename: pbis/pbi-[feature-slug]/qa-screenshots/[name].png`. Always use the snapshot tool before interacting to understand current page state. Check browser console for errors. Verify API calls via network requests tool.
    - **Backend MCP** (backend requirements — e.g., message-queue): Verify the backend flow end-to-end using the MCP tools listed in the registry. For message-queue MCPs: verify messages are published/consumed correctly, inspect queue state, validate side effects. For database/cache MCPs: verify data integrity and state changes.
-3. Mark each requirement as PASSED or FAILED.
+5. Mark each requirement as APROVADO or REPROVADO.
 
 **Step 4: Accessibility Verification (Mandatory — only if browser-testing MCP is available)**
 1. Read `references/wcag-checklist.md` for the full WCAG 2.2 verification items and browser MCP testing instructions.
@@ -62,34 +64,39 @@ Store resolved environment and skills directory internally and use throughout al
 3. Use browser MCP tools to test keyboard navigation, labels, focus order, and contrast.
 
 **Step 5: Visual Verification (Mandatory — only if browser-testing MCP is available)**
-1. Capture screenshots of main screens using the browser MCP screenshot tool.
+1. Capture screenshots of main screens using the browser MCP screenshot tool. Always set `filename` to the full relative path: `pbis/pbi-[feature-slug]/qa-screenshots/visual-home-empty.png`, `pbis/pbi-[feature-slug]/qa-screenshots/visual-home-with-data.png`, etc. The directory was already created in Step 3.
 2. Verify layouts in different states (empty, with data, error).
 3. Document visual inconsistencies found.
 4. Verify responsiveness if applicable.
 
 **Step 6: Bug Documentation**
-1. For each bug found, document with:
-   - Bug ID, Description, Severity (High/Medium/Low), Screenshot (if available).
-2. Check if `./pbis/pbi-[feature-slug]/bugs.md` already exists. If it does, **append** new bugs with sequential IDs (do not overwrite existing entries). If it does not exist, create it.
-3. If a blocking bug is found, document and report immediately.
+1. Read the bug template from the skills directory resolved in Step 0 (e.g., `.claude/skills/do-execute-qa/assets/bug-template.md` for Claude Code).
+2. For each bug found, create an individual file at `./pbis/pbi-[feature-slug]/qa-bugs/bug-[XX]-[severidade-completa]-[brief-slug].md`, where:
+   - `[XX]` is a sequential number (01, 02, …).
+   - `[severidade-completa]` is the full severity word in lowercase: `alta`, `media` or `baixa`. Do NOT abbreviate.
+   - `[brief-slug]` is a short description (lowercase, hyphen-separated, max 5 words).
+   - Example: `bug-01-alta-formulario-nao-valida-email.md`
+3. Fill the template with: ID, severidade, status (`aberto`), descrição, passos para reproduzir, resultado esperado, resultado atual, evidência (screenshot path) e componente afetado.
+4. For bug screenshots, run `mkdir -p ./pbis/pbi-[feature-slug]/qa-screenshots` if not already done, then call the screenshot tool with `filename: pbis/pbi-[feature-slug]/qa-screenshots/bug-[XX]-[slug].png`.
+5. If a blocking bug is found, document and report immediately.
 
 **Step 7: Generate QA Report (Mandatory)**
 1. Read the report template from the skills directory resolved in Step 0 (e.g., `.claude/skills/do-execute-qa/assets/qa-report-template.md` for Claude Code).
 2. Fill in all sections with actual results.
 3. Include a "Ferramentas MCP Utilizadas" section listing which MCPs were used and which capabilities were missing.
 4. Save the report to `./pbis/pbi-[feature-slug]/qa-report.md`.
-5. Set status to APPROVED only when ALL PBI requirements are verified and functioning.
+5. Set status to APROVADO only when ALL PBI requirements are verified and functioning.
 
 **Step 8: Report Results & Sync Progress (Mandatory)**
 1. **SYNC INTERNAL PROGRESS**: Once the QA report is generated and bugs are documented, if `TaskUpdate` is available (Claude Code), use it to mark all corresponding items in your internal task tracking as `completed`. Otherwise, skip this step.
 2. Provide the final QA report to the user.
 3. **COMPLIANCE CHECK**: Before responding to the user, verify:
     - Is the QA report generated and saved?
-    - Is `bugs.md` updated with all findings (appended, not overwritten)?
+    - Does `./pbis/pbi-[feature-slug]/qa-bugs/` contain one file per bug found?
     - Did all E2E/Accessibility tests pass?
 
 ## Output Language
-All generated artifacts (QA report, bugs.md entries) must be written in Brazilian Portuguese (PT-BR). Code examples, variable names, and technical terms remain in English.
+Todos os artefatos gerados (relatório de QA, arquivos de bug individuais) devem ser escritos em Português do Brasil (PT-BR). Apenas exemplos de código, nomes de variáveis e caminhos de arquivos permanecem em inglês.
 
 ## Error Handling
 - If the PBI does not exist, halt and direct the user to run `do-create-pbi`.
@@ -97,7 +104,7 @@ All generated artifacts (QA report, bugs.md entries) must be written in Brazilia
 - If a required service is not running (app, broker, etc.), detect the package manager and start it, or document the gap if unable.
 - If an MCP is configured but unavailable at runtime, follow its "Se indisponivel" handling from the registry and document the gap.
 - If a blocking bug prevents testing subsequent features, document it and continue with testable areas.
-- If `bugs.md` already exists, append new bugs — never overwrite previous findings.
+- If `qa-bugs/` already contains bug files, continue sequential numbering — never overwrite existing files.
 
 ## References
 - Template: resolved in Step 0 (e.g., `.claude/skills/do-execute-qa/assets/qa-report-template.md` for Claude Code)
@@ -107,5 +114,7 @@ All generated artifacts (QA report, bugs.md entries) must be written in Brazilia
 - PBI: `./pbis/pbi-[feature-slug]/pbi.md`
 - TechSpec: `./pbis/pbi-[feature-slug]/techspec.md`
 - Tasks: `./pbis/pbi-[feature-slug]/tasks/tasks.md`
-- Bugs: `./pbis/pbi-[feature-slug]/bugs.md`
+- Bug template: resolved in Step 0 (e.g., `.claude/skills/do-execute-qa/assets/bug-template.md` for Claude Code)
+- Bugs output dir: `./pbis/pbi-[feature-slug]/qa-bugs/bug-[XX]-[severidade-completa]-[slug].md`
 - QA Report output: `./pbis/pbi-[feature-slug]/qa-report.md`
+- Screenshots output dir: `./pbis/pbi-[feature-slug]/qa-screenshots/`
