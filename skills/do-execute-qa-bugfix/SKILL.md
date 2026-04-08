@@ -1,6 +1,6 @@
 ---
 name: do-execute-qa-bugfix
-description: Recebe o caminho de um arquivo de bug em qa-bugs/ (ex: qa-bugs/bug-01-alta-formulario.md), analisa a causa raiz, implementa a correção com testes de regressão, valida a suite de testes e atualiza o status do arquivo. Use quando o usuário pedir para corrigir um bug específico encontrado no QA. Não use para correções em lote — invoque uma vez por bug. Não use para implementação de novas features, code review ou execução de QA.
+description: "Recebe o caminho de um arquivo de bug em qa-bugs/ (ex: qa-bugs/bug-01-alta-formulario.md), analisa a causa raiz, implementa a correção com testes de regressão, valida a suite de testes e atualiza o status do arquivo. Use quando o usuário pedir para corrigir um bug específico encontrado no QA. Não use para correções em lote — invoque uma vez por bug. Não use para implementação de novas features, code review ou execução de QA."
 ---
 
 # Bug Fix Execution

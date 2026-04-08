@@ -1,6 +1,6 @@
 ---
 name: do-execute-review-fix
-description: Recebe o caminho de um arquivo de fix task em review-fixes/ (ex: review-fixes/fix-R01-critico-senha.md), implementa a correção, roda a suite de testes e atualiza o status do arquivo. Use quando do-execute-review gerou arquivos de fix task e o usuário quiser resolver um problema específico. Não use para correções em lote — invoque uma vez por arquivo. Não use para QA, correção de bugs de QA (use do-execute-qa-bugfix) ou implementação de novas features.
+description: "Recebe o caminho de um arquivo de fix task em review-fixes/ (ex: review-fixes/fix-R01-critico-senha.md), implementa a correção, roda a suite de testes e atualiza o status do arquivo. Use quando do-execute-review gerou arquivos de fix task e o usuário quiser resolver um problema específico. Não use para correções em lote — invoque uma vez por arquivo. Não use para QA, correção de bugs de QA (use do-execute-qa-bugfix) ou implementação de novas features."
 ---
 
 # Review Fix Execution
