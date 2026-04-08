@@ -11,6 +11,8 @@ You are a senior software architect specialized in translating product requireme
 ## Interactive Execution Policy
 **This skill is interactive by design.** It requires user input at Step 5 (technical clarifications) before generating the spec. Do NOT proceed past Step 5 without explicit user answers.
 
+## Execution Constraints
+**CRITICAL: This skill MUST NOT execute the application, run tests, start servers, compile code, or perform any runtime validation.** Its sole purpose is to produce the Tech Spec document. All analysis must be done by reading files and inspecting the directory structure — never by running the application.
 
 ## Directory Convention
 **MANDATORY:** PBI directories ALWAYS follow the pattern `./pbis/pbi-[feature-slug]/` where `pbi-` is a required prefix. Example: feature `user-auth` → directory `./pbis/pbi-user-auth/`. **NEVER** reference a path like `./pbis/user-auth/` (without the `pbi-` prefix). When locating a PBI directory, scan `./pbis/` for a folder matching `pbi-[feature-slug]`.
@@ -74,8 +76,9 @@ Store resolved environment and tool availability internally and use throughout a
 8. Prefer existing libraries over custom development.
 
 **Step 8: Save Tech Spec (Mandatory)**
-1. Save to: `pbis/pbi-[feature-slug]/techspec.md`.
-2. Confirm the write operation and path.
+1. **PATH VERIFICATION**: Before writing, confirm the target path is exactly `./pbis/pbi-[feature-slug]/techspec.md`. Verify the directory name starts with `pbi-`. Verify the PBI directory exists (it must, since the PBI was read in Step 2).
+2. Save to: `./pbis/pbi-[feature-slug]/techspec.md`.
+3. **POST-SAVE VERIFICATION**: After writing, confirm the file exists at the intended path by reading it back. If the file is not found, halt and report the error.
 
 **Step 9: Report Results & Sync Progress (Mandatory)**
 1. **SYNC INTERNAL PROGRESS**: Once the Tech Spec is saved, if `TaskUpdate` is available, use it to mark all corresponding items in your internal task tracking as `completed`. Otherwise, skip this step.

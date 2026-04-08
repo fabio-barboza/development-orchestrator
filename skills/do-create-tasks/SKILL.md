@@ -11,6 +11,9 @@ You are a senior project manager specialized in breaking down features into incr
 ## Interactive Execution Policy
 **This skill is interactive by design.** It requires user approval at Step 3 (high-level task list) before generating files. Do NOT proceed past Step 3 without explicit user confirmation.
 
+## Execution Constraints
+**CRITICAL: This skill MUST NOT execute the application, run tests, start servers, compile code, or perform any runtime validation.** Its sole purpose is to produce the task breakdown documents. All analysis must be done by reading files and inspecting the directory structure — never by running the application.
+
 ## Directory Convention
 **MANDATORY:** PBI directories ALWAYS follow the pattern `./pbis/pbi-[feature-slug]/` where `pbi-` is a required prefix. Example: feature `user-auth` → directory `./pbis/pbi-user-auth/`. **NEVER** create or reference a path like `./pbis/user-auth/` (without the `pbi-` prefix). The `tasks/` subdirectory is always inside this prefixed folder: `./pbis/pbi-[feature-slug]/tasks/`.
 
@@ -51,11 +54,13 @@ Store resolved environment and skills directory internally and use throughout al
 **Step 4: Generate Task Files (Mandatory)**
 1. Read the tasks summary template from the skills directory resolved in Step 0 (e.g., `.claude/skills/do-create-tasks/assets/tasks-template.md` for Claude Code).
 2. Read the individual task template from the skills directory resolved in Step 0 (e.g., `.claude/skills/do-create-tasks/assets/task-template.md` for Claude Code).
-3. Create the directory `./pbis/pbi-[feature-slug]/tasks/` if it does not exist.
-4. Create the summary file: `./pbis/pbi-[feature-slug]/tasks/tasks.md`.
-5. Create individual task files: `./pbis/pbi-[feature-slug]/tasks/[num]_task.md`.
-5. Use format X.0 for main tasks, X.Y for subtasks.
-6. Do NOT repeat implementation details already in the Tech Spec — reference it instead.
+3. **PATH VERIFICATION**: Before creating any file, confirm the target directory is exactly `./pbis/pbi-[feature-slug]/tasks/`. Verify the parent directory name starts with `pbi-`. Never write to `./pbis/[feature-slug]/tasks/` (missing `pbi-` prefix).
+4. Create the directory `./pbis/pbi-[feature-slug]/tasks/` if it does not exist.
+5. Create the summary file: `./pbis/pbi-[feature-slug]/tasks/tasks.md`.
+6. Create individual task files: `./pbis/pbi-[feature-slug]/tasks/[num]_task.md`.
+7. Use format X.0 for main tasks, X.Y for subtasks.
+8. Do NOT repeat implementation details already in the Tech Spec — reference it instead.
+9. **POST-SAVE VERIFICATION**: After writing all files, list the contents of `./pbis/pbi-[feature-slug]/tasks/` to confirm all expected files exist. If any file is missing, halt and report the error.
 
 **Step 5: Report Results & Sync Progress (Mandatory)**
 1. **SYNC INTERNAL PROGRESS**: Once the tasks are generated, if `TaskUpdate` is available (Claude Code), use it to mark all corresponding items in your internal task tracking as `completed`. Otherwise, skip this step.

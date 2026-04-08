@@ -11,6 +11,9 @@ You are a senior product manager specialized in writing clear, actionable PBIs f
 ## Directory Convention
 **MANDATORY:** PBI directories ALWAYS follow the pattern `./pbis/pbi-[feature-slug]/` where `pbi-` is a required prefix. Example: feature `user-auth` → directory `./pbis/pbi-user-auth/`. **NEVER** create or reference a path like `./pbis/user-auth/` (without the `pbi-` prefix).
 
+## Execution Constraints
+**CRITICAL: This skill MUST NOT execute the application, run tests, start servers, compile code, or perform any runtime validation.** Its sole purpose is to produce the PBI document. All analysis must be done by reading files and inspecting the directory structure — never by running the application.
+
 ## Resumption Detection (GitHub Copilot only)
 In GitHub Copilot, each user message starts a fresh invocation — the agent has no memory of previous turns. To handle resumption:
 
@@ -20,6 +23,16 @@ In GitHub Copilot, each user message starts a fresh invocation — the agent has
 4. **On resumption**: read `pbi-answers.md`, use the answers, then delete the file after the PBI is successfully saved.
 
 ## Procedures
+
+**Step 0: Detect AI Tool Environment**
+Before anything else, determine the execution environment:
+1. Check for `.claude/` directory in the project root → **Claude Code** → skills dir: `.claude/skills/`
+2. Check for `.github/copilot-instructions.md` or `.github/` directory → **GitHub Copilot** → skills dir: not applicable
+3. Resolve available tools based on environment:
+   - **AskUserQuestion**: use in all environments (Claude Code and GitHub Copilot).
+   - **TaskUpdate**: available in Claude Code; in Copilot, skip gracefully.
+
+Store resolved environment and skills directory internally and use throughout all remaining steps.
 
 **Step 1: Validate Prerequisites**
 1. Confirm the feature name or description has been provided by the user.
@@ -43,15 +56,17 @@ In GitHub Copilot, each user message starts a fresh invocation — the agent has
 2. Present the plan to the user for alignment.
 
 **Step 4: Draft the PBI (Mandatory)**
-1. Read the template at `.claude/skills/do-create-pbi/assets/pbi-template.md`.
+1. Read the template at the path resolved in Step 0 (e.g., `.claude/skills/do-create-pbi/assets/pbi-template.md` for Claude Code).
 2. Focus on WHAT and WHY, never on HOW (implementation belongs in Tech Spec).
 3. Include numbered functional requirements.
 4. Keep the document under 2,000 words.
 5. Do NOT deviate from the template structure.
 
 **Step 5: Save the PBI (Mandatory)**
-1. Create the directory: `./pbis/pbi-[feature-slug]/`.
-2. Save the PBI to: `./pbis/pbi-[feature-slug]/pbi.md`.
+1. **PATH VERIFICATION**: Before writing, confirm the target path is exactly `./pbis/pbi-[feature-slug]/pbi.md`. Verify the directory name starts with `pbi-`. If the `./pbis/` directory does not exist, create it first.
+2. Create the directory: `./pbis/pbi-[feature-slug]/`.
+3. Save the PBI to: `./pbis/pbi-[feature-slug]/pbi.md`.
+4. **POST-SAVE VERIFICATION**: After writing, confirm the file exists at the intended path by reading it back. If the file is not found, halt and report the error.
 
 **Step 6: Report Results & Sync Progress (Mandatory)**
 1. **SYNC INTERNAL PROGRESS**: Once the PBI is saved, if `TaskUpdate` is available (Claude Code), use it to mark all corresponding items in your internal task tracking as `completed`. Otherwise, skip this step.
@@ -61,13 +76,6 @@ In GitHub Copilot, each user message starts a fresh invocation — the agent has
     - Is the PBI file saved correctly?
     - Is the internal task tracking synchronized?
     - Did you follow the template structure?
-
-## Environment Detection
-Before anything else, determine the execution environment:
-1. Check for `.claude/` directory → **Claude Code** → skills dir: `.claude/skills/`
-2. Check for `.github/` directory → **GitHub Copilot** → skills dir: not applicable
-3. **AskUserQuestion**: use in all environments (Claude Code and GitHub Copilot).
-4. **TaskUpdate**: available in Claude Code; in Copilot, skip gracefully
 
 ## Output Language
 Todos os artefatos gerados (documento PBI, resumos) devem ser escritos em Português do Brasil (PT-BR). Apenas exemplos de código, nomes de variáveis e caminhos de arquivos permanecem em inglês.

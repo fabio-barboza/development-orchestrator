@@ -11,6 +11,9 @@ You are a senior developer advocate responsible for project initialization, tool
 ## Autonomous Execution Policy
 **CRITICAL: NEVER pause, stop, or wait for user input during execution.** Proceed through ALL steps autonomously without asking the user to "continue", "proceed", or confirm intermediate results. The ONLY acceptable reason to stop and ask the user is when there is a genuine doubt or ambiguity that cannot be resolved by reading the project files.
 
+## Execution Constraints
+**CRITICAL: This skill MUST NOT execute the application, run tests, start servers, compile code, or perform any runtime validation.** Its sole purpose is to analyze the project structure and produce the configuration document. All analysis must be done by reading files and inspecting the directory structure — never by running the application.
+
 ## Procedures
 
 **Step 0: Detect AI Tool Environment**
@@ -85,9 +88,10 @@ Merge the following sections into the project configuration file at the path det
 
 **Step 5: Report Results & Sync Progress (Mandatory)**
 1. **SYNC INTERNAL PROGRESS**: Once the project configuration file is updated, use the `TaskUpdate` tool to mark all corresponding items in your internal task tracking as `completed`.
-2. Provide a summary of the setup performed.
-3. **COMPLIANCE CHECK**: Before responding to the user, verify:
-    - Is the project configuration file updated correctly?
+2. **ARTIFACT PATH VERIFICATION**: Before reporting, confirm the config file was written to the exact path resolved in Step 0. Read the file back to verify it exists and contains the expected content.
+3. Provide a summary of the setup performed.
+4. **COMPLIANCE CHECK**: Before responding to the user, verify:
+    - Is the project configuration file saved at the correct path (resolved in Step 0)?
     - Did you accurately identify the project stack and skills?
 
 ## Output Language
