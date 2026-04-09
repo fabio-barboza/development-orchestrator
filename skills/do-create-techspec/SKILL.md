@@ -62,7 +62,7 @@ Store resolved environment and tool availability internally and use throughout a
 3. Do NOT proceed until answers are received.
 
 **Step 6: Standards Compliance Mapping (Mandatory)**
-1. Identify project skills using the skills directory resolved in Step 0. Skip this sub-step if the skills directory is not applicable (e.g., GitHub Copilot without a configured skills path).
+1. Identify project skills using the skills directory resolved in Step 0. Skip this sub-step if the skills directory is not applicable (e.g., GitHub Copilot without a configured skills path). **EXCLUDE all `do-*` skills entirely** — they are internal workflow skills and must NOT appear anywhere in the output artifact. Only evaluate technology/library skills (e.g., `claude-api`, `find-skills`).
 2. Highlight deviations with justification and compliant alternatives.
 
 **Step 7: Generate Tech Spec (Mandatory)**

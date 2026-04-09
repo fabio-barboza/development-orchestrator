@@ -6,12 +6,6 @@
 
 [Breve descrição da tarefa]
 
-<skills>
-### Conformidade com Skills Padrões
-
-[Pesquisa as skills na pasta @.claude/skills que se encaixam e se apliquem nesta techspec e liste-as abaixo:]
-</skills>
-
 <requirements>
 [Lista de requisitos obrigatórios]
 </requirements>

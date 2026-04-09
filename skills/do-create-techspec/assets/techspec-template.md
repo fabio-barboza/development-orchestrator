@@ -129,10 +129,6 @@ interface NomeServico {
 - Abordagens de mitigação
 - Áreas precisando pesquisa]
 
-### Conformidade com Skills Padrões
-
-[Pesquisa as skills na pasta @.claude/skills que se encaixam e se apliquem nesta techspec e liste-as abaixo:]
-
 ### Arquivos relevantes e dependentes
 
 [Liste aqui arquivos relevantes e dependentes]

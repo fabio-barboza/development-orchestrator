@@ -52,8 +52,8 @@ Store the resolved config file path internally and use it consistently throughou
 
 **Step 3: Identify Relevant Skills**
 1. List all available skills in the AI tool's skills directory (e.g., `.claude/skills/` for Claude Code).
-2. Skip workflow skills (`do-*`) — focus only on technology/library skills (e.g., `claude-api`, `find-skills`).
-3. For each remaining skill, read the `SKILL.md` header and description.
+2. **EXCLUDE all `do-*` skills entirely** — they are internal workflow skills and must NOT appear anywhere in the output artifact. Only evaluate technology/library skills (e.g., `claude-api`, `find-skills`).
+3. For each remaining (non-`do-*`) skill, read the `SKILL.md` header and description.
 4. Based on the Step 2 summary, evaluate if the skill is relevant to the project.
 5. A skill is relevant if it covers at least one of:
    - The project's primary language or framework
@@ -71,6 +71,7 @@ Merge the following sections into the project configuration file at the path det
 - **Integrations:** [external services]
 
 ## Available Skills
+**NOTE: Only list non-`do-*` skills here. Never include workflow skills (do-setup, do-create-pbi, do-create-techspec, do-create-tasks, do-execute-task, do-execute-review, do-execute-qa, etc.) in this table.**
 | Skill | Path | When to use |
 |-------|------|-------------|
 | [name] | [skills-dir]/[skill]/SKILL.md | [usage context] |
