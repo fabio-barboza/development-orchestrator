@@ -1,6 +1,8 @@
 # Development Orchestrator (DO Framework)
 
-**Framework de Skills AI-driven** que orquestra o ciclo completo de desenvolvimento de software: desde a ideia inicial até QA final com testes E2E automatizados via MCP (Model Context Protocol).
+**Framework de Skills AI-driven** que orquestra o ciclo completo de desenvolvimento de software seguindo o padrão **Spec Driven Development (SDD)**: desde a ideia inicial até QA final com testes E2E automatizados via MCP (Model Context Protocol).
+
+O SDD garante que cada feature seja especificada antes de implementada — PBI → TechSpec → Tasks — criando uma cadeia de artefatos rastreáveis que eliminam ambiguidade e orientam a execução com contexto completo.
 
 ## Para Que Serve
 
