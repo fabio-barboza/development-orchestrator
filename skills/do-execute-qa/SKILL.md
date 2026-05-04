@@ -19,9 +19,10 @@ You are a senior QA engineer specialized in E2E testing, accessibility validatio
 **Step 0: Detect AI Tool Environment**
 Before anything else, determine the execution environment:
 1. Check for `.claude/` directory in the project root → **Claude Code** → skills dir: `.claude/skills/`
-2. Check for `.github/copilot-instructions.md` or `.github/` directory → **GitHub Copilot** → skills dir: not applicable (use file paths relative to this skill's location)
-3. Resolve available tools based on environment:
-   - **TaskUpdate**: available in Claude Code; in Copilot, skip gracefully
+2. Check for `.github/copilot-instructions.md` or `.github/` directory → **GitHub Copilot** → skills dir: not applicable
+3. Check for `.cursor/rules/` or `.cursor/mcp.json` → **Cursor AI** → skills dir: `.cursor/rules/`
+4. Resolve available tools based on environment:
+   - **TaskUpdate**: available in Claude Code; in Copilot and Cursor, skip gracefully
    - **Context7 MCP**: available if configured; fallback to Web Search otherwise
 
 Store resolved environment and skills directory internally and use throughout all remaining steps.
@@ -35,9 +36,9 @@ Store resolved environment and skills directory internally and use throughout al
 6. **DO NOT stop here. DO NOT present the checklist and wait for approval. Proceed IMMEDIATELY to Step 2.**
 
 **Step 2: MCP Discovery & Capability Guard (starts immediately after Step 1 — no pause, no confirmation)**
-1. **MCP Discovery**: Execute the discovery procedure from the shared skills directory resolved in Step 0 (e.g., `.claude/skills/do-shared/do-mcp-discovery-instructions.md` for Claude Code):
+1. **MCP Discovery**: Execute the discovery procedure from the shared skills directory resolved in Step 0 (e.g., `.claude/skills/do-shared/do-mcp-discovery-instructions.md` for Claude Code, `.cursor/rules/do-shared/do-mcp-discovery-instructions.md` for Cursor AI):
    a. Read the MCP configuration file for the current AI tool (`.mcp.json` for Claude Code, `.vscode/mcp.json` for GitHub Copilot, `.cursor/mcp.json` for Cursor) to list configured MCP servers.
-   b. Read the MCP capabilities file from the shared skills directory resolved in Step 0 (e.g., `.claude/skills/do-shared/do-mcp-capabilities.md` for Claude Code) to map each server to its capabilities and tools.
+   b. Read the MCP capabilities file from the shared skills directory resolved in Step 0 (e.g., `.claude/skills/do-shared/do-mcp-capabilities.md` for Claude Code, `.cursor/rules/do-shared/do-mcp-capabilities.md` for Cursor AI) to map each server to its capabilities and tools.
    c. Build an internal capability map (e.g., `{ "browser-testing": ["playwright"], "message-queue": ["rabbitmq"] }`).
 2. **Capability Guard**: Analyze the PBI, Tech Spec, and Tasks to determine if the feature involves **frontend/UI**, **backend**, or **both**. Apply the capability guard from the discovery instructions:
    - Frontend feature + `browser-testing` MCP available → proceed to Steps 3-5 using browser MCP tools.
@@ -71,7 +72,7 @@ Store resolved environment and skills directory internally and use throughout al
 4. Verify responsiveness if applicable.
 
 **Step 6: Bug Documentation**
-1. Read the bug template from the skills directory resolved in Step 0 (e.g., `.claude/skills/do-execute-qa/assets/bug-template.md` for Claude Code).
+1. Read the bug template from the skills directory resolved in Step 0 (e.g., `.claude/skills/do-execute-qa/assets/bug-template.md` for Claude Code, `.cursor/rules/do-execute-qa/assets/bug-template.md` for Cursor AI).
 2. For each bug found, create an individual file at `./pbis/pbi-[feature-slug]/qa-bugs/bug-[XX]-[severidade-completa]-[brief-slug].md`, where:
    - `[XX]` is a sequential number (01, 02, …).
    - `[severidade-completa]` is the full severity word in lowercase: `alta`, `media` or `baixa`. Do NOT abbreviate.
@@ -82,14 +83,14 @@ Store resolved environment and skills directory internally and use throughout al
 5. If a blocking bug is found, document and report immediately.
 
 **Step 7: Generate QA Report (Mandatory)**
-1. Read the report template from the skills directory resolved in Step 0 (e.g., `.claude/skills/do-execute-qa/assets/qa-report-template.md` for Claude Code).
+1. Read the report template from the skills directory resolved in Step 0 (e.g., `.claude/skills/do-execute-qa/assets/qa-report-template.md` for Claude Code, `.cursor/rules/do-execute-qa/assets/qa-report-template.md` for Cursor AI).
 2. Fill in all sections with actual results.
 3. Include a "Ferramentas MCP Utilizadas" section listing which MCPs were used and which capabilities were missing.
 4. Save the report to `./pbis/pbi-[feature-slug]/qa-report.md`.
 5. Set status to APROVADO only when ALL PBI requirements are verified and functioning.
 
 **Step 8: Report Results & Sync Progress (Mandatory)**
-1. **SYNC INTERNAL PROGRESS**: Once the QA report is generated and bugs are documented, if `TaskUpdate` is available (Claude Code), use it to mark all corresponding items in your internal task tracking as `completed`. Otherwise, skip this step.
+1. **SYNC INTERNAL PROGRESS**: Once the QA report is generated and bugs are documented, if `TaskUpdate` is available (Claude Code only; skip in Copilot and Cursor), use it to mark all corresponding items in your internal task tracking as `completed`. Otherwise, skip this step.
 2. Provide the final QA report to the user.
 3. **COMPLIANCE CHECK**: Before responding to the user, verify:
     - Is the QA report generated and saved?
@@ -108,14 +109,14 @@ Todos os artefatos gerados (relatório de QA, arquivos de bug individuais) devem
 - If `qa-bugs/` already contains bug files, continue sequential numbering — never overwrite existing files.
 
 ## References
-- Template: resolved in Step 0 (e.g., `.claude/skills/do-execute-qa/assets/qa-report-template.md` for Claude Code)
-- Accessibility checklist: resolved in Step 0 (e.g., `.claude/skills/do-execute-qa/references/wcag-checklist.md` for Claude Code)
-- MCP Discovery: resolved in Step 0 (e.g., `.claude/skills/do-shared/do-mcp-discovery-instructions.md` for Claude Code)
-- MCP Registry: resolved in Step 0 (e.g., `.claude/skills/do-shared/do-mcp-capabilities.md` for Claude Code)
+- Template: resolved in Step 0 (e.g., `.claude/skills/do-execute-qa/assets/qa-report-template.md` for Claude Code, `.cursor/rules/do-execute-qa/assets/qa-report-template.md` for Cursor AI)
+- Accessibility checklist: resolved in Step 0 (e.g., `.claude/skills/do-execute-qa/references/wcag-checklist.md` for Claude Code, `.cursor/rules/do-execute-qa/references/wcag-checklist.md` for Cursor AI)
+- MCP Discovery: resolved in Step 0 (e.g., `.claude/skills/do-shared/do-mcp-discovery-instructions.md` for Claude Code, `.cursor/rules/do-shared/do-mcp-discovery-instructions.md` for Cursor AI)
+- MCP Registry: resolved in Step 0 (e.g., `.claude/skills/do-shared/do-mcp-capabilities.md` for Claude Code, `.cursor/rules/do-shared/do-mcp-capabilities.md` for Cursor AI)
 - PBI: `./pbis/pbi-[feature-slug]/pbi.md`
 - TechSpec: `./pbis/pbi-[feature-slug]/techspec.md`
 - Tasks: `./pbis/pbi-[feature-slug]/tasks/tasks.md`
-- Bug template: resolved in Step 0 (e.g., `.claude/skills/do-execute-qa/assets/bug-template.md` for Claude Code)
+- Bug template: resolved in Step 0 (e.g., `.claude/skills/do-execute-qa/assets/bug-template.md` for Claude Code, `.cursor/rules/do-execute-qa/assets/bug-template.md` for Cursor AI)
 - Bugs output dir: `./pbis/pbi-[feature-slug]/qa-bugs/bug-[XX]-[severidade-completa]-[slug].md`
 - QA Report output: `./pbis/pbi-[feature-slug]/qa-report.md`
 - Screenshots output dir: `./pbis/pbi-[feature-slug]/qa-screenshots/`

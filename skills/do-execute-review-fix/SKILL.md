@@ -39,9 +39,10 @@ If no file path is provided, list all `pendente` fix task files in `review-fixes
 **Step 0: Detect AI Tool Environment**
 Before anything else, determine the execution environment:
 1. Check for `.claude/` directory in the project root → **Claude Code** → skills dir: `.claude/skills/`
-2. Check for `.github/copilot-instructions.md` or `.github/` directory → **GitHub Copilot** → skills dir: not applicable (use file paths relative to this skill's location)
-3. Resolve available tools based on environment:
-   - **TaskUpdate**: available in Claude Code; in Copilot, skip gracefully
+2. Check for `.github/copilot-instructions.md` or `.github/` directory → **GitHub Copilot** → skills dir: not applicable
+3. Check for `.cursor/rules/` or `.cursor/mcp.json` → **Cursor AI** → skills dir: `.cursor/rules/`
+4. Resolve available tools based on environment:
+   - **TaskUpdate**: available in Claude Code; in Copilot and Cursor, skip gracefully
 
 Store resolved environment and skills directory internally and use throughout all remaining steps.
 
@@ -51,7 +52,7 @@ Store resolved environment and skills directory internally and use throughout al
 3. Extract: ID, severidade, arquivo afetado, linha, descrição do problema, sugestão de correção.
 4. Read `./pbis/pbi-[feature-slug]/review-report.md` for additional context on the finding.
 5. Read `./pbis/pbi-[feature-slug]/pbi.md` and `./pbis/pbi-[feature-slug]/techspec.md` for context.
-6. Read the project configuration file (CLAUDE.md or equivalent) for project conventions.
+6. Read the project configuration file (CLAUDE.md, .github/copilot-instructions.md, or .cursor/rules/project.mdc) for project conventions.
 
 **Step 2: Plan Fix (INTERNAL — do NOT output as standalone message)**
 1. Identify affected files and determine root cause from the fix task description.

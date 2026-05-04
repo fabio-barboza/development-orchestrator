@@ -22,9 +22,10 @@ You are a senior project manager specialized in breaking down features into incr
 **Step 0: Detect AI Tool Environment**
 Before anything else, determine the execution environment:
 1. Check for `.claude/` directory in the project root → **Claude Code** → skills dir: `.claude/skills/`
-2. Check for `.github/copilot-instructions.md` or `.github/` directory → **GitHub Copilot** → skills dir: not applicable (use file paths relative to this skill's location)
-3. Resolve available tools based on environment:
-   - **TaskUpdate**: available in Claude Code; in Copilot, skip gracefully
+2. Check for `.github/copilot-instructions.md` or `.github/` directory → **GitHub Copilot** → skills dir: not applicable
+3. Check for `.cursor/rules/` or `.cursor/mcp.json` → **Cursor AI** → skills dir: `.cursor/rules/`
+4. Resolve available tools based on environment:
+   - **TaskUpdate**: available in Claude Code; in Copilot and Cursor, skip gracefully
    - **Context7 MCP**: available if configured; fallback to Web Search otherwise
 
 Store resolved environment and skills directory internally and use throughout all remaining steps.
@@ -52,8 +53,8 @@ Store resolved environment and skills directory internally and use throughout al
 8. Wait for user approval before proceeding to Step 4.
 
 **Step 4: Generate Task Files (Mandatory)**
-1. Read the tasks summary template from the skills directory resolved in Step 0 (e.g., `.claude/skills/do-create-tasks/assets/tasks-template.md` for Claude Code).
-2. Read the individual task template from the skills directory resolved in Step 0 (e.g., `.claude/skills/do-create-tasks/assets/task-template.md` for Claude Code).
+1. Read the tasks summary template from the skills directory resolved in Step 0 (e.g., `.claude/skills/do-create-tasks/assets/tasks-template.md` for Claude Code, `.cursor/rules/do-create-tasks/assets/tasks-template.md` for Cursor AI).
+2. Read the individual task template from the skills directory resolved in Step 0 (e.g., `.claude/skills/do-create-tasks/assets/task-template.md` for Claude Code, `.cursor/rules/do-create-tasks/assets/task-template.md` for Cursor AI).
 3. **PATH VERIFICATION**: Before creating any file, confirm the target directory is exactly `./pbis/pbi-[feature-slug]/tasks/`. Verify the parent directory name starts with `pbi-`. Never write to `./pbis/[feature-slug]/tasks/` (missing `pbi-` prefix).
 4. Create the directory `./pbis/pbi-[feature-slug]/tasks/` if it does not exist.
 5. Create the summary file: `./pbis/pbi-[feature-slug]/tasks/tasks.md`.
@@ -63,7 +64,7 @@ Store resolved environment and skills directory internally and use throughout al
 9. **POST-SAVE VERIFICATION**: After writing all files, list the contents of `./pbis/pbi-[feature-slug]/tasks/` to confirm all expected files exist. If any file is missing, halt and report the error.
 
 **Step 5: Report Results & Sync Progress (Mandatory)**
-1. **SYNC INTERNAL PROGRESS**: Once the tasks are generated, if `TaskUpdate` is available (Claude Code), use it to mark all corresponding items in your internal task tracking as `completed`. Otherwise, skip this step.
+1. **SYNC INTERNAL PROGRESS**: Once the tasks are generated, if `TaskUpdate` is available (Claude Code only; skip in Copilot and Cursor), use it to mark all corresponding items in your internal task tracking as `completed`. Otherwise, skip this step.
 2. Present all generated files to the user.
 3. Await confirmation before any implementation begins.
 4. **COMPLIANCE CHECK**: Before responding to the user, verify:
@@ -97,7 +98,7 @@ Todos os artefatos gerados (tasks.md, arquivos de task individuais) devem ser es
 - If a template file is missing at the paths resolved in Step 0, report the error and halt — do not generate tasks without the templates.
 
 ## References
-- Templates: resolved in Step 0 (e.g., `.claude/skills/do-create-tasks/assets/tasks-template.md`, `.claude/skills/do-create-tasks/assets/task-template.md` for Claude Code)
+- Templates: resolved in Step 0 (e.g., `.claude/skills/do-create-tasks/assets/tasks-template.md`, `.claude/skills/do-create-tasks/assets/task-template.md` for Claude Code, `.cursor/rules/do-create-tasks/assets/` for Cursor AI)
 - PBI: `pbis/pbi-[feature-slug]/pbi.md`
 - TechSpec: `pbis/pbi-[feature-slug]/techspec.md`
 - Output: `./pbis/pbi-[feature-slug]/tasks/tasks.md`, `./pbis/pbi-[feature-slug]/tasks/[num]_task.md`
