@@ -156,13 +156,13 @@ PLANEJAMENTO       EXECUÇÃO           REVIEW GERAL      VALIDAÇÃO
 **Quando usar:** Primeira vez no projeto ou ao reinstalar o ambiente.
 
 **O que faz:**
-1. Executa o comando de inicialização da ferramenta de IA (ex: `/init` no Claude Code), se disponível
+1. Executa o comando de inicialização da ferramenta de IA (ex: `/init` no Claude Code), se disponível, ou cria o arquivo manualmente (Cursor, Copilot)
 2. Analisa profundamente o codebase (tech stack, arquitetura, padrões)
 3. Verifica infraestrutura de testes — avisa se não houver test runner configurado
 4. Identifica skills tecnológicas relevantes disponíveis
 5. Atualiza o arquivo de configuração do projeto com summary do projeto e convenções
 
-**Output:** Arquivo de configuração do projeto (`CLAUDE.md`, `.github/copilot-instructions.md`, ou equivalente) atualizado com contexto do projeto
+**Output:** Arquivo de configuração do projeto (`CLAUDE.md`, `.github/copilot-instructions.md`, `.cursor/rules/project.mdc`, ou `.cursorrules`) atualizado com contexto do projeto
 
 ---
 
@@ -434,6 +434,39 @@ Obs: Você pode adicionar novos MCPs e configurá-los no `skills/do-shared/do-mc
 }
 ```
 
+**Cursor — `.cursor/mcp.json`:**
+
+```json
+{
+  "mcpServers": {
+    "playwright": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["@playwright/mcp@latest"],
+      "env": {}
+    },
+    "context7": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp@latest"],
+      "env": {}
+    },
+    "rabbitmq": {
+      "type": "stdio",
+      "command": "uvx",
+      "args": [
+        "mcp-server-rabbitmq@latest",
+        "--rabbitmq-host", "localhost",
+        "--port", "5672",
+        "--username", "guest",
+        "--password", "guest",
+        "--api-port", "15672"
+      ]
+    }
+  }
+}
+```
+
 **MCPs Disponíveis (já documentados em `do-mcp-capabilities.md`):**
 
 | MCP | Capacidade | Quando Usar |
@@ -652,11 +685,11 @@ O DO Framework é agnóstico à ferramenta de IA. Os conceitos, o fluxo de traba
 
 **Convenções de caminho**: Os arquivos de skill referenciam internamente o diretório `.claude/skills/` (convenção do Claude Code). Se você usa outra ferramenta, os arquivos estarão no diretório equivalente dessa ferramenta (ex: `.github/` para GitHub Copilot).
 
-| Ferramenta | Diretório de Skills | Config do Projeto |
-|-----------|--------------------|--------------------|
-| **Claude Code** | `.claude/skills/` | `CLAUDE.md` |
-| **GitHub Copilot** | `.github/` (instructions) | `.github/copilot-instructions.md` |
-| **Cursor** | `.cursor/rules/` | `.cursorrules` |
+| Ferramenta | Diretório de Skills | Config do Projeto | Config MCP |
+|-----------|--------------------|--------------------|------------|
+| **Claude Code** | `.claude/skills/` | `CLAUDE.md` | `.mcp.json` |
+| **GitHub Copilot** | `.github/` (instructions) | `.github/copilot-instructions.md` | `.vscode/mcp.json` |
+| **Cursor** | `.cursor/rules/` (`.mdc` files) | `.cursor/rules/project.mdc` ou `.cursorrules` | `.cursor/mcp.json` |
 
 ---
 

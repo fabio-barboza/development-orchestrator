@@ -23,6 +23,7 @@ Before doing anything else, determine which AI tool is executing this skill:
 3. Check if `.github/` directory exists but `copilot-instructions.md` does not → likely **GitHub Copilot** → config file: `.github/copilot-instructions.md`
 4. Check for any of the following Cursor AI indicators → **Cursor AI**:
    - `.cursor/rules/` directory exists → config file: `.cursor/rules/project.mdc`, skills dirs: `.cursor/rules/`
+   - `.cursor/mcp.json` exists → confirms Cursor AI (use together with rules detection)
    - `.cursorrules` file exists → config file: `.cursorrules`, skills dirs: none (legacy format)
 5. If none of the above, infer from the current tool context. When in doubt, default to `CLAUDE.md`.
 
