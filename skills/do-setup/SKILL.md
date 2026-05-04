@@ -21,14 +21,31 @@ Before doing anything else, determine which AI tool is executing this skill:
 1. Check for `.claude/` directory in the project root → **Claude Code** → config file: `CLAUDE.md`
 2. Check if `.github/copilot-instructions.md` already exists → **GitHub Copilot** → config file: `.github/copilot-instructions.md`
 3. Check if `.github/` directory exists but `copilot-instructions.md` does not → likely **GitHub Copilot** → config file: `.github/copilot-instructions.md`
-4. If none of the above, infer from the current tool context. When in doubt, default to `CLAUDE.md`.
+4. Check for any of the following Cursor AI indicators → **Cursor AI**:
+   - `.cursor/rules/` directory exists → config file: `.cursor/rules/project.mdc`, skills dirs: `.cursor/rules/`
+   - `.cursorrules` file exists → config file: `.cursorrules`, skills dirs: none (legacy format)
+5. If none of the above, infer from the current tool context. When in doubt, default to `CLAUDE.md`.
 
-Store the resolved config file path internally and use it consistently throughout all remaining steps.
+Store the resolved config file path, the detected AI tool name, and the skills directories internally. Use them consistently throughout all remaining steps.
 
 **Step 1: Initialize Project Configuration**
-1. If your AI tool provides a built-in project initialization command (e.g., `/init` in Claude Code), execute it to generate the initial project configuration file determined in Step 0.
-2. Wait for the initialization to complete before proceeding.
-3. If no built-in init command exists, locate or create the config file at the path determined in Step 0.
+The initialization strategy depends on the detected AI tool:
+
+- **Claude Code**: Execute the `/init` skill to generate the initial `CLAUDE.md`. Wait for it to complete before proceeding.
+- **GitHub Copilot**: No built-in init command. Create `.github/copilot-instructions.md` if it doesn't exist.
+- **Cursor AI**: No built-in init command. Create the config file as determined in Step 0:
+  - If using `.cursor/rules/project.mdc`: create the `.cursor/rules/` directory if needed, then create the file with the following frontmatter header:
+    ```
+    ---
+    description: Project instructions and conventions for the development orchestrator
+    globs:
+    alwaysApply: true
+    ---
+
+    ```
+  - If using `.cursorrules` (legacy): create the file at the project root.
+
+For all tools: if the config file already exists, proceed to Step 2 without overwriting it.
 
 **Step 2: Deep Project Analysis**
 1. Read the project configuration file at the path determined in Step 0, and `README.md` if it exists.
@@ -36,7 +53,7 @@ Store the resolved config file path internally and use it consistently throughou
 3. Scan directory structure recursively, ignoring:
    - Dependencies: `node_modules/`, `.venv/`, `venv/`, `vendor/`, `.gradle/`, `.m2/`
    - Build: `target/`, `build/`, `dist/`, `out/`, `.next/`, `__pycache__/`
-   - Hidden: any path starting with `.` (except `.claude/` and `.github/`)
+   - Hidden: any path starting with `.` (except `.claude/`, `.github/`, and `.cursor/`)
    - Binaries/media: `*.jar`, `*.class`, `*.png`, `*.jpg`, `*.pdf`
 4. Read representative files from each layer (e.g., a controller, a use case, a repository) to understand adopted patterns.
 5. Build an internal summary with:
@@ -51,9 +68,13 @@ Store the resolved config file path internally and use it consistently throughou
    - If neither is found, include in the project configuration file output: "⚠️ AVISO: Nenhuma infraestrutura de testes detectada. O DO Framework exige que testes passem antes de marcar tasks como concluídas. Configure um test runner antes de usar `do-execute-task`."
 
 **Step 3: Identify Relevant Skills**
-1. List all available skills in the AI tool's skills directory (e.g., `.claude/skills/` for Claude Code).
+1. List all available skills by scanning the AI tool's skills directories:
+   - **Claude Code**: `.claude/skills/`
+   - **GitHub Copilot**: `.github/` (look for instruction files)
+   - **Cursor AI**: `.cursor/rules/` (scan all `.mdc` files)
+   For each directory, list every skill/rule file found and read its content.
 2. **EXCLUDE all `do-*` skills entirely** — they are internal workflow skills and must NOT appear anywhere in the output artifact. Only evaluate technology/library skills (e.g., `claude-api`, `find-skills`).
-3. For each remaining (non-`do-*`) skill, read the `SKILL.md` header and description.
+3. For each remaining (non-`do-*`) skill, read its descriptor file (`SKILL.md` for Claude Code, the `.mdc` content for Cursor AI).
 4. Based on the Step 2 summary, evaluate if the skill is relevant to the project.
 5. A skill is relevant if it covers at least one of:
    - The project's primary language or framework
@@ -106,5 +127,8 @@ Todos os artefatos gerados (seções do arquivo de configuração do projeto, re
 - If the directory scan reveals an unrecognizable project structure, document what was found and ask the user for guidance.
 
 ## References
-- Output: Project configuration file (e.g., `CLAUDE.md` for Claude Code, `.github/copilot-instructions.md` for GitHub Copilot)
-- Skills directory: AI tool's skills directory (e.g., `.claude/skills/` for Claude Code)
+- Output: Project configuration file (e.g., `CLAUDE.md` for Claude Code, `.github/copilot-instructions.md` for GitHub Copilot, `.cursor/rules/project.mdc` or `.cursorrules` for Cursor AI)
+- Skills directories:
+  - Claude Code: `.claude/skills/` (each skill has a `SKILL.md`)
+  - GitHub Copilot: `.github/` (instruction files)
+  - Cursor AI: `.cursor/rules/` (`.mdc` files with frontmatter)
