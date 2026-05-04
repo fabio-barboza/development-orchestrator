@@ -22,10 +22,11 @@ You are a senior software architect specialized in translating product requireme
 **Step 0: Detect AI Tool Environment**
 Before anything else, determine the execution environment:
 1. Check for `.claude/` directory in the project root → **Claude Code** → skills dir: `.claude/skills/`
-2. Check for `.github/copilot-instructions.md` or `.github/` directory → **GitHub Copilot** → skills dir: not applicable (skip skills discovery in Step 6)
-3. Resolve available tools based on environment:
-   - **AskUserQuestion**: use in all environments (Claude Code and GitHub Copilot).
-   - **TaskUpdate**: available in Claude Code; in Copilot, skip gracefully
+2. Check for `.github/copilot-instructions.md` or `.github/` directory → **GitHub Copilot** → skills dir: not applicable
+3. Check for `.cursor/rules/` or `.cursor/mcp.json` → **Cursor AI** → skills dir: `.cursor/rules/`
+4. Resolve available tools based on environment:
+   - **AskUserQuestion**: use in all environments.
+   - **TaskUpdate**: available in Claude Code; in Copilot and Cursor, skip gracefully
    - **Context7 MCP**: available if configured; fallback to Web Search otherwise
 
 Store resolved environment and tool availability internally and use throughout all remaining steps.
@@ -62,11 +63,11 @@ Store resolved environment and tool availability internally and use throughout a
 3. Do NOT proceed until answers are received.
 
 **Step 6: Standards Compliance Mapping (Mandatory)**
-1. Identify project skills using the skills directory resolved in Step 0. Skip this sub-step if the skills directory is not applicable (e.g., GitHub Copilot without a configured skills path). **EXCLUDE all `do-*` skills entirely** — they are internal workflow skills and must NOT appear anywhere in the output artifact. Only evaluate technology/library skills (e.g., `claude-api`, `find-skills`).
+1. Identify project skills using the skills directory resolved in Step 0. Skip this sub-step if the skills directory is not applicable (e.g., GitHub Copilot without a configured skills path). **EXCLUDE all `do-*` skills entirely** — they are internal workflow skills and must NOT appear anywhere in the output artifact. Only evaluate technology/library skills (e.g., `claude-api`, `find-skills`). For Cursor AI, scan `.cursor/rules/` for `.mdc` files.
 2. Highlight deviations with justification and compliant alternatives.
 
 **Step 7: Generate Tech Spec (Mandatory)**
-1. Read the template at the path resolved in Step 0 (e.g., `.claude/skills/do-create-techspec/assets/techspec-template.md` for Claude Code, or the equivalent path for the current tool).
+1. Read the template at the path resolved in Step 0 (e.g., `.claude/skills/do-create-techspec/assets/techspec-template.md` for Claude Code, `.cursor/rules/do-create-techspec/assets/techspec-template.md` for Cursor AI).
 2. Provide: architecture overview, component design, interfaces, data models, endpoints, integration points, impact analysis, test strategy, observability.
 3. Focus on HOW, not WHAT (the PBI owns what/why).
 4. Avoid repeating functional requirements from the PBI.
@@ -113,6 +114,6 @@ Todos os artefatos gerados (documento Tech Spec) devem ser escritos em Portuguê
 - If the output file already exists, confirm with the user before overwriting.
 
 ## References
-- Template: resolved in Step 0 (e.g., `.claude/skills/do-create-techspec/assets/techspec-template.md` for Claude Code)
+- Template: resolved in Step 0 (e.g., `.claude/skills/do-create-techspec/assets/techspec-template.md` for Claude Code, `.cursor/rules/do-create-techspec/assets/techspec-template.md` for Cursor AI)
 - PBI: `pbis/pbi-[feature-slug]/pbi.md`
 - Output: `pbis/pbi-[feature-slug]/techspec.md`

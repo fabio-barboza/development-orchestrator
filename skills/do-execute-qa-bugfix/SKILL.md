@@ -26,9 +26,10 @@ If no file path is provided, list all `aberto` bug files in `qa-bugs/` and ask t
 **Step 0: Detect AI Tool Environment**
 Before anything else, determine the execution environment:
 1. Check for `.claude/` directory in the project root → **Claude Code** → skills dir: `.claude/skills/`
-2. Check for `.github/copilot-instructions.md` or `.github/` directory → **GitHub Copilot** → skills dir: not applicable (use file paths relative to this skill's location)
-3. Resolve available tools based on environment:
-   - **TaskUpdate**: available in Claude Code; in Copilot, skip gracefully
+2. Check for `.github/copilot-instructions.md` or `.github/` directory → **GitHub Copilot** → skills dir: not applicable
+3. Check for `.cursor/rules/` or `.cursor/mcp.json` → **Cursor AI** → skills dir: `.cursor/rules/`
+4. Resolve available tools based on environment:
+   - **TaskUpdate**: available in Claude Code; in Copilot and Cursor, skip gracefully
    - **Context7 MCP**: available if configured; fallback to Web Search otherwise
 
 Store resolved environment and skills directory internally and use throughout all remaining steps.
@@ -39,7 +40,7 @@ Store resolved environment and skills directory internally and use throughout al
 3. Extract: ID, severidade, descrição, passos para reproduzir, resultado esperado/atual, componente afetado.
 4. Read the PBI at `./pbis/pbi-[feature-slug]/pbi.md` to understand affected requirements.
 5. Read the Tech Spec at `./pbis/pbi-[feature-slug]/techspec.md` for technical context.
-6. Read the project configuration file (CLAUDE.md or equivalent) for project conventions.
+6. Read the project configuration file (CLAUDE.md, .github/copilot-instructions.md, or .cursor/rules/project.mdc) for project conventions.
 
 **Step 2: Plan Fix (INTERNAL — do NOT output as standalone message)**
 1. Identify affected files and determine root cause from the bug description.
@@ -64,7 +65,7 @@ Store resolved environment and skills directory internally and use throughout al
 3. Choose test type based on bug nature (unit / integration / E2E) as described in the reference.
 
 **Step 5: MCP Validation (Mandatory when applicable)**
-1. Execute the MCP discovery procedure from the shared skills directory resolved in Step 0 (e.g., `.claude/skills/do-shared/do-mcp-discovery-instructions.md` for Claude Code).
+1. Execute the MCP discovery procedure from the shared skills directory resolved in Step 0 (e.g., `.claude/skills/do-shared/do-mcp-discovery-instructions.md` for Claude Code, `.cursor/rules/do-shared/do-mcp-discovery-instructions.md` for Cursor AI).
 2. For bugs affecting the **UI** (and `browser-testing` MCP available): run `mkdir -p ./pbis/pbi-[feature-slug]/qa-screenshots` via Bash, then navigate, reproduce the fix flow, and capture screenshot evidence using `filename: pbis/pbi-[feature-slug]/qa-screenshots/fix-[BUG-XX]-[slug].png`.
 3. For bugs affecting **backend** (and backend-capable MCP available): validate end-to-end via MCP tools.
 4. If no relevant MCP available: document the validation gap in the fix report, rely on unit/integration tests only.
@@ -101,9 +102,9 @@ Todos os artefatos gerados (atualizações no arquivo de bug, seções de resolu
 
 ## References
 - Bug file (input): `./pbis/pbi-[feature-slug]/qa-bugs/bug-[XX]-[severidade-completa]-[slug].md`
-- Regression test patterns: resolved in Step 0 (e.g., `.claude/skills/do-execute-qa-bugfix/references/regression-test-patterns.md` for Claude Code)
-- MCP Discovery: resolved in Step 0 (e.g., `.claude/skills/do-shared/do-mcp-discovery-instructions.md` for Claude Code)
-- MCP Registry: resolved in Step 0 (e.g., `.claude/skills/do-shared/do-mcp-capabilities.md` for Claude Code)
+- Regression test patterns: resolved in Step 0 (e.g., `.claude/skills/do-execute-qa-bugfix/references/regression-test-patterns.md` for Claude Code, `.cursor/rules/do-execute-qa-bugfix/references/regression-test-patterns.md` for Cursor AI)
+- MCP Discovery: resolved in Step 0 (e.g., `.claude/skills/do-shared/do-mcp-discovery-instructions.md` for Claude Code, `.cursor/rules/do-shared/do-mcp-discovery-instructions.md` for Cursor AI)
+- MCP Registry: resolved in Step 0 (e.g., `.claude/skills/do-shared/do-mcp-capabilities.md` for Claude Code, `.cursor/rules/do-shared/do-mcp-capabilities.md` for Cursor AI)
 - PBI: `./pbis/pbi-[feature-slug]/pbi.md`
 - TechSpec: `./pbis/pbi-[feature-slug]/techspec.md`
 - Screenshots: `./pbis/pbi-[feature-slug]/qa-screenshots/`

@@ -1,6 +1,6 @@
 ---
 name: do-setup
-description: Initializes the project, identifies relevant skills, and updates the project configuration file (CLAUDE.md, .github/copilot-instructions.md, or equivalent) with project summary, conventions, and available skills. Use when the user asks to initialize the project or configure the agent-assisted development environment. Do not use for PBI creation, task implementation, code review, or QA testing.
+description: Initializes the project, identifies relevant skills, and updates the project configuration file (CLAUDE.md, .github/copilot-instructions.md, .cursor/rules/project.mdc, or .cursorrules) with project summary, conventions, and available skills. Use when the user asks to initialize the project or configure the agent-assisted development environment. Do not use for PBI creation, task implementation, code review, or QA testing.
 ---
 
 # Project Setup

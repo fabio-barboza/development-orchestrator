@@ -19,9 +19,10 @@ You are a senior code reviewer focused on quality, standards compliance, and pro
 **Step 0: Detect AI Tool Environment**
 Before anything else, determine the execution environment:
 1. Check for `.claude/` directory in the project root → **Claude Code** → skills dir: `.claude/skills/`
-2. Check for `.github/copilot-instructions.md` or `.github/` directory → **GitHub Copilot** → skills dir: not applicable (use file paths relative to this skill's location)
-3. Resolve available tools based on environment:
-   - **TaskUpdate**: available in Claude Code; in Copilot, skip gracefully
+2. Check for `.github/copilot-instructions.md` or `.github/` directory → **GitHub Copilot** → skills dir: not applicable
+3. Check for `.cursor/rules/` or `.cursor/mcp.json` → **Cursor AI** → skills dir: `.cursor/rules/`
+4. Resolve available tools based on environment:
+   - **TaskUpdate**: available in Claude Code; in Copilot and Cursor, skip gracefully
    - **Context7 MCP**: available if configured; fallback to Web Search otherwise
 
 Store resolved environment and skills directory internally and use throughout all remaining steps.
@@ -77,7 +78,7 @@ Store resolved environment and skills directory internally and use throughout al
 **Step 6: Test Execution (Mandatory)**
 1. Detect the project's package manager from lock files (`bun.lockb` → bun, `pnpm-lock.yaml` → pnpm, `package-lock.json` → npm). Default to `npm` if none found.
 2. Run the test suite using the detected package manager (e.g., `npm test`).
-3. **E2E tests via MCP**: Execute the MCP discovery procedure from the shared skills directory resolved in Step 0 (e.g., `.claude/skills/do-shared/do-mcp-discovery-instructions.md` for Claude Code) — read the MCP configuration file for the current AI tool (`.mcp.json` for Claude Code, `.vscode/mcp.json` for GitHub Copilot, `.cursor/mcp.json` for Cursor) and the MCP capabilities file from the shared skills directory to build the capability map. Apply the capability guard:
+3. **E2E tests via MCP**: Execute the MCP discovery procedure from the shared skills directory resolved in Step 0 (e.g., `.claude/skills/do-shared/do-mcp-discovery-instructions.md` for Claude Code, `.cursor/rules/do-shared/do-mcp-discovery-instructions.md` for Cursor AI) — read the MCP configuration file for the current AI tool (`.mcp.json` for Claude Code, `.vscode/mcp.json` for GitHub Copilot, `.cursor/mcp.json` for Cursor) and the MCP capabilities file from the shared skills directory to build the capability map. Apply the capability guard:
    - Frontend changes + `browser-testing` MCP → run browser E2E via MCP tools. If MCP is unavailable, document the E2E gap in the review report — do NOT use CLI fallback.
    - Backend changes + backend-capable MCP (`message-queue`, `database`, `cache`, `api-testing`) → run backend E2E via MCP tools.
    - Changes type + no relevant MCP → skip E2E, document gap in review report.
@@ -90,12 +91,12 @@ Store resolved environment and skills directory internally and use throughout al
 6. The review CANNOT be approved if any test fails.
 
 **Step 7: Code Quality Analysis (Mandatory)**
-1. Read the code quality checklist from the skills directory resolved in Step 0 (e.g., `.claude/skills/do-execute-review/references/code-quality-checklist.md` for Claude Code).
+1. Read the code quality checklist from the skills directory resolved in Step 0 (e.g., `.claude/skills/do-execute-review/references/code-quality-checklist.md` for Claude Code, `.cursor/rules/do-execute-review/references/code-quality-checklist.md` for Cursor AI).
 2. Use Context7 MCP (`resolve-library-id` → `query-docs`) to verify correct API usage, best practices, and recommended patterns for the frameworks/libraries used in the reviewed code. If Context7 MCP is unavailable, proceed without it.
 3. Assess: complexity, DRY, SOLID, naming, comments, error handling, security, performance.
 
 **Step 8: Generate Review Report (Mandatory)**
-1. Read the report template from the skills directory resolved in Step 0 (e.g., `.claude/skills/do-execute-review/assets/review-report-template.md` for Claude Code).
+1. Read the report template from the skills directory resolved in Step 0 (e.g., `.claude/skills/do-execute-review/assets/review-report-template.md` for Claude Code, `.cursor/rules/do-execute-review/assets/review-report-template.md` for Cursor AI).
 2. Fill in all sections with actual findings.
 3. Save the report to `./pbis/pbi-[feature-slug]/review-report.md`.
 4. **Important**: This skill only reports findings — it does NOT implement fixes. All issues are documented for the developer to address.
@@ -105,7 +106,7 @@ Store resolved environment and skills directory internally and use throughout al
    - **REPROVADO**: Testes falhando, violações graves de regras, não-aderência à TechSpec ou problemas de segurança.
 
 **Step 9: Create Fix Tasks (Mandatory when findings exist)**
-1. Read the fix task template from the skills directory resolved in Step 0 (e.g., `.claude/skills/do-execute-review/assets/fix-task-template.md` for Claude Code).
+1. Read the fix task template from the skills directory resolved in Step 0 (e.g., `.claude/skills/do-execute-review/assets/fix-task-template.md` for Claude Code, `.cursor/rules/do-execute-review/assets/fix-task-template.md` for Cursor AI).
 2. For each finding listed in the "Problemas Encontrados" section of the review report:
    a. Assign a sequential ID (R-01, R-02, …) if not already assigned.
    b. Generate a `brief-slug` from the finding description (lowercase, hyphen-separated, max 5 words).
@@ -115,7 +116,7 @@ Store resolved environment and skills directory internally and use throughout al
 4. If there are no findings (status APROVADO), skip this step entirely — do NOT create an empty directory.
 
 **Step 10: Report Results & Sync Progress (Mandatory)**
-1. **SYNC INTERNAL PROGRESS**: Once the review report is generated, if `TaskUpdate` is available (Claude Code), use it to mark all corresponding items in your internal task tracking as `completed`. Otherwise, skip this step.
+1. **SYNC INTERNAL PROGRESS**: Once the review report is generated, if `TaskUpdate` is available (Claude Code only; skip in Copilot and Cursor), use it to mark all corresponding items in your internal task tracking as `completed`. Otherwise, skip this step.
 2. Provide the final review report to the user.
 3. **COMPLIANCE CHECK**: Before responding to the user, verify with actual tool calls:
     - Call `read_file` on `./pbis/pbi-[feature-slug]/review-report.md` to confirm the report was saved. If missing, go back to Step 8 and create it.
@@ -135,11 +136,11 @@ Todos os artefatos gerados (relatório de review, arquivos de tarefa de correç�
 - Be constructive in criticism — always suggest alternatives.
 
 ## References
-- Template: resolved in Step 0 (e.g., `.claude/skills/do-execute-review/assets/review-report-template.md` for Claude Code)
-- Fix Task template: resolved in Step 0 (e.g., `.claude/skills/do-execute-review/assets/fix-task-template.md` for Claude Code)
-- Code quality checklist: resolved in Step 0 (e.g., `.claude/skills/do-execute-review/references/code-quality-checklist.md` for Claude Code)
-- MCP Discovery: resolved in Step 0 (e.g., `.claude/skills/do-shared/do-mcp-discovery-instructions.md` for Claude Code)
-- MCP Registry: resolved in Step 0 (e.g., `.claude/skills/do-shared/do-mcp-capabilities.md` for Claude Code)
+- Template: resolved in Step 0 (e.g., `.claude/skills/do-execute-review/assets/review-report-template.md` for Claude Code, `.cursor/rules/do-execute-review/assets/review-report-template.md` for Cursor AI)
+- Fix Task template: resolved in Step 0 (e.g., `.claude/skills/do-execute-review/assets/fix-task-template.md` for Claude Code, `.cursor/rules/do-execute-review/assets/fix-task-template.md` for Cursor AI)
+- Code quality checklist: resolved in Step 0 (e.g., `.claude/skills/do-execute-review/references/code-quality-checklist.md` for Claude Code, `.cursor/rules/do-execute-review/references/code-quality-checklist.md` for Cursor AI)
+- MCP Discovery: resolved in Step 0 (e.g., `.claude/skills/do-shared/do-mcp-discovery-instructions.md` for Claude Code, `.cursor/rules/do-shared/do-mcp-discovery-instructions.md` for Cursor AI)
+- MCP Registry: resolved in Step 0 (e.g., `.claude/skills/do-shared/do-mcp-capabilities.md` for Claude Code, `.cursor/rules/do-shared/do-mcp-capabilities.md` for Cursor AI)
 - PBI: `./pbis/pbi-[feature-slug]/pbi.md`
 - TechSpec: `./pbis/pbi-[feature-slug]/techspec.md`
 - Tasks: `./pbis/pbi-[feature-slug]/tasks/tasks.md`
