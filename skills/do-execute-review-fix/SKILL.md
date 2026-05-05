@@ -13,7 +13,7 @@ You are a senior software engineer responsible for resolving code review finding
 
 1. **NEVER** pause, stop, or wait for user input.
 2. **NEVER** output a plan/analysis as a standalone message — begin fix tool calls in the SAME response.
-3. **NEVER** ask the user questions. Resolve ambiguities from the fix task file, PBI, and TechSpec context.
+3. **NEVER** ask the user questions. Resolve ambiguities from the fix task file, PRD, and TechSpec context.
 4. Status updates are fine but must NOT imply user action to continue.
 
 ## Edit Failure Recovery
@@ -25,12 +25,12 @@ When an `Edit` tool call fails, follow this escalation ladder:
 3. **Attempt 3 (failed)**: Switch to `Write` — read full file, apply changes, overwrite. **HARD LIMIT: max 3 Edit attempts per change.**
 
 ## Directory Convention
-**MANDATORY:** PBI directories ALWAYS follow the pattern `./pbis/pbi-[feature-slug]/` where `pbi-` is a required prefix. Example: feature `user-auth` → directory `./pbis/pbi-user-auth/`. **NEVER** reference a path like `./pbis/user-auth/`.
+**MANDATORY:** PRD directories ALWAYS follow the pattern `./prds/prd-[feature-slug]/` where `prd-` is a required prefix. Example: feature `user-auth` → directory `./prds/prd-user-auth/`. **NEVER** reference a path like `./prds/user-auth/`.
 
 ## Invocation
 This skill fixes **one finding at a time**. The user must provide the path to the specific fix task file:
 ```
-do-execute-review-fix ./pbis/pbi-[feature-slug]/review-fixes/fix-[R-XX]-[severidade]-[slug].md
+do-execute-review-fix ./prds/prd-[feature-slug]/review-fixes/fix-[R-XX]-[severidade]-[slug].md
 ```
 If no file path is provided, list all `pendente` fix task files in `review-fixes/` and ask the user which one to fix.
 
@@ -50,8 +50,8 @@ Store resolved environment and skills directory internally and use throughout al
 1. Read the fix task file provided by the user. If the file does not exist, halt and report.
 2. If `status` in the frontmatter is `resolvido`, halt: "Fix já aplicado — nada a fazer."
 3. Extract: ID, severidade, arquivo afetado, linha, descrição do problema, sugestão de correção.
-4. Read `./pbis/pbi-[feature-slug]/review-report.md` for additional context on the finding.
-5. Read `./pbis/pbi-[feature-slug]/pbi.md` and `./pbis/pbi-[feature-slug]/techspec.md` for context.
+4. Read `./prds/prd-[feature-slug]/review-report.md` for additional context on the finding.
+5. Read `./prds/prd-[feature-slug]/prd.md` and `./prds/prd-[feature-slug]/techspec.md` for context.
 6. Read the project configuration file (CLAUDE.md, .github/copilot-instructions.md, or .cursor/rules/project.mdc) for project conventions.
 
 **Step 2: Plan Fix (INTERNAL — do NOT output as standalone message)**
@@ -101,12 +101,12 @@ Todos os artefatos gerados (atualizações no arquivo de fix task, atualizaçõe
 - If the fix task file does not exist, halt and report.
 - If status is already `resolvido`, halt: nothing to do.
 - If `review-report.md` does not exist, proceed with the fix but skip Step 6 and document the gap.
-- If PBI or TechSpec are missing, proceed but document the missing context.
+- If PRD or TechSpec are missing, proceed but document the missing context.
 - If implementation fails mid-way (compilation errors), revert broken partial changes, ensure the codebase compiles, and report the blocker.
 - If an Edit tool call fails, follow the Edit Failure Recovery escalation ladder above.
 
 ## References
-- Fix task file (input): `./pbis/pbi-[feature-slug]/review-fixes/fix-[R-XX]-[severidade-completa]-[slug].md`
-- Review Report: `./pbis/pbi-[feature-slug]/review-report.md`
-- PBI: `./pbis/pbi-[feature-slug]/pbi.md`
-- TechSpec: `./pbis/pbi-[feature-slug]/techspec.md`
+- Fix task file (input): `./prds/prd-[feature-slug]/review-fixes/fix-[R-XX]-[severidade-completa]-[slug].md`
+- Review Report: `./prds/prd-[feature-slug]/review-report.md`
+- PRD: `./prds/prd-[feature-slug]/prd.md`
+- TechSpec: `./prds/prd-[feature-slug]/techspec.md`

@@ -12,7 +12,7 @@ You are a senior code reviewer focused on quality, standards compliance, and pro
 **CRITICAL: NEVER pause, stop, or wait for user input during execution.** Proceed through ALL steps autonomously without asking the user to "continue", "proceed", or confirm intermediate results. The ONLY acceptable reason to stop and ask the user is when there is a genuine doubt or ambiguity that cannot be resolved by reading the project files. Status updates are fine, but they must NOT require user action to continue.
 
 ## Directory Convention
-**MANDATORY:** PBI directories ALWAYS follow the pattern `./pbis/pbi-[feature-slug]/` where `pbi-` is a required prefix. Example: feature `user-auth` → directory `./pbis/pbi-user-auth/`. **NEVER** reference a path like `./pbis/user-auth/`.
+**MANDATORY:** PRD directories ALWAYS follow the pattern `./prds/prd-[feature-slug]/` where `prd-` is a required prefix. Example: feature `user-auth` → directory `./prds/prd-user-auth/`. **NEVER** reference a path like `./prds/user-auth/`.
 
 ## Procedures
 
@@ -28,9 +28,9 @@ Before anything else, determine the execution environment:
 Store resolved environment and skills directory internally and use throughout all remaining steps.
 
 **Step 1: Documentation Analysis (Mandatory)**
-1. Read the PBI at `./pbis/pbi-[feature-slug]/pbi.md` to understand the feature requirements and expected outcomes. If the PBI file does not exist, warn in the review report and continue.
-2. Read the Tech Spec at `./pbis/pbi-[feature-slug]/techspec.md` to understand expected architectural decisions. If the TechSpec file does not exist, warn in the review report that the review was performed without a TechSpec reference and continue.
-3. Read the Tasks at `./pbis/pbi-[feature-slug]/tasks/tasks.md` to verify the scope implemented. If `tasks.md` does not exist, warn in the review report and continue.
+1. Read the PRD at `./prds/prd-[feature-slug]/prd.md` to understand the feature requirements and expected outcomes. If the PRD file does not exist, warn in the review report and continue.
+2. Read the Tech Spec at `./prds/prd-[feature-slug]/techspec.md` to understand expected architectural decisions. If the TechSpec file does not exist, warn in the review report that the review was performed without a TechSpec reference and continue.
+3. Read the Tasks at `./prds/prd-[feature-slug]/tasks/tasks.md` to verify the scope implemented. If `tasks.md` does not exist, warn in the review report and continue.
 4. Read the project rules to know the required standards.
 
 **Step 2: Code Change Analysis (Mandatory)**
@@ -98,7 +98,7 @@ Store resolved environment and skills directory internally and use throughout al
 **Step 8: Generate Review Report (Mandatory)**
 1. Read the report template from the skills directory resolved in Step 0 (e.g., `.claude/skills/do-execute-review/assets/review-report-template.md` for Claude Code, `.cursor/rules/do-execute-review/assets/review-report-template.md` for Cursor AI).
 2. Fill in all sections with actual findings.
-3. Save the report to `./pbis/pbi-[feature-slug]/review-report.md`.
+3. Save the report to `./prds/prd-[feature-slug]/review-report.md`.
 4. **Important**: This skill only reports findings — it does NOT implement fixes. All issues are documented for the developer to address.
 5. Apply approval criteria:
    - **APROVADO**: Todos os critérios atendidos, testes passando, código em conformidade com as regras e TechSpec.
@@ -111,7 +111,7 @@ Store resolved environment and skills directory internally and use throughout al
    a. Assign a sequential ID (R-01, R-02, …) if not already assigned.
    b. Generate a `brief-slug` from the finding description (lowercase, hyphen-separated, max 5 words).
    c. Fill the template with the finding's ID, severity, status (`pendente`), affected file/line, description, and suggested correction.
-   d. Save to `./pbis/pbi-[feature-slug]/review-fixes/fix-[R-XX]-[severidade-completa]-[brief-slug].md`, where `[severidade-completa]` is the full severity word in lowercase: `critico`, `maior` or `menor`. Do NOT abbreviate (e.g. `fix-R01-critico-campo-senha-exposto.md`, NOT `fix-R01-crit-campo-senha.md`).
+   d. Save to `./prds/prd-[feature-slug]/review-fixes/fix-[R-XX]-[severidade-completa]-[brief-slug].md`, where `[severidade-completa]` is the full severity word in lowercase: `critico`, `maior` or `menor`. Do NOT abbreviate (e.g. `fix-R01-critico-campo-senha-exposto.md`, NOT `fix-R01-crit-campo-senha.md`).
 3. Create the `review-fixes/` directory automatically if it does not exist — no need to run `mkdir`, simply write the first file to the path.
 4. If there are no findings (status APROVADO), skip this step entirely — do NOT create an empty directory.
 
@@ -119,8 +119,8 @@ Store resolved environment and skills directory internally and use throughout al
 1. **SYNC INTERNAL PROGRESS**: Once the review report is generated, if `TaskUpdate` is available (Claude Code only; skip in Copilot and Cursor), use it to mark all corresponding items in your internal task tracking as `completed`. Otherwise, skip this step.
 2. Provide the final review report to the user.
 3. **COMPLIANCE CHECK**: Before responding to the user, verify with actual tool calls:
-    - Call `read_file` on `./pbis/pbi-[feature-slug]/review-report.md` to confirm the report was saved. If missing, go back to Step 8 and create it.
-    - If findings exist, confirm that `./pbis/pbi-[feature-slug]/review-fixes/` contains one file per finding.
+    - Call `read_file` on `./prds/prd-[feature-slug]/review-report.md` to confirm the report was saved. If missing, go back to Step 8 and create it.
+    - If findings exist, confirm that `./prds/prd-[feature-slug]/review-fixes/` contains one file per finding.
     - Do all findings match the `git diff` and code analysis?
 
 ## Output Language
@@ -130,7 +130,7 @@ Todos os artefatos gerados (relatório de review, arquivos de tarefa de correç�
 - If no git changes are found and git is available, report that there is nothing to review.
 - If git is not initialized, fall back to manual file listing and document this in the report.
 - If tests fail, the review status MUST be REPROVADO regardless of other findings.
-- If PBI/TechSpec/tasks.md are missing, proceed with the review but document the missing context in the report.
+- If PRD/TechSpec/tasks.md are missing, proceed with the review but document the missing context in the report.
 - If a configured MCP is unavailable at runtime, follow its "Se indisponivel" handling from the registry. Do NOT use CLI fallback (e.g., `npx playwright test`) — document the E2E gap in the review report instead.
 - Check if there are files that SHOULD have been modified but were not.
 - Be constructive in criticism — always suggest alternatives.
@@ -141,8 +141,8 @@ Todos os artefatos gerados (relatório de review, arquivos de tarefa de correç�
 - Code quality checklist: resolved in Step 0 (e.g., `.claude/skills/do-execute-review/references/code-quality-checklist.md` for Claude Code, `.cursor/rules/do-execute-review/references/code-quality-checklist.md` for Cursor AI)
 - MCP Discovery: resolved in Step 0 (e.g., `.claude/skills/do-shared/do-mcp-discovery-instructions.md` for Claude Code, `.cursor/rules/do-shared/do-mcp-discovery-instructions.md` for Cursor AI)
 - MCP Registry: resolved in Step 0 (e.g., `.claude/skills/do-shared/do-mcp-capabilities.md` for Claude Code, `.cursor/rules/do-shared/do-mcp-capabilities.md` for Cursor AI)
-- PBI: `./pbis/pbi-[feature-slug]/pbi.md`
-- TechSpec: `./pbis/pbi-[feature-slug]/techspec.md`
-- Tasks: `./pbis/pbi-[feature-slug]/tasks/tasks.md`
-- Review Report output: `./pbis/pbi-[feature-slug]/review-report.md`
-- Fix Tasks output dir: `./pbis/pbi-[feature-slug]/review-fixes/fix-[R-XX]-[severidade-completa]-[slug].md`
+- PRD: `./prds/prd-[feature-slug]/prd.md`
+- TechSpec: `./prds/prd-[feature-slug]/techspec.md`
+- Tasks: `./prds/prd-[feature-slug]/tasks/tasks.md`
+- Review Report output: `./prds/prd-[feature-slug]/review-report.md`
+- Fix Tasks output dir: `./prds/prd-[feature-slug]/review-fixes/fix-[R-XX]-[severidade-completa]-[slug].md`

@@ -1,6 +1,6 @@
 # Tarefa X.0: [Título da Tarefa]
 
-<critical>Ler os arquivos de pbi.md e techspec.md desta pasta, se você não ler esses arquivos sua tarefa será invalidada</critical>
+<critical>Ler os arquivos de prd.md e techspec.md desta pasta, se você não ler esses arquivos sua tarefa será invalidada</critical>
 
 ## Visão Geral
 

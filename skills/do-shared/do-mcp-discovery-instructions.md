@@ -29,7 +29,7 @@ O guard antigo era binario: "se backend, pular E2E". O novo guard e baseado em c
 
 **Como aplicar:**
 
-1. Analisar a feature (PBI, TechSpec, Tasks) para determinar se envolve **frontend/UI**, **backend**, ou **ambos**.
+1. Analisar a feature (PRD, TechSpec, Tasks) para determinar se envolve **frontend/UI**, **backend**, ou **ambos**.
 2. Consultar o mapa de capacidades construido no passo 3 acima.
 3. Aplicar a tabela de decisao:
 

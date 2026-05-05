@@ -1,4 +1,4 @@
-# Template de Product Backlog Item (PBI)
+# Template de Product Requirements Document (PRD)
 
 ## Visão Geral
 
