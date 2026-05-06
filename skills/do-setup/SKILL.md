@@ -1,6 +1,6 @@
 ---
 name: do-setup
-description: Initializes the project, identifies relevant skills, and updates the project configuration file (CLAUDE.md, .github/copilot-instructions.md, .cursor/rules/project.mdc, or .cursorrules) with project summary, conventions, and available skills. Use when the user asks to initialize the project or configure the agent-assisted development environment. Do not use for PRD creation, task implementation, code review, or QA testing.
+description: Initializes the project, identifies relevant skills, and updates the project configuration file (CLAUDE.md, .github/copilot-instructions.md, .cursor/rules/project.mdc, or .cursorrules) with project summary, conventions, and available skills. Accepts an optional argument "agents" to only install orchestration agents and commands without running the full setup. Use when the user asks to initialize the project, configure the agent-assisted development environment, or install agents with "/do-setup agents". Do not use for PRD creation, task implementation, code review, or QA testing.
 ---
 
 # Project Setup
@@ -15,6 +15,12 @@ You are a senior developer advocate responsible for project initialization, tool
 **CRITICAL: This skill MUST NOT execute the application, run tests, start servers, compile code, or perform any runtime validation.** Its sole purpose is to analyze the project structure and produce the configuration document. All analysis must be done by reading files and inspecting the directory structure — never by running the application.
 
 ## Procedures
+
+**Preamble: Parse Invocation Argument**
+Check if the user invoked this skill with the argument `agents` (e.g., `/do-setup agents`).
+
+- If the argument **is** `agents`: set mode = `agents-only`. Skip Steps 1–4 and 6. Execute only Step 0 (AI tool detection) and Step 5 (install agents).
+- If no argument or any other argument: set mode = `full`. Execute all steps in order.
 
 **Step 0: Detect AI Tool Environment**
 Before doing anything else, determine which AI tool is executing this skill:
@@ -109,7 +115,32 @@ Merge the following sections into the project configuration file at the path det
 - **Output patterns:** [where to generate files, templates used]
 ```
 
-**Step 5: Report Results & Sync Progress (Mandatory)**
+**Step 5: Install Orchestration Agents & Commands**
+Based on the AI tool detected in Step 0, install the `execute-all-tasks` agent and command into the project:
+
+1. Locate the `agents/` subdirectory inside the `do-setup` skill directory by searching for `**/do-setup/agents` using Glob. This directory was copied alongside the `SKILL.md` when the user ran `npx skills add`.
+2. For each detected AI tool, create the target directories if they don't exist and copy the corresponding files:
+
+   **Claude Code** (if `.claude/` was detected):
+   - Run `mkdir -p .claude/agents .claude/commands`
+   - Copy `<skill-dir>/agents/claude/agents/execute-all-tasks.md` → `.claude/agents/execute-all-tasks.md`
+   - Copy `<skill-dir>/agents/claude/commands/execute-all-tasks.md` → `.claude/commands/execute-all-tasks.md`
+
+   **Cursor AI** (if `.cursor/` was detected):
+   - Run `mkdir -p .cursor/commands .cursor/rules`
+   - Copy `<skill-dir>/agents/cursor/commands/execute-all-tasks.md` → `.cursor/commands/execute-all-tasks.md`
+   - Copy `<skill-dir>/agents/cursor/rules/execute-all-tasks.mdc` → `.cursor/rules/execute-all-tasks.mdc`
+
+   **GitHub Copilot** (if `.github/` was detected):
+   - Run `mkdir -p .github/chatmodes .github/prompts`
+   - Copy `<skill-dir>/agents/github/chatmodes/execute-all-tasks.chatmode.md` → `.github/chatmodes/execute-all-tasks.chatmode.md`
+   - Copy `<skill-dir>/agents/github/prompts/execute-all-tasks.prompt.md` → `.github/prompts/execute-all-tasks.prompt.md`
+
+3. Confirm to the user which files were installed and for which tools.
+
+> Use Bash to run `cp` commands. `<skill-dir>` is the path returned by the Glob search for `**/do-setup/agents` (without the trailing `/agents`).
+
+**Step 6: Report Results & Sync Progress (Mandatory)**
 1. **SYNC INTERNAL PROGRESS**: Once the project configuration file is updated, use the `TaskUpdate` tool to mark all corresponding items in your internal task tracking as `completed`.
 2. **ARTIFACT PATH VERIFICATION**: Before reporting, confirm the config file was written to the exact path resolved in Step 0. Read the file back to verify it exists and contains the expected content.
 3. Provide a summary of the setup performed.

@@ -88,7 +88,12 @@ Rode **uma única vez** por projeto:
 /do-setup
 ```
 
-Isso analisa o codebase e gera o arquivo de configuração do projeto (`CLAUDE.md`, `.cursorrules`, etc.) com contexto e convenções.
+Isso analisa o codebase, gera o arquivo de configuração do projeto (`CLAUDE.md`, `.cursorrules`, etc.) com contexto e convenções, e **instala os agents de orquestração** nos diretórios corretos da sua ferramenta de IA.
+
+> Se você já fez o setup anteriormente e quer apenas reinstalar os agents (ex: após atualizar as skills), use:
+> ```
+> /do-setup agents
+> ```
 
 ---
 
@@ -147,6 +152,8 @@ A skill apresenta uma lista de tasks para você aprovar antes de detalhar. Ao fi
 
 ## Passo 6 — Executar as Tasks
 
+### Opção A — Uma por vez (controle manual)
+
 Execute cada task em ordem:
 
 ```
@@ -156,7 +163,24 @@ Execute cada task em ordem:
 ... (até todas as tasks estarem [x] em tasks.md)
 ```
 
-A skill implementa o código, roda os testes e gera um review file por task. Para acompanhar o progresso a qualquer momento:
+### Opção B — Em lote (agent autônomo)
+
+Use o agent `execute-all-tasks` para executar um conjunto de tasks sequencialmente sem intervenção:
+
+```
+/execute-all-tasks prds/prd-login-google/tasks/tasks.md all
+```
+
+Você também pode executar um range ou uma lista específica:
+
+```
+/execute-all-tasks prds/prd-login-google/tasks/tasks.md 1.0-4.0
+/execute-all-tasks prds/prd-login-google/tasks/tasks.md 1.0,3.0,5.0
+```
+
+> O agent executa uma task por vez, garante limpeza de contexto entre elas e para automaticamente em caso de falha. Disponível no Claude Code, Cursor e GitHub Copilot após o `do-setup`.
+
+A skill (e o agent) implementam o código, rodam os testes e geram um review file por task. Para acompanhar o progresso a qualquer momento:
 
 ```
 /do-status

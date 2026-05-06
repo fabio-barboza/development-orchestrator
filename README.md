@@ -163,8 +163,11 @@ PLANEJAMENTO       EXECUÇÃO           REVIEW GERAL      VALIDAÇÃO
 3. Verifica infraestrutura de testes — avisa se não houver test runner configurado
 4. Identifica skills tecnológicas relevantes disponíveis
 5. Atualiza o arquivo de configuração do projeto com summary do projeto e convenções
+6. **Instala os agents e commands de orquestração** nos diretórios corretos da ferramenta detectada
 
 **Output:** Arquivo de configuração do projeto (`CLAUDE.md`, `.github/copilot-instructions.md`, `.cursor/rules/project.mdc`, ou `.cursorrules`) atualizado com contexto do projeto
+
+**Argumento opcional:** `/do-setup agents` — pula a análise do projeto e instala apenas os agents/commands (útil quando o setup já foi feito anteriormente)
 
 ---
 
@@ -335,6 +338,46 @@ PLANEJAMENTO       EXECUÇÃO           REVIEW GERAL      VALIDAÇÃO
 - Correções no codebase
 - `bugs.md` atualizado
 - `./prds/prd-[slug]/bugfix-report.md`
+
+---
+
+## Agents de Orquestração
+
+Além das skills (invocadas explicitamente), o DO Framework inclui **agents** — componentes que expõem comandos dedicados para fluxos de trabalho mais complexos. Os agents são instalados automaticamente pelo `do-setup` nos diretórios corretos de cada ferramenta.
+
+### `execute-all-tasks` — Executar Tasks em Sequência
+
+Orquestra a execução sequencial de todas (ou um subconjunto de) tasks de um PRD, delegando cada uma à skill `do-execute-task` e garantindo isolamento de contexto entre execuções.
+
+**Quando usar:** Ao invés de rodar `/do-execute-task` manualmente task por task, use este agent para executar um lote de forma autônoma.
+
+**Regras de execução:**
+- Uma task por vez — nunca executa em paralelo
+- Ordem numérica estrita
+- Para imediatamente em caso de falha e reporta o problema
+- Limpeza de contexto obrigatória entre tasks
+
+**Disponível nas ferramentas:**
+
+| Ferramenta | Artefato | Invocação |
+|---|---|---|
+| **Claude Code** | Agent (`.claude/agents/`) + Command (`.claude/commands/`) | `/execute-all-tasks <tasks.md> [filtro]` |
+| **Cursor AI** | Rule (`.cursor/rules/`) + Command (`.cursor/commands/`) | `@execute-all-tasks` ou `/execute-all-tasks` |
+| **GitHub Copilot** | Chat Mode (`.github/chatmodes/`) + Prompt (`.github/prompts/`) | `/execute-all-tasks` no chat mode correspondente |
+
+**Filtros suportados:**
+
+| Filtro | Exemplo | Comportamento |
+|---|---|---|
+| `all` (default) | `/execute-all-tasks tasks.md all` | Todas as tasks pendentes (não marcadas `[x]`) |
+| Range | `/execute-all-tasks tasks.md 1.0-4.0` | Tasks no intervalo especificado |
+| Lista | `/execute-all-tasks tasks.md 1.0,3.0,5.0` | Tasks específicas por ID |
+
+**Instalação:** Feita automaticamente pelo `do-setup`. Para reinstalar apenas os agents sem refazer o setup completo:
+
+```
+/do-setup agents
+```
 
 ---
 
