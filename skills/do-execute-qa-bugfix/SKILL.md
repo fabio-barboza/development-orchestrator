@@ -12,12 +12,12 @@ You are a senior software engineer specialized in root-cause analysis and implem
 **CRITICAL: NEVER pause, stop, or wait for user input during execution.** Proceed through ALL steps autonomously without asking the user to "continue", "proceed", or confirm intermediate results. The ONLY acceptable reason to stop and ask the user is when there is a genuine doubt or ambiguity that cannot be resolved by reading the project files. Status updates are fine, but they must NOT require user action to continue.
 
 ## Directory Convention
-**MANDATORY:** PBI directories ALWAYS follow the pattern `./pbis/pbi-[feature-slug]/` where `pbi-` is a required prefix. Example: feature `user-auth` → directory `./pbis/pbi-user-auth/`. **NEVER** reference a path like `./pbis/user-auth/`.
+**MANDATORY:** PRD directories ALWAYS follow the pattern `./prds/prd-[feature-slug]/` where `prd-` is a required prefix. Example: feature `user-auth` → directory `./prds/prd-user-auth/`. **NEVER** reference a path like `./prds/user-auth/`.
 
 ## Invocation
 This skill fixes **one bug at a time**. The user must provide the path to the specific bug file to fix:
 ```
-do-execute-qa-bugfix ./pbis/pbi-[feature-slug]/qa-bugs/bug-[XX]-[severidade]-[slug].md
+do-execute-qa-bugfix ./prds/prd-[feature-slug]/qa-bugs/bug-[XX]-[severidade]-[slug].md
 ```
 If no file path is provided, list all `aberto` bug files in `qa-bugs/` and ask the user which one to fix.
 
@@ -38,8 +38,8 @@ Store resolved environment and skills directory internally and use throughout al
 1. Read the bug file provided by the user. If the file does not exist, halt and report.
 2. If `status` in the frontmatter is `corrigido`, halt: "Bug já corrigido — nada a fazer."
 3. Extract: ID, severidade, descrição, passos para reproduzir, resultado esperado/atual, componente afetado.
-4. Read the PBI at `./pbis/pbi-[feature-slug]/pbi.md` to understand affected requirements.
-5. Read the Tech Spec at `./pbis/pbi-[feature-slug]/techspec.md` for technical context.
+4. Read the PRD at `./prds/prd-[feature-slug]/prd.md` to understand affected requirements.
+5. Read the Tech Spec at `./prds/prd-[feature-slug]/techspec.md` for technical context.
 6. Read the project configuration file (CLAUDE.md, .github/copilot-instructions.md, or .cursor/rules/project.mdc) for project conventions.
 
 **Step 2: Plan Fix (INTERNAL — do NOT output as standalone message)**
@@ -66,7 +66,7 @@ Store resolved environment and skills directory internally and use throughout al
 
 **Step 5: MCP Validation (Mandatory when applicable)**
 1. Execute the MCP discovery procedure from the shared skills directory resolved in Step 0 (e.g., `.claude/skills/do-shared/do-mcp-discovery-instructions.md` for Claude Code, `.cursor/rules/do-shared/do-mcp-discovery-instructions.md` for Cursor AI).
-2. For bugs affecting the **UI** (and `browser-testing` MCP available): run `mkdir -p ./pbis/pbi-[feature-slug]/qa-screenshots` via Bash, then navigate, reproduce the fix flow, and capture screenshot evidence using `filename: pbis/pbi-[feature-slug]/qa-screenshots/fix-[BUG-XX]-[slug].png`.
+2. For bugs affecting the **UI** (and `browser-testing` MCP available): run `mkdir -p ./prds/prd-[feature-slug]/qa-screenshots` via Bash, then navigate, reproduce the fix flow, and capture screenshot evidence using `filename: prds/prd-[feature-slug]/qa-screenshots/fix-[BUG-XX]-[slug].png`.
 3. For bugs affecting **backend** (and backend-capable MCP available): validate end-to-end via MCP tools.
 4. If no relevant MCP available: document the validation gap in the fix report, rely on unit/integration tests only.
 
@@ -101,10 +101,10 @@ Todos os artefatos gerados (atualizações no arquivo de bug, seções de resolu
 - If implementation fails mid-way, revert broken partial changes, ensure the codebase compiles, and report the blocker.
 
 ## References
-- Bug file (input): `./pbis/pbi-[feature-slug]/qa-bugs/bug-[XX]-[severidade-completa]-[slug].md`
+- Bug file (input): `./prds/prd-[feature-slug]/qa-bugs/bug-[XX]-[severidade-completa]-[slug].md`
 - Regression test patterns: resolved in Step 0 (e.g., `.claude/skills/do-execute-qa-bugfix/references/regression-test-patterns.md` for Claude Code, `.cursor/rules/do-execute-qa-bugfix/references/regression-test-patterns.md` for Cursor AI)
 - MCP Discovery: resolved in Step 0 (e.g., `.claude/skills/do-shared/do-mcp-discovery-instructions.md` for Claude Code, `.cursor/rules/do-shared/do-mcp-discovery-instructions.md` for Cursor AI)
 - MCP Registry: resolved in Step 0 (e.g., `.claude/skills/do-shared/do-mcp-capabilities.md` for Claude Code, `.cursor/rules/do-shared/do-mcp-capabilities.md` for Cursor AI)
-- PBI: `./pbis/pbi-[feature-slug]/pbi.md`
-- TechSpec: `./pbis/pbi-[feature-slug]/techspec.md`
-- Screenshots: `./pbis/pbi-[feature-slug]/qa-screenshots/`
+- PRD: `./prds/prd-[feature-slug]/prd.md`
+- TechSpec: `./prds/prd-[feature-slug]/techspec.md`
+- Screenshots: `./prds/prd-[feature-slug]/qa-screenshots/`

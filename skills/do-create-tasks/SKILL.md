@@ -1,6 +1,6 @@
 ---
 name: do-create-tasks
-description: Converts PBI and Tech Spec into a detailed, sequenced list of implementation tasks. Each task is a functional, incremental deliverable with its own test suite. Outputs tasks.md and individual task files. Use when the user asks to create tasks, break down work, or plan implementation from an existing PBI and Tech Spec. Do not use for PBI creation, tech spec creation, or actual code implementation.
+description: Converts PRD and Tech Spec into a detailed, sequenced list of implementation tasks. Each task is a functional, incremental deliverable with its own test suite. Outputs tasks.md and individual task files. Use when the user asks to create tasks, break down work, or plan implementation from an existing PRD and Tech Spec. Do not use for PRD creation, tech spec creation, or actual code implementation.
 ---
 
 # Task Creation
@@ -15,7 +15,7 @@ You are a senior project manager specialized in breaking down features into incr
 **CRITICAL: This skill MUST NOT execute the application, run tests, start servers, compile code, or perform any runtime validation.** Its sole purpose is to produce the task breakdown documents. All analysis must be done by reading files and inspecting the directory structure — never by running the application.
 
 ## Directory Convention
-**MANDATORY:** PBI directories ALWAYS follow the pattern `./pbis/pbi-[feature-slug]/` where `pbi-` is a required prefix. Example: feature `user-auth` → directory `./pbis/pbi-user-auth/`. **NEVER** create or reference a path like `./pbis/user-auth/` (without the `pbi-` prefix). The `tasks/` subdirectory is always inside this prefixed folder: `./pbis/pbi-[feature-slug]/tasks/`.
+**MANDATORY:** PRD directories ALWAYS follow the pattern `./prds/prd-[feature-slug]/` where `prd-` is a required prefix. Example: feature `user-auth` → directory `./prds/prd-user-auth/`. **NEVER** create or reference a path like `./prds/user-auth/` (without the `prd-` prefix). The `tasks/` subdirectory is always inside this prefixed folder: `./prds/prd-[feature-slug]/tasks/`.
 
 ## Procedures
 
@@ -32,12 +32,12 @@ Store resolved environment and skills directory internally and use throughout al
 
 **Step 1: Validate Prerequisites**
 1. Confirm the feature slug has been provided.
-2. Verify the PBI exists at `./pbis/pbi-[feature-slug]/pbi.md`. The directory MUST be `pbi-[feature-slug]` — never `[feature-slug]` alone. If missing, halt.
-3. Verify the Tech Spec exists at `./pbis/pbi-[feature-slug]/techspec.md`. If missing, halt.
-4. **Path check**: Before creating any file, confirm you are writing to `./pbis/pbi-[feature-slug]/tasks/` — not `./pbis/[feature-slug]/tasks/`.
+2. Verify the PRD exists at `./prds/prd-[feature-slug]/prd.md`. The directory MUST be `prd-[feature-slug]` — never `[feature-slug]` alone. If missing, halt.
+3. Verify the Tech Spec exists at `./prds/prd-[feature-slug]/techspec.md`. If missing, halt.
+4. **Path check**: Before creating any file, confirm you are writing to `./prds/prd-[feature-slug]/tasks/` — not `./prds/[feature-slug]/tasks/`.
 
-**Step 2: Analyze PBI and Tech Spec (Mandatory)**
-1. Read the PBI completely to extract requirements.
+**Step 2: Analyze PRD and Tech Spec (Mandatory)**
+1. Read the PRD completely to extract requirements.
 2. Read the Tech Spec completely to extract technical decisions.
 3. Use Context7 MCP (`resolve-library-id` → `query-docs`) to check documentation of frameworks/libraries involved — this helps estimate task complexity and define accurate implementation steps. If Context7 MCP is unavailable, proceed without it.
 4. Identify main components and their dependencies.
@@ -55,13 +55,13 @@ Store resolved environment and skills directory internally and use throughout al
 **Step 4: Generate Task Files (Mandatory)**
 1. Read the tasks summary template from the skills directory resolved in Step 0 (e.g., `.claude/skills/do-create-tasks/assets/tasks-template.md` for Claude Code, `.cursor/rules/do-create-tasks/assets/tasks-template.md` for Cursor AI).
 2. Read the individual task template from the skills directory resolved in Step 0 (e.g., `.claude/skills/do-create-tasks/assets/task-template.md` for Claude Code, `.cursor/rules/do-create-tasks/assets/task-template.md` for Cursor AI).
-3. **PATH VERIFICATION**: Before creating any file, confirm the target directory is exactly `./pbis/pbi-[feature-slug]/tasks/`. Verify the parent directory name starts with `pbi-`. Never write to `./pbis/[feature-slug]/tasks/` (missing `pbi-` prefix).
-4. Create the directory `./pbis/pbi-[feature-slug]/tasks/` if it does not exist.
-5. Create the summary file: `./pbis/pbi-[feature-slug]/tasks/tasks.md`.
-6. Create individual task files: `./pbis/pbi-[feature-slug]/tasks/[num]_task.md`.
+3. **PATH VERIFICATION**: Before creating any file, confirm the target directory is exactly `./prds/prd-[feature-slug]/tasks/`. Verify the parent directory name starts with `prd-`. Never write to `./prds/[feature-slug]/tasks/` (missing `prd-` prefix).
+4. Create the directory `./prds/prd-[feature-slug]/tasks/` if it does not exist.
+5. Create the summary file: `./prds/prd-[feature-slug]/tasks/tasks.md`.
+6. Create individual task files: `./prds/prd-[feature-slug]/tasks/[num]_task.md`.
 7. Use format X.0 for main tasks, X.Y for subtasks.
 8. Do NOT repeat implementation details already in the Tech Spec — reference it instead.
-9. **POST-SAVE VERIFICATION**: After writing all files, list the contents of `./pbis/pbi-[feature-slug]/tasks/` to confirm all expected files exist. If any file is missing, halt and report the error.
+9. **POST-SAVE VERIFICATION**: After writing all files, list the contents of `./prds/prd-[feature-slug]/tasks/` to confirm all expected files exist. If any file is missing, halt and report the error.
 
 **Step 5: Report Results & Sync Progress (Mandatory)**
 1. **SYNC INTERNAL PROGRESS**: Once the tasks are generated, if `TaskUpdate` is available (Claude Code only; skip in Copilot and Cursor), use it to mark all corresponding items in your internal task tracking as `completed`. Otherwise, skip this step.
@@ -84,21 +84,21 @@ Todos os artefatos gerados (tasks.md, arquivos de task individuais) devem ser es
 - Do NOT implement anything — focus solely on task listing and detailing.
 
 ## Quality Checklist
-- [ ] PBI and Tech Spec analyzed.
+- [ ] PRD and Tech Spec analyzed.
 - [ ] High-level task list approved by user.
 - [ ] Task files generated using templates.
 - [ ] Each task has unit and integration test subtasks.
-- [ ] Files saved to `./pbis/pbi-[feature-slug]/tasks/`.
+- [ ] Files saved to `./prds/prd-[feature-slug]/tasks/`.
 - [ ] Results presented to user.
 
 ## Error Handling
-- If the PBI or Tech Spec is missing, halt and direct the user to the `do-create-pbi` or `do-create-techspec` skill.
+- If the PRD or Tech Spec is missing, halt and direct the user to the `do-create-prd` or `do-create-techspec` skill.
 - If the user rejects the high-level task list, revise based on feedback and re-present for approval.
-- If the output directory (`./pbis/pbi-[feature-slug]/tasks/`) already contains task files, confirm with the user before overwriting.
+- If the output directory (`./prds/prd-[feature-slug]/tasks/`) already contains task files, confirm with the user before overwriting.
 - If a template file is missing at the paths resolved in Step 0, report the error and halt — do not generate tasks without the templates.
 
 ## References
 - Templates: resolved in Step 0 (e.g., `.claude/skills/do-create-tasks/assets/tasks-template.md`, `.claude/skills/do-create-tasks/assets/task-template.md` for Claude Code, `.cursor/rules/do-create-tasks/assets/` for Cursor AI)
-- PBI: `pbis/pbi-[feature-slug]/pbi.md`
-- TechSpec: `pbis/pbi-[feature-slug]/techspec.md`
-- Output: `./pbis/pbi-[feature-slug]/tasks/tasks.md`, `./pbis/pbi-[feature-slug]/tasks/[num]_task.md`
+- PRD: `prds/prd-[feature-slug]/prd.md`
+- TechSpec: `prds/prd-[feature-slug]/techspec.md`
+- Output: `./prds/prd-[feature-slug]/tasks/tasks.md`, `./prds/prd-[feature-slug]/tasks/[num]_task.md`

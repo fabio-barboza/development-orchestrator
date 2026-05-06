@@ -2,7 +2,7 @@
 
 **Framework de Skills AI-driven** que orquestra o ciclo completo de desenvolvimento de software seguindo o padrão **Spec Driven Development (SDD)**: desde a ideia inicial até QA final com testes E2E automatizados via MCP (Model Context Protocol).
 
-O SDD garante que cada feature seja especificada antes de implementada — PBI → TechSpec → Tasks — criando uma cadeia de artefatos rastreáveis que eliminam ambiguidade e orientam a execução com contexto completo.
+O SDD garante que cada feature seja especificada antes de implementada — PRD → TechSpec → Tasks — criando uma cadeia de artefatos rastreáveis que eliminam ambiguidade e orientam a execução com contexto completo.
 
 ## Para Que Serve
 
@@ -10,7 +10,7 @@ O DO Framework elimina trabalho manual e garante qualidade consistente ao automa
 
 | Área                  | Benefício                                                                 |
 |-----------------------|---------------------------------------------------------------------------|
-| **Planejamento**      | PBIs padronizadas, critérios claros, sem ambiguidades                     |
+| **Planejamento**      | PRDs padronizados, critérios claros, sem ambiguidades                     |
 | **Arquitetura**       | TechSpecs profundas com pesquisa automática em documentação oficial       |
 | **Decomposição**      | Tasks atômicas e testáveis, ordenadas por dependência                     |
 | **Execução**          | Implementação com testes E2E via MCP, review automático                   |
@@ -32,7 +32,7 @@ npx skills add fabio-barboza/development-orchestrator
 ```
 
 Este comando irá:
-1. Baixar todas as skills (`do-setup`, `do-create-pbi`, `do-create-techspec`, etc.)
+1. Baixar todas as skills (`do-setup`, `do-create-prd`, `do-create-techspec`, etc.)
 2. Configurar no seu ambiente de agente
 3. Fazer disponível para uso imediato nos seus projetos
 
@@ -44,7 +44,7 @@ Este comando irá:
 ```
 ┌──────────┐    ┌───────────┐    ┌──────────────┐    ┌─────────────┐
 │ do-setup │───▶│do-create- │───▶│do-create-    │───▶│do-create-   │
-│  (1x)    │    │   pbi     │    │  techspec    │    │   tasks     │
+│  (1x)    │    │   prd     │    │  techspec    │    │   tasks     │
 └──────────┘    └───────────┘    └──────────────┘    └─────────────┘
                                                               │
                                                               ▼
@@ -113,7 +113,7 @@ tasks.md            │   - Implementação + tests                   │
 │   │                      │                                                  │
 │   │  - E2E completo via  │                                                  │
 │   │    MCP (Playwright)  │                                                  │
-│   │  - Checklist PBI     │                                                  │
+│   │  - Checklist PRD     │                                                  │
 │   │  - Accessibility     │────────────┐                                     │
 │   │  - Visual verification│           │                                     │
 │   │  - Gera bugs.md      │            │                                     │
@@ -143,7 +143,7 @@ PLANEJAMENTO       EXECUÇÃO           REVIEW GERAL      VALIDAÇÃO
     │                   │                   │                  │
     ▼                   ▼                   ▼                  ▼
 ┌───────┐          ┌───────────┐       ┌─────────────┐     ┌──────────────┐
-│PBI +  │─────────▶│ Loop por  │──────▶│ Review      │────▶│ QA + Bugfix  │
+│PRD +  │─────────▶│ Loop por  │──────▶│ Review      │────▶│ QA + Bugfix  │
 │Tasks  │          │ cada task │       │ (loop até   │     │ (loop até    │
 │       │          │           │       │ aprovado)   │     │ zero HIGH)   │
 └───────┘          └───────────┘       └─────────────┘     └──────────────┘
@@ -166,16 +166,16 @@ PLANEJAMENTO       EXECUÇÃO           REVIEW GERAL      VALIDAÇÃO
 
 ---
 
-### `do-create-pbi` — Criar Product Backlog Item
+### `do-create-prd` — Criar Product Requirements Document
 
 **Quando usar:** Nova feature, melhoria ou correção a ser desenvolvida.
 
 **O que faz:**
 1. **Clarification (interativo)**: Perguntas ao usuário sobre problema, objetivos, usuários, flows
 2. **Planning (interativo)**: Apresenta plano de seções para aprovação
-3. **Drafting**: Gera PBI padronizada com requisitos numerados e critérios de aceitação
+3. **Drafting**: Gera PRD padronizado com requisitos numerados e critérios de aceitação
 
-**Output:** `./pbis/pbi-[slug]/pbi.md`
+**Output:** `./prds/prd-[slug]/prd.md`
 
 **Foco:** WHAT e WHY (nunca HOW — isso é do TechSpec)
 
@@ -183,16 +183,16 @@ PLANEJAMENTO       EXECUÇÃO           REVIEW GERAL      VALIDAÇÃO
 
 ### `do-create-techspec` — Especificação Técnica
 
-**Quando usar:** PBI já criada, hora de definir arquitetura e implementação.
+**Quando usar:** PRD já criado, hora de definir arquitetura e implementação.
 
 **O que faz:**
-1. Analisa PBI profundamente
+1. Analisa PRD profundamente
 2. Explora codebase para entender contexto técnico (chamadas, interfaces, persistence)
 3. **Research via MCP**: Usa Context7 para consultar documentação oficial de frameworks
 4. **Clarifications (interativo)**: Perguntas técnicas focadas ao usuário
 5. Gera TechSpec com arquitetura, component design, data models, endpoints, test strategy, **suposições técnicas** e riscos conhecidos
 
-**Output:** `./pbis/pbi-[slug]/techspec.md`
+**Output:** `./prds/prd-[slug]/techspec.md`
 
 **Foco:** HOW (implementação, não requisitos de negócio)
 
@@ -203,14 +203,14 @@ PLANEJAMENTO       EXECUÇÃO           REVIEW GERAL      VALIDAÇÃO
 **Quando usar:** TechSpec pronta, hora de criar tasks executáveis.
 
 **O que faz:**
-1. Analisa PBI + TechSpec
+1. Analisa PRD + TechSpec
 2. Research via Context7 para estimar complexidade das libs envolvidas
 3. **High-level list (interativo)**: Apresenta lista de tasks para aprovação
 4. Gera files com tasks detalhadas e subtasks numeradas
 
 **Output:**
-- `./pbis/pbi-[slug]/tasks/tasks.md` (index)
-- `./pbis/pbi-[slug]/tasks/[num]_task.md` (cada task)
+- `./prds/prd-[slug]/tasks/tasks.md` (index)
+- `./prds/prd-[slug]/tasks/[num]_task.md` (cada task)
 
 **Regra de ouro:** Cada task deve ser funcional, ter seus próprios testes, e representar ~100–200 linhas de mudança de código (para evitar context overflow na execução).
 
@@ -221,7 +221,7 @@ PLANEJAMENTO       EXECUÇÃO           REVIEW GERAL      VALIDAÇÃO
 **Quando usar:** Task específica para implementar (ex: "execute task 3").
 
 **O que faz:**
-1. Le PBI, TechSpec, tasks.md e `[num]_task.md`
+1. Le PRD, TechSpec, tasks.md e `[num]_task.md`
 2. **MCP Discovery**: Descobre quais MCPs estão configurados e aplicável
 3. Implementa com testes unit/integration
 4. **E2E via MCP**: Roda testes E2E usando tools do MCP (Playwright para browser, RabbitMQ para message queue, etc.)
@@ -256,7 +256,7 @@ PLANEJAMENTO       EXECUÇÃO           REVIEW GERAL      VALIDAÇÃO
 - Se status = **NEEDS_REVISION** ou **REJECTED**: rodar `do-execute-review-fix` → depois `do-execute-review` novamente
 - Se status = **APPROVED**: prossegue para FASE 4 (QA)
 
-**Output:** `./pbis/pbi-[slug]/review-report.md`
+**Output:** `./prds/prd-[slug]/review-report.md`
 
 **Status:** ACCEPTED / NEEDS_REVISION / REJECTED
 
@@ -276,7 +276,7 @@ PLANEJAMENTO       EXECUÇÃO           REVIEW GERAL      VALIDAÇÃO
 **Output:**
 - Correções no codebase
 - `review-report.md` atualizado
-- `./pbis/pbi-[slug]/fix-report.md`
+- `./prds/prd-[slug]/fix-report.md`
 
 ---
 
@@ -285,7 +285,7 @@ PLANEJAMENTO       EXECUÇÃO           REVIEW GERAL      VALIDAÇÃO
 **Quando usar:** Implementação completa, hora de validação final.
 
 **O que faz:**
-1. Cria checklist baseado nos requisitos do PBI
+1. Cria checklist baseado nos requisitos do PRD
 2. **MCP Discovery**: Identifica MCPs disponíveis e aplica capability guard
 3. **E2E Tests via MCP**: Roda flows completos capturando screenshots
 4. **Accessibility**: Verifica WCAG 2.2 (keyboard nav, labels, contrast, etc.)
@@ -293,19 +293,19 @@ PLANEJAMENTO       EXECUÇÃO           REVIEW GERAL      VALIDAÇÃO
 6. Documenta bugs encontrados com evidência visual
 
 **Output:**
-- `./pbis/pbi-[slug]/qa-report.md`
-- `./pbis/pbi-[slug]/bugs.md` (se houver bugs)
+- `./prds/prd-[slug]/qa-report.md`
+- `./prds/prd-[slug]/bugs.md` (se houver bugs)
 
 **Status:** APPROVED apenas se TODOS requisitos verificados e funcionando
 
 ---
 
-### `do-status` — Progresso do PBI
+### `do-status` — Progresso do PRD
 
-**Quando usar:** Para verificar o estado atual de um PBI, retomar trabalho após interrupção, ou saber qual é a próxima task.
+**Quando usar:** Para verificar o estado atual de um PRD, retomar trabalho após interrupção, ou saber qual é a próxima task.
 
 **O que faz:**
-1. Identifica o PBI alvo (pelo slug ou por seleção automática)
+1. Identifica o PRD alvo (pelo slug ou por seleção automática)
 2. Lê `tasks.md` e calcula progresso (X/Y tasks, Z%)
 3. Identifica a próxima task pendente e verifica dependências
 4. Detecta tasks marcadas como `[x]` mas sem review file (incompletas)
@@ -332,7 +332,7 @@ PLANEJAMENTO       EXECUÇÃO           REVIEW GERAL      VALIDAÇÃO
 **Output:**
 - Correções no codebase
 - `bugs.md` atualizado
-- `./pbis/pbi-[slug]/bugfix-report.md`
+- `./prds/prd-[slug]/bugfix-report.md`
 
 ---
 
@@ -563,9 +563,9 @@ uvx --version
 ## Estrutura de Pastas Gerada
 
 ```
-./pbis/
-└── pbi-[feature-slug]/
-    ├── pbi.md                  # Product Backlog Item (do-create-pbi)
+./prds/
+└── prd-[feature-slug]/
+    ├── prd.md                  # Product Requirements Document (do-create-prd)
     ├── techspec.md             # Tech Spec (do-create-techspec)
     ├── bugs.md                 # Bugs encontrados (do-execute-qa/bugfix)
     ├── qa-report.md            # Relatório QA (do-execute-qa)
@@ -586,7 +586,7 @@ uvx --version
 | Convenção | Descrição |
 |-----------|-----------|
 | **Prefixo `do-`** | Todas skills usam `do-` para identificar como parte do framework |
-| **Slug kebab-case** | Pastas usam kebab-case: `pbi-projeto-exemplo`, `pbi-user-auth` |
+| **Slug kebab-case** | Pastas usam kebab-case: `prd-projeto-exemplo`, `prd-user-auth` |
 | **Numeração de tasks** | Tasks numeradas sequencialmente: `1_task.md`, `2_task.md` |
 | **Artefatos obrigatórios** | Sem artifact = task incompleta (review files, reports) |
 | **Testes devem passar** | Task NUNCA completa com failing tests |
@@ -600,8 +600,8 @@ uvx --version
 | Cenário | Skill | Loop? |
 |---------|-------|-------|
 | Novo projeto, primeira vez | `do-setup` | Não (1x) |
-| Nova feature (ideia vaga) | `do-create-pbi` | Não |
-| PBI criada, definir arquitetura | `do-create-techspec` | Não |
+| Nova feature (ideia vaga) | `do-create-prd` | Não |
+| PRD criado, definir arquitetura | `do-create-techspec` | Não |
 | TechSpec pronta, criar tasks | `do-create-tasks` | Não |
 | Verificar progresso / retomar trabalho | `do-status` | Não |
 | Implementar task específica | `do-execute-task 1` | Sim (por cada task) |
@@ -619,8 +619,8 @@ uvx --version
 ```bash
 # FASE 1: PLANEJAMENTO
 # ------------------------------------------------
-# 1. Criar PBI
-/do-create-pbi *descrição ou arquivo de contexto*
+# 1. Criar PRD
+/do-create-prd *descrição ou arquivo de contexto*
 > Feature: Projeto Exemplo
 > [responde perguntas sobre problema, usuários, flows]
 
@@ -645,7 +645,7 @@ uvx --version
 
 # FASE 3: CODE REVIEW GERAL (LOOP até APPROVED)
 # ------------------------------------------------
-# 5. Review geral do PBI (OBRIGATÓRIO antes do QA)
+# 5. Review geral do PRD (OBRIGATÓRIO antes do QA)
 /do-execute-review projeto-exemplo
 > Status: NEEDS_REVISION / REJECTED? → /do-execute-review-fix projeto-exemplo → /do-execute-review projeto-exemplo
 > Status: APPROVED? → prossegue para QA
@@ -695,7 +695,7 @@ O DO Framework é agnóstico à ferramenta de IA. Os conceitos, o fluxo de traba
 
 ## Dicas Importantes
 
-1. **Não pule steps**: PBI → TechSpec → Tasks → Execute (ordem é importante)
+1. **Não pule steps**: PRD → TechSpec → Tasks → Execute (ordem é importante)
 2. **MCPs são opcionais mas recomendados**: Sem MCP, perde-se E2E automatizado
 3. **Review files são obrigatórios**: Sem `[num]_task_review.md`, a task NÃO está completa
 4. **Testes failing bloqueiam progresso**: Não prossiga até todos passarem

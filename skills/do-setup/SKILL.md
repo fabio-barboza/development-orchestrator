@@ -1,6 +1,6 @@
 ---
 name: do-setup
-description: Initializes the project, identifies relevant skills, and updates the project configuration file (CLAUDE.md, .github/copilot-instructions.md, .cursor/rules/project.mdc, or .cursorrules) with project summary, conventions, and available skills. Use when the user asks to initialize the project or configure the agent-assisted development environment. Do not use for PBI creation, task implementation, code review, or QA testing.
+description: Initializes the project, identifies relevant skills, and updates the project configuration file (CLAUDE.md, .github/copilot-instructions.md, .cursor/rules/project.mdc, or .cursorrules) with project summary, conventions, and available skills. Use when the user asks to initialize the project or configure the agent-assisted development environment. Do not use for PRD creation, task implementation, code review, or QA testing.
 ---
 
 # Project Setup
@@ -93,7 +93,7 @@ Merge the following sections into the project configuration file at the path det
 - **Integrations:** [external services]
 
 ## Available Skills
-**NOTE: Only list non-`do-*` skills here. Never include workflow skills (do-setup, do-create-pbi, do-create-techspec, do-create-tasks, do-execute-task, do-execute-review, do-execute-qa, etc.) in this table.**
+**NOTE: Only list non-`do-*` skills here. Never include workflow skills (do-setup, do-create-prd, do-create-techspec, do-create-tasks, do-execute-task, do-execute-review, do-execute-qa, etc.) in this table.**
 | Skill | Path | When to use |
 |-------|------|-------------|
 | [name] | [skills-dir]/[skill]/SKILL.md | [usage context] |

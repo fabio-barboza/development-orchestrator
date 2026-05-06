@@ -1,6 +1,6 @@
 ---
 name: do-execute-task
-description: Implements feature tasks by loading required skills, reading PBI/TechSpec context, analyzing dependencies, executing the implementation with tests, and performing an automatic code review. Marks tasks as complete in tasks.md. Use when the user asks to implement a task, execute a task, or start working on a specific task number. Do not use for creating tasks, running QA, or bug fixing.
+description: Implements feature tasks by loading required skills, reading PRD/TechSpec context, analyzing dependencies, executing the implementation with tests, and performing an automatic code review. Marks tasks as complete in tasks.md. Use when the user asks to implement a task, execute a task, or start working on a specific task number. Do not use for creating tasks, running QA, or bug fixing.
 ---
 
 # Task Execution
@@ -32,7 +32,7 @@ When an `Edit` tool call fails, follow this escalation ladder:
 **Exception for tasks.md**: When using Write as fallback for `tasks.md`, you MUST first `read_file` the entire file, then reproduce ALL existing content exactly (preserving every line, every completed task), changing ONLY the target task's `[ ]` to `[x]`. After Write, immediately `read_file` to verify no lines were lost.
 
 ## Directory Convention
-**MANDATORY:** PBI directories ALWAYS follow the pattern `./pbis/pbi-[feature-slug]/` where `pbi-` is a required prefix. Example: feature `user-auth` → directory `./pbis/pbi-user-auth/`. **NEVER** reference a path like `./pbis/user-auth/`. When scanning `./pbis/` to auto-select a PBI, look for folders matching the `pbi-*` pattern.
+**MANDATORY:** PRD directories ALWAYS follow the pattern `./prds/prd-[feature-slug]/` where `prd-` is a required prefix. Example: feature `user-auth` → directory `./prds/prd-user-auth/`. **NEVER** reference a path like `./prds/user-auth/`. When scanning `./prds/` to auto-select a PRD, look for folders matching the `prd-*` pattern.
 
 ## Procedures
 
@@ -47,12 +47,12 @@ When an `Edit` tool call fails, follow this escalation ladder:
 Store resolved environment and skills directory internally.
 
 **Step 1: Pre-Task Configuration (Mandatory — execute silently, do NOT present results to user)**
-1. If the user did not provide the `[feature-slug]`, scan the `./pbis/` directory to identify the target PBI folder. **AUTOMATIC SELECTION RULE**: If only one PBI folder exists, use it automatically. If multiple exist, select based on this priority: (a) match with task number mentioned by user, (b) most recently modified folder (check timestamps), (c) alphabetically first. **NEVER ask the user to choose.**
+1. If the user did not provide the `[feature-slug]`, scan the `./prds/` directory to identify the target PRD folder. **AUTOMATIC SELECTION RULE**: If only one PRD folder exists, use it automatically. If multiple exist, select based on this priority: (a) match with task number mentioned by user, (b) most recently modified folder (check timestamps), (c) alphabetically first. **NEVER ask the user to choose.**
 2. If the user said "task 3", interpret it as `3.0_task.md`. If the file doesn't exist, try `3_task.md` as a fallback.
-3. Read the task definition file at `./pbis/pbi-[feature-slug]/tasks/[num]_task.md`.
-4. Read the PBI at `./pbis/pbi-[feature-slug]/pbi.md` for context. If the PBI file does not exist, **HALT IMMEDIATELY** with a clear error: "PBI file missing. Run `do-create-pbi` first." — do NOT ask permission or wait for user response.
-5. Read the Tech Spec at `./pbis/pbi-[feature-slug]/techspec.md` for technical requirements. If the TechSpec file does not exist, **HALT IMMEDIATELY** with a clear error: "TechSpec file missing. Run `do-create-techspec` first." — do NOT ask permission or wait for user response.
-6. Read `./pbis/pbi-[feature-slug]/tasks/tasks.md` to understand the full task list and verify dependencies. If `tasks.md` does not exist, **HALT IMMEDIATELY** with a clear error: "Tasks file missing. Run `do-create-tasks` first." — do NOT ask permission or wait for user response.
+3. Read the task definition file at `./prds/prd-[feature-slug]/tasks/[num]_task.md`.
+4. Read the PRD at `./prds/prd-[feature-slug]/prd.md` for context. If the PRD file does not exist, **HALT IMMEDIATELY** with a clear error: "PRD file missing. Run `do-create-prd` first." — do NOT ask permission or wait for user response.
+5. Read the Tech Spec at `./prds/prd-[feature-slug]/techspec.md` for technical requirements. If the TechSpec file does not exist, **HALT IMMEDIATELY** with a clear error: "TechSpec file missing. Run `do-create-techspec` first." — do NOT ask permission or wait for user response.
+6. Read `./prds/prd-[feature-slug]/tasks/tasks.md` to understand the full task list and verify dependencies. If `tasks.md` does not exist, **HALT IMMEDIATELY** with a clear error: "Tasks file missing. Run `do-create-tasks` first." — do NOT ask permission or wait for user response.
 7. Identify dependencies from previous tasks and verify they are complete.
 8. If the task file contains a `<skills>` section listing relevant skills, read those skill files from the skills directory resolved in Step 0 and incorporate their guidance during implementation.
 
@@ -154,8 +154,8 @@ The ONLY permitted modification to `tasks.md` is changing `[ ]` to `[x]` for the
    - **APROVADO**: Sem problemas críticos/maiores.
    - **APROVADO COM OBSERVAÇÕES**: Sem críticos, problemas menores ou poucos maiores não bloqueantes.
    - **MUDANÇAS SOLICITADAS**: Problemas críticos ou múltiplos problemas maiores.
-3. **CREATE THE FILE**: Use the `Write` tool to create `[num]_task_review.md` in `./pbis/pbi-[feature-slug]/`. This is the MOST IMPORTANT action in this step.
-4. **VERIFY THE FILE EXISTS**: Immediately after the Write tool call, call `read_file` on `./pbis/pbi-[feature-slug]/tasks/[num]_task_review.md`. You MUST see the file content returned. If the read fails or returns empty → **the Write FAILED. Redo it NOW.**
+3. **CREATE THE FILE**: Use the `Write` tool to create `[num]_task_review.md` in `./prds/prd-[feature-slug]/`. This is the MOST IMPORTANT action in this step.
+4. **VERIFY THE FILE EXISTS**: Immediately after the Write tool call, call `read_file` on `./prds/prd-[feature-slug]/tasks/[num]_task_review.md`. You MUST see the file content returned. If the read fails or returns empty → **the Write FAILED. Redo it NOW.**
 5. If the `read_file` succeeds, the file is confirmed created. Proceed to Step 8.
 
 **FAILURE RECOVERY**: If the Write tool call is denied by the user or fails for any reason:
@@ -173,13 +173,13 @@ Perform ALL checks below. If ANY fails, fix it first.
 
 1. **CHECK 1 — All tests pass**: Confirm that the last test run had ALL tests passing (zero failures). If tests were not run or any test failed → **STOP. Go back to Step 4B. You CANNOT mark the task as complete with failing tests.**
 
-2. **CHECK 2 — Review file exists**: Call `read_file` on `./pbis/pbi-[feature-slug]/tasks/[num]_task_review.md`. You MUST see actual file content returned by the tool. If the tool returns an error or the file does not exist → **STOP. Go back to Step 7 and create it NOW using the Write tool. Then call `read_file` again to confirm it exists. Do NOT proceed until this check passes.**
+2. **CHECK 2 — Review file exists**: Call `read_file` on `./prds/prd-[feature-slug]/tasks/[num]_task_review.md`. You MUST see actual file content returned by the tool. If the tool returns an error or the file does not exist → **STOP. Go back to Step 7 and create it NOW using the Write tool. Then call `read_file` again to confirm it exists. Do NOT proceed until this check passes.**
 
-3. **CHECK 3 — tasks.md is updated AND intact**: Call `read_file` on `./pbis/pbi-[feature-slug]/tasks/tasks.md`. Verify TWO things:
+3. **CHECK 3 — tasks.md is updated AND intact**: Call `read_file` on `./prds/prd-[feature-slug]/tasks/tasks.md`. Verify TWO things:
    - (a) The current task is marked as `[x]`. If not → **STOP. Edit it NOW.**
    - (b) **ALL other tasks that were previously in the file are STILL PRESENT.** No lines were deleted, no entries were removed. If any previously existing task entry is missing → **STOP. This is a critical error — you destroyed data. Restore the missing entries using git or by re-adding them manually, then re-read to confirm.**
 
-4. **CHECK 4 — Subtasks are marked**: Call `read_file` on `./pbis/pbi-[feature-slug]/tasks/[num]_task.md`. Scan ALL subtask checkboxes (X.1, X.2, etc.). Every single one MUST show `[x]`. If any shows `[ ]` → **STOP. Edit the file NOW. Then call `read_file` again to confirm.**
+4. **CHECK 4 — Subtasks are marked**: Call `read_file` on `./prds/prd-[feature-slug]/tasks/[num]_task.md`. Scan ALL subtask checkboxes (X.1, X.2, etc.). Every single one MUST show `[x]`. If any shows `[ ]` → **STOP. Edit the file NOW. Then call `read_file` again to confirm.**
 
 5. **CHECK 5 — Requirements cross-check**: List all requirements from the task file and confirm each is implemented and tested.
 
@@ -201,7 +201,7 @@ Perform ALL checks below. If ANY fails, fix it first.
 
 ## Error Handling
 - If the task file does not exist, halt and report to the user.
-- If the PBI file does not exist, halt and direct the user to run `do-create-pbi`.
+- If the PRD file does not exist, halt and direct the user to run `do-create-prd`.
 - If the TechSpec file does not exist, halt and direct the user to run `do-create-techspec`.
 - If `tasks.md` does not exist, halt and direct the user to run `do-create-tasks`.
 - If dependencies are not complete, warn the user in a status message and proceed anyway — do NOT wait for confirmation.
@@ -217,10 +217,10 @@ Perform ALL checks below. If ANY fails, fix it first.
 Todos os artefatos gerados (incluindo o arquivo de review) devem ser escritos em Português do Brasil (PT-BR). Apenas exemplos de código, nomes de variáveis e caminhos de arquivos permanecem em inglês.
 
 ## References
-- Task: `./pbis/pbi-[feature-slug]/tasks/[num]_task.md`
-- PBI: `./pbis/pbi-[feature-slug]/pbi.md`
-- TechSpec: `./pbis/pbi-[feature-slug]/techspec.md`
-- Tasks: `./pbis/pbi-[feature-slug]/tasks/tasks.md`
+- Task: `./prds/prd-[feature-slug]/tasks/[num]_task.md`
+- PRD: `./prds/prd-[feature-slug]/prd.md`
+- TechSpec: `./prds/prd-[feature-slug]/techspec.md`
+- Tasks: `./prds/prd-[feature-slug]/tasks/tasks.md`
 - Review template: resolved in Step 0 (e.g., `.claude/skills/do-execute-task/assets/review-artifact-template.md` for Claude Code, `.cursor/rules/do-execute-task/assets/review-artifact-template.md` for Cursor AI)
 - Code standards: resolved in Step 0 (e.g., `.claude/skills/do-execute-task/references/code-standards.md` for Claude Code, `.cursor/rules/do-execute-task/references/code-standards.md` for Cursor AI)
 - MCP Discovery: resolved in Step 0 (e.g., `.claude/skills/do-shared/do-mcp-discovery-instructions.md` for Claude Code, `.cursor/rules/do-shared/do-mcp-discovery-instructions.md` for Cursor AI)
