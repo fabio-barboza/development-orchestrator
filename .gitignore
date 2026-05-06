@@ -1,3 +1,5 @@
 .agents/
 .claude/
+.cursor/
+.github/
 skills-lock.json
