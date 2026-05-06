@@ -4,6 +4,8 @@
 
 O SDD garante que cada feature seja especificada antes de implementada — PRD → TechSpec → Tasks — criando uma cadeia de artefatos rastreáveis que eliminam ambiguidade e orientam a execução com contexto completo.
 
+> **Novo por aqui?** Veja o [Manual de Uso](MANUAL.md) para um guia passo a passo simplificado.
+
 ## Para Que Serve
 
 O DO Framework elimina trabalho manual e garante qualidade consistente ao automatizar:
