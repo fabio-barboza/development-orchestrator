@@ -44,7 +44,7 @@ Store the resolved config file path, the detected AI tool name, and the skills d
 The initialization strategy depends on the detected AI tool:
 
 - **Claude Code**: Execute the `/init` skill/command to generate the initial `CLAUDE.md`. Wait for it to complete before proceeding.
-- **Opencode**: Execute the `/init` command to generate the initial `AGENTS.md` at the project root. Wait for it to complete before proceeding.
+- **Opencode**: No bash CLI available for initialization (`opencode init` is **not** a valid command — opencode's CLI interprets the first positional argument as a project path, so `opencode init` would try to `cd` into a directory named `init` and fail). Create `AGENTS.md` at the project root directly using the `Write` tool if it doesn't exist. Do **not** invoke `opencode init` via Bash under any circumstances.
 - **GitHub Copilot**: No built-in init command. Create `.github/copilot-instructions.md` if it doesn't exist.
 - **Cursor AI**: No built-in init command. Create the config file as determined in Step 0:
   - If using `.cursor/rules/project.mdc`: create the `.cursor/rules/` directory if needed, then create the file with the following frontmatter header:
