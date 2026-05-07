@@ -5,7 +5,7 @@ description: Itera sequencialmente sobre tasks de um PRD executando do-execute-t
 
 # /do-execute-all-tasks
 
-Delegue **integralmente** a execução ao subagente `Do Execute All Tasks` (definido em `.github/agents/do-execute-all-tasks.agent.md`).
+Delegue **integralmente** a execução ao subagente `Agent Execute All Tasks` (definido em `.github/agents/agent-execute-all-tasks.agent.md`).
 
 ## Entrada do usuário
 
@@ -22,7 +22,7 @@ Se o caminho não for fornecido, **pergunte uma única vez** antes de prosseguir
 ## Procedimento
 
 1. Faça o parse da entrada extraindo `<caminho>` e `<filtro>` (default `all` se ausente).
-2. Invoque o subagente `Do Execute All Tasks` passando:
+2. Invoque o subagente `Agent Execute All Tasks` passando:
    - Caminho exato do `tasks.md`
    - Filtro de tasks
    - Reforço de que deve seguir o procedimento do agente na íntegra (descoberta → loop → limpeza de contexto entre tasks → encerramento)

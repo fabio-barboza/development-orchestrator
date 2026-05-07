@@ -38,6 +38,8 @@ Este comando irá:
 2. Configurar no seu ambiente de agente
 3. Fazer disponível para uso imediato nos seus projetos
 
+> ⚠️ **Reinicie a ferramenta após o `npx skills add`.** A maioria das ferramentas de IA (Claude Code, Cursor, GitHub Copilot, opencode) **não recarrega automaticamente** a lista de skills/comandos quando arquivos novos aparecem no disco. Se você abrir o autocomplete e os comandos `/do-*` não estiverem listados, **feche e reabra a ferramenta** (ou recarregue a janela do IDE / reinicie a sessão de chat). Isso vale tanto após o `npx skills add` quanto após o `do-setup` (que adiciona os slash commands em `.claude/commands/`, `.cursor/commands/`, `.github/prompts/` ou `.opencode/commands/`).
+
 
 ## Fluxo do Framework — Pipeline Completa
 
@@ -168,6 +170,12 @@ PLANEJAMENTO       EXECUÇÃO           REVIEW GERAL      VALIDAÇÃO
 **Output:** Arquivo de configuração do projeto (`CLAUDE.md`, `.github/copilot-instructions.md`, `.cursor/rules/project.mdc`, ou `.cursorrules`) atualizado com contexto do projeto
 
 **Argumento opcional:** `/do-setup agents` — pula a análise do projeto e instala apenas os agents/commands (útil quando o setup já foi feito anteriormente)
+
+> **Opencode (apenas na 1ª execução):** ao contrário das outras ferramentas (Claude Code, Cursor, GitHub Copilot), o opencode **não reconhece skills via `/<skill>`**. Por isso, a *primeira* invocação do `do-setup` precisa ser feita em linguagem natural:
+> ```
+> Execute do-setup
+> ```
+> O `do-setup` então copia **todos os slash commands `/do-*`** do framework (`/do-setup`, `/do-create-prd`, `/do-create-techspec`, `/do-create-tasks`, `/do-execute-task`, `/do-execute-all-tasks`, etc.) para `.opencode/commands/`. **A partir daí, todos os comandos passam a funcionar normalmente com a sintaxe `/` no opencode** — inclusive `/do-setup` em re-execuções e `/do-setup agents`.
 
 ---
 
@@ -347,7 +355,9 @@ Além das skills (invocadas explicitamente), o DO Framework inclui **agents** �
 
 ### `do-execute-all-tasks` — Executar Tasks em Sequência
 
-Orquestra a execução sequencial de todas (ou um subconjunto de) tasks de um PRD, delegando cada uma à skill `do-execute-task` e garantindo isolamento de contexto entre execuções.
+Orquestra a execução sequencial de todas (ou um subconjunto de) tasks de um PRD. O slash command `/do-execute-all-tasks` aciona o agente `agent-execute-all-tasks`, que delega cada task a um **subagente isolado** (`agent-execute-task`) via Task tool — um subagente novo por task — para garantir contexto totalmente distinto entre execuções e evitar estouro da janela de contexto em filas longas.
+
+> Convenção de nomes: skills e commands usam o prefixo `do-`; agents usam o prefixo `agent-` para não colidir com a skill `do-execute-task` que é executada dentro do worker.
 
 **Quando usar:** Ao invés de rodar `/do-execute-task` manualmente task por task, use este agent para executar um lote de forma autônoma.
 
@@ -355,16 +365,16 @@ Orquestra a execução sequencial de todas (ou um subconjunto de) tasks de um PR
 - Uma task por vez — nunca executa em paralelo
 - Ordem numérica estrita
 - Para imediatamente em caso de falha e reporta o problema
-- Limpeza de contexto obrigatória entre tasks
+- **Isolamento real de contexto via subagente** (Task tool / `#runSubagent`) — não é apenas instrução textual ao modelo
 
 **Disponível nas ferramentas:**
 
 | Ferramenta | Artefato | Invocação |
 |---|---|---|
-| **Claude Code** | Agent (`.claude/agents/`) + Command (`.claude/commands/`) | `/do-execute-all-tasks <tasks.md> [filtro]` |
-| **Cursor AI** | Agent (`.cursor/agents/`) + Command (`.cursor/commands/`) | `/do-execute-all-tasks <tasks.md> [filtro]` |
-| **GitHub Copilot** | Agent (`.github/agents/`) + Prompt (`.github/prompts/`) | `/do-execute-all-tasks <tasks.md> [filtro]` |
-| **Opencode** | Agent (`.opencode/agents/`) + Command (`.opencode/commands/`) | `/do-execute-all-tasks <tasks.md> [filtro]` |
+| **Claude Code** | Agents (`.claude/agents/agent-execute-all-tasks.md` + `.claude/agents/agent-execute-task.md`) + Command (`.claude/commands/do-execute-all-tasks.md`) | `/do-execute-all-tasks <tasks.md> [filtro]` |
+| **Cursor AI** | Agents (`.cursor/agents/agent-execute-all-tasks.md` + `.cursor/agents/agent-execute-task.md`) + Command (`.cursor/commands/do-execute-all-tasks.md`) | `/do-execute-all-tasks <tasks.md> [filtro]` |
+| **GitHub Copilot** | Agents (`.github/agents/agent-execute-all-tasks.agent.md` + `.github/agents/agent-execute-task.agent.md`) + Prompt (`.github/prompts/do-execute-all-tasks.prompt.md`) | `/do-execute-all-tasks <tasks.md> [filtro]` |
+| **Opencode** | Agents (`.opencode/agents/agent-execute-all-tasks.md` + `.opencode/agents/agent-execute-task.md`) + Command (`.opencode/commands/do-execute-all-tasks.md`) | `/do-execute-all-tasks <tasks.md> [filtro]` |
 
 **Filtros suportados:**
 

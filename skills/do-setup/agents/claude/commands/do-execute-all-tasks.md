@@ -6,7 +6,7 @@ allowed-tools: Task, Read, Write, Edit, Glob, Grep, Bash, SlashCommand
 
 # /do-execute-all-tasks
 
-Delegue **integralmente** a execução para o subagente `do-execute-all-tasks` (definido em `.claude/agents/do-execute-all-tasks.md`) usando a tool **Task**.
+Delegue **integralmente** a execução para o subagente `agent-execute-all-tasks` (definido em `.claude/agents/agent-execute-all-tasks.md`) usando a tool **Task**.
 
 ## Argumentos recebidos
 
@@ -25,7 +25,7 @@ Se o usuário não tiver passado um caminho válido em `$ARGUMENTS`, **pergunte 
 
 1. Faça o parse de `$ARGUMENTS` extraindo `<caminho>` e `<filtro>` (default `all` se ausente).
 2. Invoque a tool **Task** com:
-   - `subagent_type`: `do-execute-all-tasks`
+   - `subagent_type`: `agent-execute-all-tasks`
    - `description`: `Executar tasks do PRD`
    - `prompt`: instrução clara contendo:
      - Caminho exato do `tasks.md`
@@ -44,7 +44,7 @@ Usuário digita:
 Você invoca:
 ```
 Task(
-  subagent_type="do-execute-all-tasks",
+  subagent_type="agent-execute-all-tasks",
   description="Executar tasks do PRD",
   prompt="Execute as tasks de prds/<nome-do-prd>/tasks/tasks.md no range 1.0-4.0, seguindo integralmente o procedimento do agente: descoberta inicial, loop por task com do-execute-task, verificação de conclusão, limpeza de contexto entre tasks e resumo final."
 )

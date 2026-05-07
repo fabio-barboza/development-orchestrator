@@ -27,6 +27,8 @@ npx skills add fabio-barboza/development-orchestrator
 
 Isso instala todas as skills do framework (`do-setup`, `do-create-prd`, `do-create-techspec`, etc.) no seu ambiente de IA.
 
+> ⚠️ **Reinicie a ferramenta após o `npx skills add`.** A maioria das ferramentas de IA (Claude Code, Cursor, GitHub Copilot, opencode) **não recarrega automaticamente** a lista de skills/comandos quando arquivos novos aparecem no disco. Se você abrir o autocomplete e os comandos `/do-*` não estiverem listados, **feche e reabra a ferramenta** (ou recarregue a janela do IDE / reinicie a sessão de chat). Isso vale tanto após o `npx skills add` quanto após o `do-setup` (que adiciona os slash commands em `.claude/commands/`, `.cursor/commands/`, `.github/prompts/` ou `.opencode/commands/`).
+
 ### Adicionar skills de tecnologia (opcional, mas recomendado)
 
 Além das skills do DO Framework, você pode instalar skills específicas para a stack do seu projeto. Elas enriquecem o contexto técnico durante a criação de TechSpec e execução de tasks.
@@ -89,6 +91,12 @@ Rode **uma única vez** por projeto:
 ```
 
 Isso analisa o codebase, gera o arquivo de configuração do projeto (`CLAUDE.md`, `.cursorrules`, etc.) com contexto e convenções, e **instala os agents de orquestração** nos diretórios corretos da sua ferramenta de IA.
+
+> **Opencode (apenas na 1ª execução):** o opencode **não reconhece skills via `/<skill>`** — então a *primeira* invocação do `do-setup` precisa ser em linguagem natural:
+> ```
+> Execute do-setup
+> ```
+> O `do-setup` então copia **todos os slash commands `/do-*`** (`/do-setup`, `/do-create-prd`, `/do-create-techspec`, `/do-create-tasks`, `/do-execute-task`, `/do-execute-all-tasks`, etc.) para `.opencode/commands/`. **A partir daí, todos os comandos do framework funcionam com a sintaxe `/` normalmente no opencode** — inclusive `/do-setup` em re-execuções.
 
 > Se você já fez o setup anteriormente e quer apenas reinstalar os agents (ex: após atualizar as skills), use:
 > ```
@@ -165,7 +173,7 @@ Execute cada task em ordem:
 
 ### Opção B — Em lote (agent autônomo)
 
-Use o agent `do-execute-all-tasks` para executar um conjunto de tasks sequencialmente sem intervenção:
+Use o slash command `/do-execute-all-tasks` (que aciona o agent `agent-execute-all-tasks`) para executar um conjunto de tasks sequencialmente sem intervenção:
 
 ```
 /do-execute-all-tasks prds/prd-login-google/tasks/tasks.md all
@@ -178,7 +186,7 @@ Você também pode executar um range ou uma lista específica:
 /do-execute-all-tasks prds/prd-login-google/tasks/tasks.md 1.0,3.0,5.0
 ```
 
-> O agent executa uma task por vez, garante limpeza de contexto entre elas e para automaticamente em caso de falha. Disponível no Claude Code, Cursor e GitHub Copilot após o `do-setup`.
+> O agent executa uma task por vez, delegando cada execução a um subagente isolado (`agent-execute-task`) via Task tool — isso evita estouro da janela de contexto em filas longas. Para automaticamente em caso de falha. Disponível no Claude Code, Cursor, GitHub Copilot e Opencode após o `do-setup`.
 
 A skill (e o agent) implementam o código, rodam os testes e geram um review file por task. Para acompanhar o progresso a qualquer momento:
 

@@ -1,6 +1,6 @@
 ---
-description: Itera sequencialmente sobre tasks de um PRD executando do-execute-task em cada uma, com limpeza de contexto entre elas.
-agent: do-execute-all-tasks
+description: Itera sequencialmente sobre tasks de um PRD executando agent-execute-task em cada uma, em subagentes isolados (contexto distinto por task).
+agent: agent-execute-all-tasks
 subtask: true
 ---
 
@@ -19,4 +19,4 @@ Espera-se:
 
 Se o caminho não for fornecido nos argumentos, **pergunte uma única vez** antes de prosseguir.
 
-Siga o procedimento do agente na íntegra: descoberta inicial → montagem da fila → loop por task com `do-execute-task` → verificação de conclusão → limpeza de contexto entre tasks → resumo final.
+Siga o procedimento do agente na íntegra: descoberta inicial → montagem da fila → loop por task delegando ao subagente `agent-execute-task` (Task tool) → verificação de conclusão → resumo final.

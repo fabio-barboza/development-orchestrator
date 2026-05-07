@@ -16,7 +16,7 @@ Se faltar o caminho do `tasks.md`, **pergunte uma única vez** antes de prossegu
 
 ## Procedimento
 
-Use a **Task tool** para invocar o subagente `do-execute-all-tasks` (definido em `.cursor/agents/do-execute-all-tasks.md`) passando:
+Use a **Task tool** para invocar o subagente `agent-execute-all-tasks` (definido em `.cursor/agents/agent-execute-all-tasks.md`) passando:
 - O caminho exato do `tasks.md`
 - O filtro de tasks
 - Reforço de que deve seguir o procedimento do agente na íntegra (descoberta → loop → limpeza de contexto entre tasks → encerramento)
