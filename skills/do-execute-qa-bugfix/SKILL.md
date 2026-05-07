@@ -1,6 +1,6 @@
 ---
 name: do-execute-qa-bugfix
-description: "Recebe o caminho de um arquivo de bug em qa-bugs/ (ex: qa-bugs/bug-01-alta-formulario.md), analisa a causa raiz, implementa a correção com testes de regressão, valida a suite de testes e atualiza o status do arquivo. Use quando o usuário pedir para corrigir um bug específico encontrado no QA. Não use para correções em lote — invoque uma vez por bug. Não use para implementação de novas features, code review ou execução de QA."
+description: Fixes a single QA bug from a bug file in qa-bugs/ (e.g. qa-bugs/bug-01-alta-formulario.md). Reads the bug file, performs root-cause analysis, implements the fix with a dedicated regression test, validates via MCP when applicable, runs the full test suite, updates the bug file status and the consolidated bugfix-report.md. Use when the user asks to fix a specific QA bug. Invoke once per bug — do not use for batch fixes. Do not use for implementing new features, code review, or running QA.
 ---
 
 # Bug Fix Execution
@@ -28,8 +28,9 @@ Before anything else, determine the execution environment:
 1. Check for `.claude/` directory in the project root → **Claude Code** → skills dir: `.claude/skills/`
 2. Check for `.github/copilot-instructions.md` or `.github/` directory → **GitHub Copilot** → skills dir: not applicable
 3. Check for `.cursor/rules/` or `.cursor/mcp.json` → **Cursor AI** → skills dir: `.cursor/rules/`
-4. Resolve available tools based on environment:
-   - **TaskUpdate**: available in Claude Code; in Copilot and Cursor, skip gracefully
+4. Check for `opencode.json` in the project root → **Opencode** → skills dir: `.opencode/skills/`
+5. Resolve available tools based on environment:
+   - **TaskUpdate**: available in Claude Code; in Copilot, Cursor, and Opencode, skip gracefully
    - **Context7 MCP**: available if configured; fallback to Web Search otherwise
 
 Store resolved environment and skills directory internally and use throughout all remaining steps.
@@ -40,7 +41,7 @@ Store resolved environment and skills directory internally and use throughout al
 3. Extract: ID, severidade, descrição, passos para reproduzir, resultado esperado/atual, componente afetado.
 4. Read the PRD at `./prds/prd-[feature-slug]/prd.md` to understand affected requirements.
 5. Read the Tech Spec at `./prds/prd-[feature-slug]/techspec.md` for technical context.
-6. Read the project configuration file (CLAUDE.md, .github/copilot-instructions.md, or .cursor/rules/project.mdc) for project conventions.
+6. Read the project configuration file (CLAUDE.md, .github/copilot-instructions.md, .cursor/rules/project.mdc, or opencode.json) for project conventions.
 
 **Step 2: Plan Fix (INTERNAL — do NOT output as standalone message)**
 1. Identify affected files and determine root cause from the bug description.
@@ -65,7 +66,7 @@ Store resolved environment and skills directory internally and use throughout al
 3. Choose test type based on bug nature (unit / integration / E2E) as described in the reference.
 
 **Step 5: MCP Validation (Mandatory when applicable)**
-1. Execute the MCP discovery procedure from the shared skills directory resolved in Step 0 (e.g., `.claude/skills/do-shared/do-mcp-discovery-instructions.md` for Claude Code, `.cursor/rules/do-shared/do-mcp-discovery-instructions.md` for Cursor AI).
+1. Execute the MCP discovery procedure from the shared skills directory resolved in Step 0 (e.g., `.claude/skills/do-shared/do-mcp-discovery-instructions.md` for Claude Code, `.cursor/rules/do-shared/do-mcp-discovery-instructions.md` for Cursor AI, `.opencode/skills/do-shared/do-mcp-discovery-instructions.md` for Opencode).
 2. For bugs affecting the **UI** (and `browser-testing` MCP available): run `mkdir -p ./prds/prd-[feature-slug]/qa-screenshots` via Bash, then navigate, reproduce the fix flow, and capture screenshot evidence using `filename: prds/prd-[feature-slug]/qa-screenshots/fix-[BUG-XX]-[slug].png`.
 3. For bugs affecting **backend** (and backend-capable MCP available): validate end-to-end via MCP tools.
 4. If no relevant MCP available: document the validation gap in the fix report, rely on unit/integration tests only.
@@ -82,14 +83,26 @@ Store resolved environment and skills directory internally and use throughout al
 2. Append a `## Resolução` section (if fixed) with: correção aplicada and testes de regressão criados.
 3. Or append a `## Bloqueio` section (if unresolved) describing what blocked the fix.
 
-**Step 8: Report Results (Mandatory)**
+**Step 8: Update Consolidated Bugfix Report (Mandatory)**
+1. List all files in `./prds/prd-[feature-slug]/qa-bugs/` matching `bug-*.md`.
+2. For each file, read its frontmatter (`id`, `severidade`, `status`) and extract the short description from the heading and the `## Resolução` / `## Bloqueio` section if present.
+3. Read the report template from the skills directory resolved in Step 0 (e.g., `.claude/skills/do-execute-qa-bugfix/assets/bugfix-report-template.md` for Claude Code, `.cursor/rules/do-execute-qa-bugfix/assets/bugfix-report-template.md` for Cursor AI, `.opencode/skills/do-execute-qa-bugfix/assets/bugfix-report-template.md` for Opencode).
+4. Generate (or overwrite) `./prds/prd-[feature-slug]/bugfix-report.md` filling the template with:
+   - Resumo: total bugs (sum), bugs corrigidos, número de testes de regressão criados.
+   - Tabela "Detalhes por Bug": one row per file (ID, severidade, status, correção, testes criados).
+   - Testes: status of last full test run (unitários, integração, E2E, tipagem).
+5. **POST-SAVE VERIFICATION**: Call `read_file` on `./prds/prd-[feature-slug]/bugfix-report.md` to confirm it was written.
+
+**Step 9: Report Results (Mandatory)**
 1. If `TaskUpdate` is available, mark internal tasks as `completed`.
-2. **Compliance check**: call `read_file` on the bug file to confirm `status` was updated.
+2. **Compliance check** — verify with actual tool calls:
+   - Call `read_file` on the bug file to confirm `status` was updated.
+   - Call `read_file` on `bugfix-report.md` to confirm the consolidated report was written/updated.
 3. Inform the user: bug fixed (or blocked), tests passing, and which regression test was created.
 4. If other `aberto` bugs remain in `qa-bugs/`, list them so the user can invoke the skill again for the next one.
 
 ## Output Language
-Todos os artefatos gerados (atualizações no arquivo de bug, seções de resolução/bloqueio) devem ser escritos em Português do Brasil (PT-BR). Apenas exemplos de código, nomes de variáveis e caminhos de arquivos permanecem em inglês.
+Todos os artefatos gerados (atualizações no arquivo de bug, seções de resolução/bloqueio, bugfix-report.md consolidado) devem ser escritos em Português do Brasil (PT-BR). Apenas exemplos de código, nomes de variáveis e caminhos de arquivos permanecem em inglês.
 
 ## Error Handling
 - If no file path is provided, list all `aberto` bug files in `qa-bugs/` and ask the user which one to fix.
@@ -102,9 +115,11 @@ Todos os artefatos gerados (atualizações no arquivo de bug, seções de resolu
 
 ## References
 - Bug file (input): `./prds/prd-[feature-slug]/qa-bugs/bug-[XX]-[severidade-completa]-[slug].md`
-- Regression test patterns: resolved in Step 0 (e.g., `.claude/skills/do-execute-qa-bugfix/references/regression-test-patterns.md` for Claude Code, `.cursor/rules/do-execute-qa-bugfix/references/regression-test-patterns.md` for Cursor AI)
-- MCP Discovery: resolved in Step 0 (e.g., `.claude/skills/do-shared/do-mcp-discovery-instructions.md` for Claude Code, `.cursor/rules/do-shared/do-mcp-discovery-instructions.md` for Cursor AI)
-- MCP Registry: resolved in Step 0 (e.g., `.claude/skills/do-shared/do-mcp-capabilities.md` for Claude Code, `.cursor/rules/do-shared/do-mcp-capabilities.md` for Cursor AI)
+- Consolidated Bugfix Report template: resolved in Step 0 (e.g., `.claude/skills/do-execute-qa-bugfix/assets/bugfix-report-template.md` for Claude Code, `.cursor/rules/do-execute-qa-bugfix/assets/bugfix-report-template.md` for Cursor AI, `.opencode/skills/do-execute-qa-bugfix/assets/bugfix-report-template.md` for Opencode)
+- Consolidated Bugfix Report output: `./prds/prd-[feature-slug]/bugfix-report.md`
+- Regression test patterns: resolved in Step 0 (e.g., `.claude/skills/do-execute-qa-bugfix/references/regression-test-patterns.md` for Claude Code, `.cursor/rules/do-execute-qa-bugfix/references/regression-test-patterns.md` for Cursor AI, `.opencode/skills/do-execute-qa-bugfix/references/regression-test-patterns.md` for Opencode)
+- MCP Discovery: resolved in Step 0 (e.g., `.claude/skills/do-shared/do-mcp-discovery-instructions.md` for Claude Code, `.cursor/rules/do-shared/do-mcp-discovery-instructions.md` for Cursor AI, `.opencode/skills/do-shared/do-mcp-discovery-instructions.md` for Opencode)
+- MCP Registry: resolved in Step 0 (e.g., `.claude/skills/do-shared/do-mcp-capabilities.md` for Claude Code, `.cursor/rules/do-shared/do-mcp-capabilities.md` for Cursor AI, `.opencode/skills/do-shared/do-mcp-capabilities.md` for Opencode)
 - PRD: `./prds/prd-[feature-slug]/prd.md`
 - TechSpec: `./prds/prd-[feature-slug]/techspec.md`
 - Screenshots: `./prds/prd-[feature-slug]/qa-screenshots/`

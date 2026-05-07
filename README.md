@@ -85,26 +85,28 @@ tasks.md            │   - Implementação + tests                   │
 │   │  - Padrões de código │              │                                   │
 │   └──────────┬───────────┘              │                                   │
 │              │                          │                                   │
-│  (NEEDS_REVISION / REJECTED)            │ (APPROVED)                        │
+│  (REPROVADO / APROVADO C/ RESSALVAS)    │ (APROVADO)                        │
 │              ▼                          │                                   │
 │   ┌──────────────────────┐              │                                   │
 │   │ do-execute-review-fix│              │                                   │
-│   │                      │              │                                   │
-│   │  - Corrige CRITICAL  │              │                                   │
-│   │    e MAJOR findings  │              │                                   │
+│   │  (1 fix por vez)     │              │                                   │
+│   │  - Corrige finding   │              │                                   │
+│   │    do review-fixes/  │              │                                   │
 │   │  - Roda testes       │              │                                   │
-│   │  - Atualiza report   │              │                                   │
+│   │  - Atualiza fix file │              │                                   │
+│   │    + review-report   │              │                                   │
+│   │    + fix-report.md   │              │                                   │
 │   └──────────┬───────────┘              │                                   │
 │              │                          │                                   │
 │              └──▶ (repetir review) ◀────┘                                   │
-│                   até APPROVED                                              │
+│                   até APROVADO                                              │
 └─────────────────────────────────────────────────────────────────────────────┘
                                     │
                           (review aprovado)
                                     ▼
 ```
 
-### FASE 4: VALIDAÇÃO E2E + BUGFIX (Loop até Zero Bugs HIGH)
+### FASE 4: VALIDAÇÃO E2E + BUGFIX (Loop até Zero Bugs Alta)
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
@@ -118,23 +120,23 @@ tasks.md            │   - Implementação + tests                   │
 │   │  - Checklist PRD     │                                                  │
 │   │  - Accessibility     │────────────┐                                     │
 │   │  - Visual verification│           │                                     │
-│   │  - Gera bugs.md      │            │                                     │
+│   │  - Gera qa-bugs/*.md │            │                                     │
 │   └──────────┬───────────┘            │                                     │
 │              │                        │                                     │
-│              │ (se houver bugs)       │ (zero bugs HIGH)                    │
+│              │ (se houver bugs)       │ (zero bugs Alta)                    │
 │              ▼                        │                                     │
 │   ┌──────────────────────┐            │                                     │
 │   │  do-execute-qa-bugfix│◀───────────┘                                     │
-│   │                      │                                                  │
-│   │  - Corrige por       │                                                  │
-│   │    severidade        │                                                  │
-│   │  - Tests de regressão│                                                  │
+│   │  (1 bug por vez)     │                                                  │
+│   │  - Corrige causa raiz│                                                  │
+│   │  - Test de regressão │                                                  │
 │   │  - E2E via MCP       │                                                  │
-│   │  - Atualiza bugs.md  │                                                  │
+│   │  - Atualiza bug file │                                                  │
+│   │    + bugfix-report   │                                                  │
 │   └──────────┬───────────┘                                                  │
 │              │                                                              │
 │              └─────────────▶ (repetir do-execute-qa) ◀──────────────────────┘
-│                              até zero bugs HIGH
+│                              até zero bugs Alta
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -147,7 +149,7 @@ PLANEJAMENTO       EXECUÇÃO           REVIEW GERAL      VALIDAÇÃO
 ┌───────┐          ┌───────────┐       ┌─────────────┐     ┌──────────────┐
 │PRD +  │─────────▶│ Loop por  │──────▶│ Review      │────▶│ QA + Bugfix  │
 │Tasks  │          │ cada task │       │ (loop até   │     │ (loop até    │
-│       │          │           │       │ aprovado)   │     │ zero HIGH)   │
+│       │          │           │       │ aprovado)   │     │ zero Alta)   │
 └───────┘          └───────────┘       └─────────────┘     └──────────────┘
 ```
 
@@ -165,7 +167,7 @@ PLANEJAMENTO       EXECUÇÃO           REVIEW GERAL      VALIDAÇÃO
 5. Atualiza o arquivo de configuração do projeto com summary do projeto e convenções
 6. **Instala os agents e commands de orquestração** nos diretórios corretos da ferramenta detectada
 
-**Output:** Arquivo de configuração do projeto (`CLAUDE.md`, `.github/copilot-instructions.md`, `.cursor/rules/project.mdc`, ou `.cursorrules`) atualizado com contexto do projeto
+**Output:** Arquivo de configuração do projeto (`CLAUDE.md`, `.github/copilot-instructions.md`, `.cursor/rules/project.mdc`, `.cursorrules`, ou `opencode.json`) atualizado com contexto do projeto
 
 **Argumento opcional:** `/do-setup agents` — pula a análise do projeto e instala apenas os agents/commands (útil quando o setup já foi feito anteriormente)
 
@@ -258,30 +260,36 @@ PLANEJAMENTO       EXECUÇÃO           REVIEW GERAL      VALIDAÇÃO
 6. Gera review report com status final
 
 **Loop de Correção:**
-- Se status = **NEEDS_REVISION** ou **REJECTED**: rodar `do-execute-review-fix` → depois `do-execute-review` novamente
-- Se status = **APPROVED**: prossegue para FASE 4 (QA)
+- Se status = **APROVADO COM RESSALVAS** ou **REPROVADO**: rodar `do-execute-review-fix` (uma vez por arquivo de fix) → depois `do-execute-review` novamente
+- Se status = **APROVADO**: prossegue para FASE 4 (QA)
 
-**Output:** `./prds/prd-[slug]/review-report.md`
+**Output:**
+- `./prds/prd-[slug]/review-report.md`
+- `./prds/prd-[slug]/review-fixes/fix-[R-XX]-[severidade]-[slug].md` (um arquivo por finding, gerado quando há problemas)
 
-**Status:** ACCEPTED / NEEDS_REVISION / REJECTED
+**Status:** APROVADO / APROVADO COM RESSALVAS / REPROVADO
 
 ---
 
 ### `do-execute-review-fix` — Corrigir Findings do Code Review
 
-**Quando usar:** Após `do-execute-review` retornar NEEDS_REVISION ou REJECTED.
+**Quando usar:** Após `do-execute-review` retornar APROVADO COM RESSALVAS ou REPROVADO. Invocar uma vez por arquivo de fix em `review-fixes/`.
+
+**Invocação:** `do-execute-review-fix ./prds/prd-[slug]/review-fixes/fix-[R-XX]-[severidade]-[slug].md`
 
 **O que faz:**
-1. Lê `review-report.md` e extrai todos os findings por severidade
-2. Implementa correções em ordem: CRITICAL → MAJOR → MINOR (opcional)
-3. Roda suite completa de testes — task nunca completa com testes failing
-4. Atualiza `review-report.md` com status de cada finding (Fixed / Unresolved)
-5. Gera fix report com resumo das correções aplicadas
+1. Lê o arquivo de fix task informado em `review-fixes/`
+2. Lê `review-report.md`, PRD e TechSpec para contexto
+3. Implementa a correção raiz (sem workarounds superficiais)
+4. Roda a suite completa de testes — fix nunca completa com testes failing
+5. Atualiza o arquivo de fix com status `resolvido` ou `não-resolvido` e seção de Resolução/Bloqueio
+6. Atualiza a entrada correspondente em `review-report.md` com o status do finding
 
 **Output:**
 - Correções no codebase
-- `review-report.md` atualizado
-- `./prds/prd-[slug]/fix-report.md`
+- Arquivo `fix-[R-XX]-...md` com `status` atualizado e seção de Resolução/Bloqueio
+- `review-report.md` com a entrada do finding marcada
+- `./prds/prd-[slug]/fix-report.md` (relatório consolidado, atualizado a cada invocação com a tabela completa de findings)
 
 ---
 
@@ -299,9 +307,10 @@ PLANEJAMENTO       EXECUÇÃO           REVIEW GERAL      VALIDAÇÃO
 
 **Output:**
 - `./prds/prd-[slug]/qa-report.md`
-- `./prds/prd-[slug]/bugs.md` (se houver bugs)
+- `./prds/prd-[slug]/qa-bugs/bug-[XX]-[severidade]-[slug].md` (um arquivo por bug encontrado)
+- `./prds/prd-[slug]/qa-screenshots/*.png` (evidências visuais)
 
-**Status:** APPROVED apenas se TODOS requisitos verificados e funcionando
+**Status:** APROVADO apenas se TODOS requisitos verificados e funcionando
 
 ---
 
@@ -323,21 +332,25 @@ PLANEJAMENTO       EXECUÇÃO           REVIEW GERAL      VALIDAÇÃO
 
 ### `do-execute-qa-bugfix` — Correção de Bugs
 
-**Quando usar:** Bugs documentados em `bugs.md` precisam ser corrigidos.
+**Quando usar:** Bugs documentados em arquivos individuais em `qa-bugs/` precisam ser corrigidos. Invocar uma vez por arquivo de bug.
+
+**Invocação:** `do-execute-qa-bugfix ./prds/prd-[slug]/qa-bugs/bug-[XX]-[severidade]-[slug].md`
 
 **O que faz:**
-1. Le todos bugs de `bugs.md`
-2. Analisa causa raiz de cada um
-3. Implementa correções por severidade (HIGH → MEDIUM → LOW)
-4. Cria testes de regressão para cada bug
-5. **E2E via MCP**: Valida correção no fluxo completo
-6. Atualiza `bugs.md` com status "Fixed" e descrição do fix
-7. Gera report final
+1. Lê o arquivo de bug informado em `qa-bugs/`
+2. Lê PRD e TechSpec para contexto
+3. Analisa a causa raiz e implementa a correção (sem workarounds superficiais)
+4. Cria teste de regressão (que falha sem o fix e passa com o fix) em camada apropriada (unit/integration/E2E)
+5. **E2E via MCP**: Valida correção no fluxo completo quando aplicável (captura screenshot de evidência)
+6. Roda a suite completa de testes — fix nunca completa com testes failing
+7. Atualiza o arquivo de bug com status `corrigido` ou `não-resolvido` e seção de Resolução/Bloqueio
 
 **Output:**
 - Correções no codebase
-- `bugs.md` atualizado
-- `./prds/prd-[slug]/bugfix-report.md`
+- Arquivo `bug-[XX]-...md` com `status` atualizado e seção de Resolução/Bloqueio
+- Novo teste de regressão no codebase
+- Screenshot de evidência em `qa-screenshots/` (quando aplicável)
+- `./prds/prd-[slug]/bugfix-report.md` (relatório consolidado, atualizado a cada invocação com a tabela completa de bugs)
 
 ---
 
@@ -362,8 +375,9 @@ Orquestra a execução sequencial de todas (ou um subconjunto de) tasks de um PR
 | Ferramenta | Artefato | Invocação |
 |---|---|---|
 | **Claude Code** | Agent (`.claude/agents/`) + Command (`.claude/commands/`) | `/execute-all-tasks <tasks.md> [filtro]` |
-| **Cursor AI** | Rule (`.cursor/rules/`) + Command (`.cursor/commands/`) | `@execute-all-tasks` ou `/execute-all-tasks` |
-| **GitHub Copilot** | Chat Mode (`.github/chatmodes/`) + Prompt (`.github/prompts/`) | `/execute-all-tasks` no chat mode correspondente |
+| **Cursor AI** | Agent (`.cursor/agents/`) + Command (`.cursor/commands/`) | `/execute-all-tasks <tasks.md> [filtro]` |
+| **GitHub Copilot** | Agent (`.github/agents/`) + Prompt (`.github/prompts/`) | `/execute-all-tasks <tasks.md> [filtro]` |
+| **Opencode** | Agent (`.opencode/agents/`) + Command (`.opencode/commands/`) | `/execute-all-tasks <tasks.md> [filtro]` |
 
 **Filtros suportados:**
 
@@ -410,6 +424,7 @@ A localização e o formato do arquivo de configuração de MCPs **varia conform
 | **Claude Code** | `.mcp.json` (raiz do projeto) ou `~/.mcp.json` (global) | `mcpServers` |
 | **GitHub Copilot** | `.vscode/mcp.json` | `servers` |
 | **Cursor** | `.cursor/mcp.json` | `mcpServers` |
+| **Opencode** | `opencode.json` (raiz do projeto) | `mcpServers` |
 
 Os MCPs disponíveis para o DO Framework estão documentados em `skills/do-shared/do-mcp-capabilities.md`. Você pode adicioná-los no arquivo correspondente à sua ferramenta.
 
@@ -480,6 +495,39 @@ Obs: Você pode adicionar novos MCPs e configurá-los no `skills/do-shared/do-mc
 ```
 
 **Cursor — `.cursor/mcp.json`:**
+
+```json
+{
+  "mcpServers": {
+    "playwright": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["@playwright/mcp@latest"],
+      "env": {}
+    },
+    "context7": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp@latest"],
+      "env": {}
+    },
+    "rabbitmq": {
+      "type": "stdio",
+      "command": "uvx",
+      "args": [
+        "mcp-server-rabbitmq@latest",
+        "--rabbitmq-host", "localhost",
+        "--port", "5672",
+        "--username", "guest",
+        "--password", "guest",
+        "--api-port", "15672"
+      ]
+    }
+  }
+}
+```
+
+**Opencode — `opencode.json` (raiz do projeto):**
 
 ```json
 {
@@ -610,19 +658,30 @@ uvx --version
 ```
 ./prds/
 └── prd-[feature-slug]/
-    ├── prd.md                  # Product Requirements Document (do-create-prd)
-    ├── techspec.md             # Tech Spec (do-create-techspec)
-    ├── bugs.md                 # Bugs encontrados (do-execute-qa/bugfix)
-    ├── qa-report.md            # Relatório QA (do-execute-qa)
-    ├── review-report.md        # Relatório Review (do-execute-review)
-    ├── fix-report.md           # Relatório de correções do review (do-execute-review-fix)
-    ├── bugfix-report.md        # Relatório Bugfix (do-execute-qa-bugfix)
-    └── tasks/
-        ├── tasks.md            # Index de tasks (do-create-tasks)
-        ├── 1_task.md           # Task 1 detalhada
-        ├── 1_task_review.md    # Review artifact task 1
-        ├── 2_task.md
-        ├── 2_task_review.md
+    ├── prd.md                                      # Product Requirements Document (do-create-prd)
+    ├── techspec.md                                 # Tech Spec (do-create-techspec)
+    ├── review-report.md                            # Relatório Review (do-execute-review)
+    ├── fix-report.md                               # Relatório consolidado de correções do review (do-execute-review-fix)
+    ├── qa-report.md                                # Relatório QA (do-execute-qa)
+    ├── bugfix-report.md                            # Relatório consolidado de bugfix do QA (do-execute-qa-bugfix)
+    ├── tasks/
+    │   ├── tasks.md                                # Index de tasks (do-create-tasks)
+    │   ├── 1_task.md                               # Task 1 detalhada
+    │   ├── 1_task_review.md                        # Review artifact task 1 (do-execute-task)
+    │   ├── 2_task.md
+    │   ├── 2_task_review.md
+    │   └── ...
+    ├── review-fixes/                               # Findings do review (do-execute-review)
+    │   ├── fix-R-01-critico-[slug].md              # Atualizado por do-execute-review-fix
+    │   ├── fix-R-02-maior-[slug].md
+    │   └── ...
+    ├── qa-bugs/                                    # Bugs encontrados no QA (do-execute-qa)
+    │   ├── bug-01-alta-[slug].md                   # Atualizado por do-execute-qa-bugfix
+    │   ├── bug-02-media-[slug].md
+    │   └── ...
+    └── qa-screenshots/                             # Evidências visuais (do-execute-qa, do-execute-qa-bugfix)
+        ├── req-01-[slug].png
+        ├── bug-01-[slug].png
         └── ...
 ```
 
@@ -650,10 +709,10 @@ uvx --version
 | TechSpec pronta, criar tasks | `do-create-tasks` | Não |
 | Verificar progresso / retomar trabalho | `do-status` | Não |
 | Implementar task específica | `do-execute-task 1` | Sim (por cada task) |
-| **Review geral (OBRIGATÓRIO antes do QA)** | `do-execute-review` | **Sim (até APPROVED)** |
+| **Review geral (OBRIGATÓRIO antes do QA)** | `do-execute-review` | **Sim (até APROVADO)** |
 | Corrigir findings do review | `do-execute-review-fix` | **Sim (com do-execute-review)** |
 | QA E2E da feature completa | `do-execute-qa` | Sim (com bugfix) |
-| Corrigir bugs encontrados no QA | `do-execute-qa-bugfix` | **Sim (até zero HIGH)** |
+| Corrigir bugs encontrados no QA | `do-execute-qa-bugfix` | **Sim (até zero Alta)** |
 
 ## Fluxo Completo — Exemplo Prático
 
@@ -688,31 +747,33 @@ uvx --version
 /do-execute-task 3  # implementa + testa + review file
 ... (até todas tasks [x] em tasks.md)
 
-# FASE 3: CODE REVIEW GERAL (LOOP até APPROVED)
+# FASE 3: CODE REVIEW GERAL (LOOP até APROVADO)
 # ------------------------------------------------
 # 5. Review geral do PRD (OBRIGATÓRIO antes do QA)
 /do-execute-review projeto-exemplo
-> Status: NEEDS_REVISION / REJECTED? → /do-execute-review-fix projeto-exemplo → /do-execute-review projeto-exemplo
-> Status: APPROVED? → prossegue para QA
+> Status: REPROVADO / APROVADO COM RESSALVAS? → para cada arquivo em review-fixes/:
+>   /do-execute-review-fix prds/prd-projeto-exemplo/review-fixes/fix-R-01-critico-[slug].md
+> Depois: /do-execute-review projeto-exemplo (até APROVADO)
+> Status: APROVADO? → prossegue para QA
 
-# FASE 4: VALIDAÇÃO E2E + BUGFIX (LOOP até zero bugs HIGH)
+# FASE 4: VALIDAÇÃO E2E + BUGFIX (LOOP até zero bugs Alta)
 # ------------------------------------------------
 # 6. QA final com E2E completo
 /do-execute-qa projeto-exemplo
 > [roda E2E via Playwright MCP, accessibility, visual verification]
-> [gera qa-report.md + bugs.md se houver problemas]
+> [gera qa-report.md + um arquivo por bug em qa-bugs/]
 
-# 7. Se houver bugs HIGH/MEDIUM: loop de correção
-[se bugs.md tem entries] → /do-execute-qa-bugfix projeto-exemplo
-> [corrige por severidade + tests de regressão]
+# 7. Se houver bugs Alta/Média: loop de correção (um bug por vez)
+[para cada arquivo em qa-bugs/] → /do-execute-qa-bugfix prds/prd-projeto-exemplo/qa-bugs/bug-01-alta-[slug].md
+> [corrige causa raiz + cria teste de regressão]
 
 # 8. Revalida com QA novamente
 /do-execute-qa projeto-exemplo
 > [reteste apenas areas corrigidas ou E2E completo]
 
-# 9. Repetir steps 7-8 até zero bugs HIGH
-[se ainda tem bugs HIGH] → /do-execute-qa-bugfix projeto-exemplo → /do-execute-qa projeto-exemplo
-[zero bugs HIGH] → FEATURE READY! ✅
+# 9. Repetir steps 7-8 até zero bugs Alta
+[se ainda tem bugs Alta] → /do-execute-qa-bugfix prds/prd-projeto-exemplo/qa-bugs/<arquivo>.md → /do-execute-qa projeto-exemplo
+[zero bugs Alta] → FEATURE READY! ✅
 ```
 
 ## Referências
@@ -735,6 +796,7 @@ O DO Framework é agnóstico à ferramenta de IA. Os conceitos, o fluxo de traba
 | **Claude Code** | `.claude/skills/` | `CLAUDE.md` | `.mcp.json` |
 | **GitHub Copilot** | `.github/` (instructions) | `.github/copilot-instructions.md` | `.vscode/mcp.json` |
 | **Cursor** | `.cursor/rules/` (`.mdc` files) | `.cursor/rules/project.mdc` ou `.cursorrules` | `.cursor/mcp.json` |
+| **Opencode** | `.opencode/skills/` | `opencode.json` | `opencode.json` (chave `mcpServers`) |
 
 ---
 
@@ -744,7 +806,7 @@ O DO Framework é agnóstico à ferramenta de IA. Os conceitos, o fluxo de traba
 2. **MCPs são opcionais mas recomendados**: Sem MCP, perde-se E2E automatizado
 3. **Review files são obrigatórios**: Sem `[num]_task_review.md`, a task NÃO está completa
 4. **Testes failing bloqueiam progresso**: Não prossiga até todos passarem
-5. **Bugs HIGH devem ser corrigidos antes de considerar feature done**
+5. **Bugs de severidade Alta devem ser corrigidos antes de considerar feature done**
 6. **Use `do-status` para retomar trabalho**: Após qualquer interrupção, rode `do-status` para saber exatamente onde parou
 7. **Documente suposições na TechSpec**: Suposições não documentadas viram surpresas na task 7 de 12
 

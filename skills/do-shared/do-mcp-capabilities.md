@@ -74,6 +74,7 @@ Fonte de verdade sobre as capacidades de cada MCP server configurado no projeto.
    - **Claude Code:** `.mcp.json` na raiz do projeto (ou `~/.mcp.json` para configuração global)
    - **GitHub Copilot:** `.vscode/mcp.json`
    - **Cursor:** `.cursor/mcp.json`
+   - **Opencode:** `opencode.json` na raiz do projeto (chave `mcpServers`)
 2. Adicione uma entrada neste arquivo sob "Servidores Conhecidos" com:
    - Capacidades (usando as categorias da tabela acima)
    - Prefixo de tools

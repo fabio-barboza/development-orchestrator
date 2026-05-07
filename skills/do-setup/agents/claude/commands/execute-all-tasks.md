@@ -1,7 +1,7 @@
 ---
-description: Itera sequencialmente sobre tasks de um PBI executando do-execute-task em cada uma, com limpeza de contexto entre elas.
+description: Itera sequencialmente sobre tasks de um PRD executando do-execute-task em cada uma, com limpeza de contexto entre elas.
 argument-hint: <caminho/para/tasks.md> [all | <ID,ID,...> | <ID-inicio>-<ID-fim>]
-allowed-tools: Task, Read, Write, Edit, Glob, Grep, Bash, SlashCommand
+allowed-tools: Task
 ---
 
 # /execute-all-tasks
@@ -13,7 +13,7 @@ Delegue **integralmente** a execução para o subagente `execute-all-tasks` (def
 `$ARGUMENTS`
 
 Espera-se:
-1. **Caminho do `tasks.md`** (obrigatório). Ex.: `pbis/<nome-do-pbi>/tasks/tasks.md`.
+1. **Caminho do `tasks.md`** (obrigatório). Ex.: `prds/prd-<nome>/tasks/tasks.md`.
 2. **Filtro de tasks** (opcional, default `all`):
    - `all` / `todas` → todas as pendentes
    - Lista de IDs separados por vírgula (ex.: `1.0,2.0,5.0`)
@@ -26,7 +26,7 @@ Se o usuário não tiver passado um caminho válido em `$ARGUMENTS`, **pergunte 
 1. Faça o parse de `$ARGUMENTS` extraindo `<caminho>` e `<filtro>` (default `all` se ausente).
 2. Invoque a tool **Task** com:
    - `subagent_type`: `execute-all-tasks`
-   - `description`: `Executar tasks do PBI`
+   - `description`: `Executar tasks do PRD`
    - `prompt`: instrução clara contendo:
      - Caminho exato do `tasks.md`
      - Filtro de tasks
@@ -38,14 +38,14 @@ Se o usuário não tiver passado um caminho válido em `$ARGUMENTS`, **pergunte 
 
 Usuário digita:
 ```
-/execute-all-tasks pbis/<nome-do-pbi>/tasks/tasks.md 1.0-4.0
+/execute-all-tasks prds/prd-<nome>/tasks/tasks.md 1.0-4.0
 ```
 
 Você invoca:
 ```
 Task(
   subagent_type="execute-all-tasks",
-  description="Executar tasks do PBI",
-  prompt="Execute as tasks de pbis/<nome-do-pbi>/tasks/tasks.md no range 1.0-4.0, seguindo integralmente o procedimento do agente: descoberta inicial, loop por task com do-execute-task, verificação de conclusão, limpeza de contexto entre tasks e resumo final."
+  description="Executar tasks do PRD",
+  prompt="Execute as tasks de prds/prd-<nome>/tasks/tasks.md no range 1.0-4.0, seguindo integralmente o procedimento do agente: descoberta inicial, loop por task com do-execute-task, verificação de conclusão, limpeza de contexto entre tasks e resumo final."
 )
 ```

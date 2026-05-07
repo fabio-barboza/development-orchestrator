@@ -32,7 +32,7 @@
 ## Problemas Encontrados
 | Severidade | Arquivo | Linha | Descrição | Sugestão |
 |------------|---------|-------|-----------|----------|
-| Alta/Média/Baixa | [file] | [line] | [desc] | [fix] |
+| CRÍTICO/MAIOR/MENOR | [file] | [line] | [desc] | [fix] |
 
 ## Pontos Positivos
 - [pontos positivos identificados]

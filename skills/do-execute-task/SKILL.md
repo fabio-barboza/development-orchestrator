@@ -40,8 +40,9 @@ When an `Edit` tool call fails, follow this escalation ladder:
 1. Check for `.claude/` directory in the project root → **Claude Code** → skills dir: `.claude/skills/`
 2. Check for `.github/copilot-instructions.md` or `.github/` directory → **GitHub Copilot** → skills dir: not applicable
 3. Check for `.cursor/rules/` or `.cursor/mcp.json` → **Cursor AI** → skills dir: `.cursor/rules/`
-4. Resolve available tools:
-   - **TaskUpdate**: available in Claude Code; in Copilot and Cursor, skip gracefully
+4. Check for `opencode.json` in the project root → **Opencode** → skills dir: `.opencode/skills/`
+5. Resolve available tools:
+   - **TaskUpdate**: available in Claude Code; in Copilot, Cursor, and Opencode, skip gracefully
    - **Context7 MCP**: available if configured; fallback to Web Search otherwise
 
 Store resolved environment and skills directory internally.
@@ -68,14 +69,14 @@ Store resolved environment and skills directory internally.
 
 **Step 4: Implementation (SAME response as Step 3 — zero latency, zero user interaction)**
 1. Implementation begins in the same response as analysis. There is no separate "planning" message.
-2. Follow all project standards established in the project configuration file (CLAUDE.md, .github/copilot-instructions.md, or .cursor/rules/project.mdc) and project rules.
+2. Follow all project standards established in the project configuration file (CLAUDE.md, .github/copilot-instructions.md, .cursor/rules/project.mdc, or opencode.json) and project rules.
 3. Implement solutions without workarounds.
 4. Respect ALL `<critical>` tags identified in Step 3 — they are mandatory constraints, not suggestions.
 5. As you complete each subtask listed in the task file (X.1, X.2, etc.), mark it as `[x]` in the `[num]_task.md` file.
 6. Detect the project's package manager from lock files (`bun.lockb` → bun, `pnpm-lock.yaml` → pnpm, `package-lock.json` → npm, default: `npm`).
 7. **MCP Discovery & E2E tests — WHEN TO RUN**: Execute the MCP discovery procedure from the shared skills directory resolved in Step 0 (e.g., `.claude/skills/do-shared/do-mcp-discovery-instructions.md` for Claude Code, `.cursor/rules/do-shared/do-mcp-discovery-instructions.md` for Cursor AI):
-   a. Read the MCP configuration file for the current AI tool (`.mcp.json` for Claude Code, `.vscode/mcp.json` for GitHub Copilot, `.cursor/mcp.json` for Cursor) to list configured MCP servers.
-   b. Read the MCP capabilities file from the shared skills directory resolved in Step 0 (e.g., `.claude/skills/do-shared/do-mcp-capabilities.md` for Claude Code, `.cursor/rules/do-shared/do-mcp-capabilities.md` for Cursor AI) to map each server to capabilities and tools.
+   a. Read the MCP configuration file for the current AI tool (`.mcp.json` for Claude Code, `.vscode/mcp.json` for GitHub Copilot, `.cursor/mcp.json` for Cursor, `opencode.json` for Opencode — under the `mcpServers` key) to list configured MCP servers.
+   b. Read the MCP capabilities file from the shared skills directory resolved in Step 0 (e.g., `.claude/skills/do-shared/do-mcp-capabilities.md` for Claude Code, `.cursor/rules/do-shared/do-mcp-capabilities.md` for Cursor AI, `.opencode/skills/do-shared/do-mcp-capabilities.md` for Opencode) to map each server to capabilities and tools.
    c. Build capability map and apply the **capability guard**:
       - Frontend task + `browser-testing` MCP available → run browser E2E.
       - Backend task + backend-capable MCP available (`message-queue`, `database`, `cache`, `api-testing`) → run backend E2E via that MCP.
@@ -115,7 +116,7 @@ Store resolved environment and skills directory internally.
 3. Change the task status from `[ ]` (or equivalent) to `[x]` (or equivalent "Concluída"/"Done") in `tasks.md`.
 4. **IMMEDIATE VERIFICATION (MANDATORY)**: Right after the edit tool call, you MUST call `read_file` on `tasks.md` in the SAME response to verify the `[x]` is actually present in the file content. If the `[x]` is NOT visible in the read output, the edit FAILED — redo it.
 5. Mark all subtasks (X.1, X.2, etc.) as `[x]` in the `[num]_task.md` file. Then call `read_file` on `[num]_task.md` to verify.
-6. **SYNC INTERNAL PROGRESS**: If `TaskUpdate` is available (Claude Code only; skip in Copilot and Cursor), use it to mark all corresponding items in your internal task tracking as `completed`. Otherwise, skip this step.
+6. **SYNC INTERNAL PROGRESS**: If `TaskUpdate` is available (Claude Code only; skip in Copilot, Cursor, and Opencode), use it to mark all corresponding items in your internal task tracking as `completed`. Otherwise, skip this step.
 
 **TASKS.MD PROTECTION RULE — ABSOLUTE, NON-NEGOTIABLE:**
 The ONLY permitted modification to `tasks.md` is changing `[ ]` to `[x]` for the CURRENT task being executed. Everything else in the file is READ-ONLY. Specifically, you are **PROHIBITED** from:
@@ -138,7 +139,7 @@ The ONLY permitted modification to `tasks.md` is changing `[ ]` to `[x]` for the
 **Step 6: Code Review**
 1. Re-read the task file to ensure you have the latest content (context compression may have discarded earlier reads).
 2. Check if the project is a git repository by running `git rev-parse --is-inside-work-tree`. If git is available, use `git diff` and `git log` to identify files changed as part of this task and read the full context of modified files, not just the diffs. If git is NOT available, manually list all files you created or modified during implementation and read their full content for review.
-3. Read the `code-standards.md` file from the skills directory resolved in Step 0 (e.g., `.claude/skills/do-execute-task/references/code-standards.md` for Claude Code, `.cursor/rules/do-execute-task/references/code-standards.md` for Cursor AI). Review the code against those criteria and verify compliance with the project configuration file if it exists.
+3. Read the `code-standards.md` file from the skills directory resolved in Step 0 (e.g., `.claude/skills/do-execute-task/references/code-standards.md` for Claude Code, `.cursor/rules/do-execute-task/references/code-standards.md` for Cursor AI, `.opencode/skills/do-execute-task/references/code-standards.md` for Opencode). Review the code against those criteria and verify compliance with the project configuration file if it exists.
 4. For each issue found, classify as:
    - **CRÍTICO**: Bugs, problemas de segurança, funcionalidade quebrada, tratamento de erros ausente.
    - **MAIOR**: Violações de padrão de código, testes ausentes, nomenclatura incorreta.
@@ -149,12 +150,12 @@ The ONLY permitted modification to `tasks.md` is changing `[ ]` to `[x]` for the
 
 **Step 7: Create Review File (Mandatory)**
 
-1. Read the template from the skills directory resolved in Step 0 (e.g., `.claude/skills/do-execute-task/assets/review-artifact-template.md` for Claude Code, `.cursor/rules/do-execute-task/assets/review-artifact-template.md` for Cursor AI).
+1. Read the template from the skills directory resolved in Step 0 (e.g., `.claude/skills/do-execute-task/assets/review-artifact-template.md` for Claude Code, `.cursor/rules/do-execute-task/assets/review-artifact-template.md` for Cursor AI, `.opencode/skills/do-execute-task/assets/review-artifact-template.md` for Opencode).
 2. Determine the review status based on Step 6 findings:
    - **APROVADO**: Sem problemas críticos/maiores.
    - **APROVADO COM OBSERVAÇÕES**: Sem críticos, problemas menores ou poucos maiores não bloqueantes.
    - **MUDANÇAS SOLICITADAS**: Problemas críticos ou múltiplos problemas maiores.
-3. **CREATE THE FILE**: Use the `Write` tool to create `[num]_task_review.md` in `./prds/prd-[feature-slug]/`. This is the MOST IMPORTANT action in this step.
+3. **CREATE THE FILE**: Use the `Write` tool to create `[num]_task_review.md` in `./prds/prd-[feature-slug]/tasks/`. This is the MOST IMPORTANT action in this step.
 4. **VERIFY THE FILE EXISTS**: Immediately after the Write tool call, call `read_file` on `./prds/prd-[feature-slug]/tasks/[num]_task_review.md`. You MUST see the file content returned. If the read fails or returns empty → **the Write FAILED. Redo it NOW.**
 5. If the `read_file` succeeds, the file is confirmed created. Proceed to Step 8.
 
@@ -221,8 +222,8 @@ Todos os artefatos gerados (incluindo o arquivo de review) devem ser escritos em
 - PRD: `./prds/prd-[feature-slug]/prd.md`
 - TechSpec: `./prds/prd-[feature-slug]/techspec.md`
 - Tasks: `./prds/prd-[feature-slug]/tasks/tasks.md`
-- Review template: resolved in Step 0 (e.g., `.claude/skills/do-execute-task/assets/review-artifact-template.md` for Claude Code, `.cursor/rules/do-execute-task/assets/review-artifact-template.md` for Cursor AI)
-- Code standards: resolved in Step 0 (e.g., `.claude/skills/do-execute-task/references/code-standards.md` for Claude Code, `.cursor/rules/do-execute-task/references/code-standards.md` for Cursor AI)
-- MCP Discovery: resolved in Step 0 (e.g., `.claude/skills/do-shared/do-mcp-discovery-instructions.md` for Claude Code, `.cursor/rules/do-shared/do-mcp-discovery-instructions.md` for Cursor AI)
-- MCP Registry: resolved in Step 0 (e.g., `.claude/skills/do-shared/do-mcp-capabilities.md` for Claude Code)
+- Review template: resolved in Step 0 (e.g., `.claude/skills/do-execute-task/assets/review-artifact-template.md` for Claude Code, `.cursor/rules/do-execute-task/assets/review-artifact-template.md` for Cursor AI, `.opencode/skills/do-execute-task/assets/review-artifact-template.md` for Opencode)
+- Code standards: resolved in Step 0 (e.g., `.claude/skills/do-execute-task/references/code-standards.md` for Claude Code, `.cursor/rules/do-execute-task/references/code-standards.md` for Cursor AI, `.opencode/skills/do-execute-task/references/code-standards.md` for Opencode)
+- MCP Discovery: resolved in Step 0 (e.g., `.claude/skills/do-shared/do-mcp-discovery-instructions.md` for Claude Code, `.cursor/rules/do-shared/do-mcp-discovery-instructions.md` for Cursor AI, `.opencode/skills/do-shared/do-mcp-discovery-instructions.md` for Opencode)
+- MCP Registry: resolved in Step 0 (e.g., `.claude/skills/do-shared/do-mcp-capabilities.md` for Claude Code, `.cursor/rules/do-shared/do-mcp-capabilities.md` for Cursor AI, `.opencode/skills/do-shared/do-mcp-capabilities.md` for Opencode)
 - Review output: `[num]_task_review.md` (same directory as the task file)

@@ -1,6 +1,6 @@
 ---
 name: do-setup
-description: Initializes the project, identifies relevant skills, and updates the project configuration file (CLAUDE.md, .github/copilot-instructions.md, .cursor/rules/project.mdc, or .cursorrules) with project summary, conventions, and available skills. Accepts an optional argument "agents" to only install orchestration agents and commands without running the full setup. Use when the user asks to initialize the project, configure the agent-assisted development environment, or install agents with "/do-setup agents". Do not use for PRD creation, task implementation, code review, or QA testing.
+description: Initializes the project, identifies relevant skills, and updates the project configuration file (CLAUDE.md, .github/copilot-instructions.md, .cursor/rules/project.mdc, .cursorrules, or opencode.json) with project summary, conventions, and available skills. Accepts an optional argument "agents" to only install orchestration agents and commands without running the full setup. Use when the user asks to initialize the project, configure the agent-assisted development environment, or install agents with "/do-setup agents". Do not use for PRD creation, task implementation, code review, or QA testing.
 ---
 
 # Project Setup
@@ -31,7 +31,8 @@ Before doing anything else, determine which AI tool is executing this skill:
    - `.cursor/rules/` directory exists → config file: `.cursor/rules/project.mdc`, skills dirs: `.cursor/rules/`
    - `.cursor/mcp.json` exists → confirms Cursor AI (use together with rules detection)
    - `.cursorrules` file exists → config file: `.cursorrules`, skills dirs: none (legacy format)
-5. If none of the above, infer from the current tool context. When in doubt, default to `CLAUDE.md`.
+5. Check for `opencode.json` in the project root → **Opencode** → config file: `opencode.json`, skills dirs: `.opencode/skills/`
+6. If none of the above, infer from the current tool context. When in doubt, default to `CLAUDE.md`.
 
 Store the resolved config file path, the detected AI tool name, and the skills directories internally. Use them consistently throughout all remaining steps.
 
@@ -51,6 +52,13 @@ The initialization strategy depends on the detected AI tool:
 
     ```
   - If using `.cursorrules` (legacy): create the file at the project root.
+- **Opencode**: No built-in init command. Create or update `opencode.json` at the project root. If the file does not exist, create it with the following base structure:
+  ```json
+  {
+    "instructions": ""
+  }
+  ```
+  If it already exists, preserve all existing keys and only add or update the `instructions` key.
 
 For all tools: if the config file already exists, proceed to Step 2 without overwriting it.
 
@@ -79,6 +87,7 @@ For all tools: if the config file already exists, proceed to Step 2 without over
    - **Claude Code**: `.claude/skills/`
    - **GitHub Copilot**: `.github/` (look for instruction files)
    - **Cursor AI**: `.cursor/rules/` (scan all `.mdc` files)
+   - **Opencode**: `.opencode/skills/`
    For each directory, list every skill/rule file found and read its content.
 2. **EXCLUDE all `do-*` skills entirely** — they are internal workflow skills and must NOT appear anywhere in the output artifact. Only evaluate technology/library skills (e.g., `claude-api`, `find-skills`).
 3. For each remaining (non-`do-*`) skill, read its descriptor file (`SKILL.md` for Claude Code, the `.mdc` content for Cursor AI).
@@ -90,6 +99,9 @@ For all tools: if the config file already exists, proceed to Step 2 without over
 
 **Step 4: Update the project configuration file**
 Merge the following sections into the project configuration file at the path determined in Step 0. Preserve all existing content and append or update only the sections below:
+
+- For **Claude Code**, **GitHub Copilot**, and **Cursor AI**: append the markdown sections directly into the config file.
+- For **Opencode**: write the project summary into the `instructions` key of `opencode.json` as a multiline string, following the same structure described below.
 
 ```markdown
 ## Project Summary
@@ -127,14 +139,20 @@ Based on the AI tool detected in Step 0, install the `execute-all-tasks` agent a
    - Copy `<skill-dir>/agents/claude/commands/execute-all-tasks.md` → `.claude/commands/execute-all-tasks.md`
 
    **Cursor AI** (if `.cursor/` was detected):
-   - Run `mkdir -p .cursor/commands .cursor/rules`
+   - Run `mkdir -p .cursor/agents .cursor/commands .cursor/rules`
+   - Copy `<skill-dir>/agents/cursor/agents/execute-all-tasks.md` → `.cursor/agents/execute-all-tasks.md`
    - Copy `<skill-dir>/agents/cursor/commands/execute-all-tasks.md` → `.cursor/commands/execute-all-tasks.md`
    - Copy `<skill-dir>/agents/cursor/rules/execute-all-tasks.mdc` → `.cursor/rules/execute-all-tasks.mdc`
 
    **GitHub Copilot** (if `.github/` was detected):
-   - Run `mkdir -p .github/chatmodes .github/prompts`
-   - Copy `<skill-dir>/agents/github/chatmodes/execute-all-tasks.chatmode.md` → `.github/chatmodes/execute-all-tasks.chatmode.md`
+   - Run `mkdir -p .github/agents .github/prompts`
+   - Copy `<skill-dir>/agents/github/agents/execute-all-tasks.agent.md` → `.github/agents/execute-all-tasks.agent.md`
    - Copy `<skill-dir>/agents/github/prompts/execute-all-tasks.prompt.md` → `.github/prompts/execute-all-tasks.prompt.md`
+
+   **Opencode** (if `opencode.json` was detected):
+   - Run `mkdir -p .opencode/agents .opencode/commands`
+   - Copy `<skill-dir>/agents/opencode/agents/execute-all-tasks.md` → `.opencode/agents/execute-all-tasks.md`
+   - Copy `<skill-dir>/agents/opencode/commands/execute-all-tasks.md` → `.opencode/commands/execute-all-tasks.md`
 
 3. Confirm to the user which files were installed and for which tools.
 
@@ -159,8 +177,9 @@ Todos os artefatos gerados (seções do arquivo de configuração do projeto, re
 - If the directory scan reveals an unrecognizable project structure, document what was found and ask the user for guidance.
 
 ## References
-- Output: Project configuration file (e.g., `CLAUDE.md` for Claude Code, `.github/copilot-instructions.md` for GitHub Copilot, `.cursor/rules/project.mdc` or `.cursorrules` for Cursor AI)
+- Output: Project configuration file (e.g., `CLAUDE.md` for Claude Code, `.github/copilot-instructions.md` for GitHub Copilot, `.cursor/rules/project.mdc` or `.cursorrules` for Cursor AI, `opencode.json` for Opencode)
 - Skills directories:
   - Claude Code: `.claude/skills/` (each skill has a `SKILL.md`)
   - GitHub Copilot: `.github/` (instruction files)
   - Cursor AI: `.cursor/rules/` (`.mdc` files with frontmatter)
+  - Opencode: `.opencode/skills/` (each skill has a `SKILL.md`)

@@ -2,7 +2,7 @@
 
 ## Resumo
 - Data: [data]
-- Review Original: [status original — NECESSITA REVISÃO / REPROVADO]
+- Review Original: [status original — APROVADO COM RESSALVAS / REPROVADO]
 - Total de Findings: [X] (CRÍTICO: [a] | MAIOR: [b] | MENOR: [c])
 - Findings Corrigidos: [Y]
 - Findings Não Resolvidos: [Z]

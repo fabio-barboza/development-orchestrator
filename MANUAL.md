@@ -76,6 +76,25 @@ MCPs habilitam testes E2E automáticos. O mais comum é o Playwright (para brows
 }
 ```
 
+**Opencode** — adicione ao `opencode.json` na raiz do projeto:
+
+```json
+{
+  "mcpServers": {
+    "playwright": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["@playwright/mcp@latest"]
+    },
+    "context7": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp@latest"]
+    }
+  }
+}
+```
+
 Para outras ferramentas (Cursor, Copilot), veja a tabela no [README.md](README.md#como-configurar-mcps-no-seu-projeto).
 
 ---
@@ -88,7 +107,7 @@ Rode **uma única vez** por projeto:
 /do-setup
 ```
 
-Isso analisa o codebase, gera o arquivo de configuração do projeto (`CLAUDE.md`, `.cursorrules`, etc.) com contexto e convenções, e **instala os agents de orquestração** nos diretórios corretos da sua ferramenta de IA.
+Isso analisa o codebase, gera o arquivo de configuração do projeto (`CLAUDE.md`, `.cursorrules`, `opencode.json`, etc.) com contexto e convenções, e **instala os agents de orquestração** nos diretórios corretos da sua ferramenta de IA.
 
 > Se você já fez o setup anteriormente e quer apenas reinstalar os agents (ex: após atualizar as skills), use:
 > ```
@@ -178,7 +197,7 @@ Você também pode executar um range ou uma lista específica:
 /execute-all-tasks prds/prd-login-google/tasks/tasks.md 1.0,3.0,5.0
 ```
 
-> O agent executa uma task por vez, garante limpeza de contexto entre elas e para automaticamente em caso de falha. Disponível no Claude Code, Cursor e GitHub Copilot após o `do-setup`.
+> O agent executa uma task por vez, garante limpeza de contexto entre elas e para automaticamente em caso de falha. Disponível no Claude Code, Cursor, GitHub Copilot e Opencode após o `do-setup`.
 
 A skill (e o agent) implementam o código, rodam os testes e geram um review file por task. Para acompanhar o progresso a qualquer momento:
 
@@ -188,26 +207,37 @@ A skill (e o agent) implementam o código, rodam os testes e geram um review fil
 
 ---
 
-## Passo 7 — Code Review (loop até APPROVED)
+## Passo 7 — Code Review (loop até APROVADO)
 
 Com todas as tasks concluídas, rode o review geral:
 
 ```
-/do-execute-review <techspec>
+/do-execute-review <prd>
 ```
 
-Se o resultado for `NEEDS_REVISION` ou `REJECTED`, corrija os findings e repita:
+Se houver problemas, o review gera um arquivo por finding em `./prds/prd-<slug>/review-fixes/`. Corrija um arquivo por vez:
 
 ```
-/do-execute-review-fix <tasks>
-/do-execute-review <tasks>
+/do-execute-review-fix prds/prd-<slug>/review-fixes/fix-R-01-critico-<slug>.md
+/do-execute-review-fix prds/prd-<slug>/review-fixes/fix-R-02-maior-<slug>.md
+... (repetir para cada arquivo)
 ```
 
-Repita até o status ser `APPROVED`.
+A cada invocação, o `do-execute-review-fix` também atualiza um relatório consolidado em `./prds/prd-<slug>/fix-report.md` com a tabela completa de findings e seus status.
+
+Depois rode o review novamente:
+
+```
+/do-execute-review <prd>
+```
+
+Repita até o status ser `APROVADO`.
+
+> Status possíveis: **APROVADO** / **APROVADO COM RESSALVAS** / **REPROVADO**.
 
 ---
 
-## Passo 8 — QA (loop até zero bugs HIGH)
+## Passo 8 — QA (loop até zero bugs Alta)
 
 Com o review aprovado, rode a validação final:
 
@@ -215,14 +245,23 @@ Com o review aprovado, rode a validação final:
 /do-execute-qa <prd>
 ```
 
-Se bugs forem encontrados, corrija e revalide:
+Se bugs forem encontrados, o QA gera um arquivo por bug em `./prds/prd-<slug>/qa-bugs/`. Corrija um arquivo por vez:
 
 ```
-/do-execute-qa-bugfix <bugfix>
+/do-execute-qa-bugfix prds/prd-<slug>/qa-bugs/bug-01-alta-<slug>.md
+/do-execute-qa-bugfix prds/prd-<slug>/qa-bugs/bug-02-media-<slug>.md
+... (repetir para cada bug)
+```
+
+A cada invocação, o `do-execute-qa-bugfix` também atualiza um relatório consolidado em `./prds/prd-<slug>/bugfix-report.md` com a tabela completa de bugs e seus status.
+
+Depois revalide:
+
+```
 /do-execute-qa <prd>
 ```
 
-Repita até não restar nenhum bug de severidade HIGH. Feature pronta!
+Repita até não restar nenhum bug de severidade Alta. Feature pronta!
 
 ---
 
@@ -247,10 +286,10 @@ instalar skills
   do-execute-task 1..N  (uma por vez)
       │
       ▼
-  do-execute-review  ──▶  do-execute-review-fix  ──▶  (repetir até APPROVED)
+  do-execute-review  ──▶  do-execute-review-fix (1 por arquivo)  ──▶  (repetir até APROVADO)
       │
       ▼
-  do-execute-qa  ──▶  do-execute-qa-bugfix  ──▶  (repetir até zero HIGH)
+  do-execute-qa  ──▶  do-execute-qa-bugfix (1 por bug)  ──▶  (repetir até zero Alta)
       │
       ▼
    DONE ✓

@@ -8,6 +8,7 @@ Procedimento padrao referenciado pelas skills de execucao (do-execute-task, do-e
    - **Claude Code:** `.mcp.json` na raiz do projeto
    - **GitHub Copilot:** `.vscode/mcp.json`
    - **Cursor:** `.cursor/mcp.json`
+   - **Opencode:** `opencode.json` na raiz do projeto (chave `mcpServers`)
    Ler o arquivo encontrado para listar os MCP servers configurados.
 2. Ler o registry de capacidades MCP em `do-mcp-capabilities.md` (localizado no diretório de skills compartilhadas) para mapear cada server as suas capacidades e tools.
 3. Construir mapa interno de capacidades. Exemplo:

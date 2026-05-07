@@ -1,6 +1,6 @@
 ---
 name: do-execute-review-fix
-description: "Recebe o caminho de um arquivo de fix task em review-fixes/ (ex: review-fixes/fix-R01-critico-senha.md), implementa a correção, roda a suite de testes e atualiza o status do arquivo. Use quando do-execute-review gerou arquivos de fix task e o usuário quiser resolver um problema específico. Não use para correções em lote — invoque uma vez por arquivo. Não use para QA, correção de bugs de QA (use do-execute-qa-bugfix) ou implementação de novas features."
+description: Resolves a single code review finding from a fix task file in review-fixes/ (e.g. review-fixes/fix-R01-critico-senha.md). Reads the fix file, implements the root-cause correction, runs the full test suite, updates the fix file status, the corresponding entry in review-report.md, and the consolidated fix-report.md. Use when do-execute-review has generated fix task files and the user wants to resolve a specific finding. Invoke once per file — do not use for batch fixes. Do not use for QA bug fixing (use do-execute-qa-bugfix) or implementing new features.
 ---
 
 # Review Fix Execution
@@ -41,8 +41,9 @@ Before anything else, determine the execution environment:
 1. Check for `.claude/` directory in the project root → **Claude Code** → skills dir: `.claude/skills/`
 2. Check for `.github/copilot-instructions.md` or `.github/` directory → **GitHub Copilot** → skills dir: not applicable
 3. Check for `.cursor/rules/` or `.cursor/mcp.json` → **Cursor AI** → skills dir: `.cursor/rules/`
-4. Resolve available tools based on environment:
-   - **TaskUpdate**: available in Claude Code; in Copilot and Cursor, skip gracefully
+4. Check for `opencode.json` in the project root → **Opencode** → skills dir: `.opencode/skills/`
+5. Resolve available tools based on environment:
+   - **TaskUpdate**: available in Claude Code; in Copilot, Cursor, and Opencode, skip gracefully
 
 Store resolved environment and skills directory internally and use throughout all remaining steps.
 
@@ -52,7 +53,7 @@ Store resolved environment and skills directory internally and use throughout al
 3. Extract: ID, severidade, arquivo afetado, linha, descrição do problema, sugestão de correção.
 4. Read `./prds/prd-[feature-slug]/review-report.md` for additional context on the finding.
 5. Read `./prds/prd-[feature-slug]/prd.md` and `./prds/prd-[feature-slug]/techspec.md` for context.
-6. Read the project configuration file (CLAUDE.md, .github/copilot-instructions.md, or .cursor/rules/project.mdc) for project conventions.
+6. Read the project configuration file (CLAUDE.md, .github/copilot-instructions.md, .cursor/rules/project.mdc, or opencode.json) for project conventions.
 
 **Step 2: Plan Fix (INTERNAL — do NOT output as standalone message)**
 1. Identify affected files and determine root cause from the fix task description.
@@ -84,17 +85,31 @@ Store resolved environment and skills directory internally and use throughout al
 2. Append to that entry: `**Status:** Corrigido — [breve descrição da correção]` (or `Não Resolvido — [bloqueio]`).
 3. Do NOT modify original review metadata (date, branch, summary).
 
-**Step 7: Report Results (Mandatory)**
+**Step 7: Update Consolidated Fix Report (Mandatory)**
+1. List all files in `./prds/prd-[feature-slug]/review-fixes/` matching `fix-*.md`.
+2. For each file, read its frontmatter (`id`, `severidade`, `status`) and extract the short description from the heading and the `## Resolução` / `## Bloqueio` section if present.
+3. Read the report template from the skills directory resolved in Step 0 (e.g., `.claude/skills/do-execute-review-fix/assets/fix-report-template.md` for Claude Code, `.cursor/rules/do-execute-review-fix/assets/fix-report-template.md` for Cursor AI, `.opencode/skills/do-execute-review-fix/assets/fix-report-template.md` for Opencode).
+4. Read `review-report.md` to extract the original review status (APROVADO COM RESSALVAS or REPROVADO) for the report header.
+5. Generate (or overwrite) `./prds/prd-[feature-slug]/fix-report.md` filling the template with:
+   - Resumo: total findings (sum), counts per severidade, totals corrigidos / não-resolvidos.
+   - Tabela "Resultado por Finding": one row per file (ID, severidade, descrição, status, correção/bloqueio).
+   - Testes: status of last full test run.
+   - Findings Não Resolvidos: only entries with `status: não-resolvido`.
+   - Próximo Passo: choose the appropriate suggestion based on whether all findings are resolved.
+6. **POST-SAVE VERIFICATION**: Call `read_file` on `./prds/prd-[feature-slug]/fix-report.md` to confirm it was written.
+
+**Step 8: Report Results (Mandatory)**
 1. If `TaskUpdate` is available, mark internal tasks as `completed`.
 2. **Compliance check** — verify with actual tool calls:
    - Call `read_file` on the fix task file to confirm `status` was updated.
    - Call `read_file` on `review-report.md` to confirm the finding entry was updated.
+   - Call `read_file` on `fix-report.md` to confirm the consolidated report was written/updated.
 3. Inform the user: finding fixed (or blocked) and tests passing.
 4. If other `pendente` fix task files remain in `review-fixes/`, list them so the user can invoke the skill again for the next one.
 5. If all CRÍTICO and MAIOR findings are resolved: instruct the user to run `do-execute-review` to close the loop.
 
 ## Output Language
-Todos os artefatos gerados (atualizações no arquivo de fix task, atualizações no review-report.md) devem ser escritos em Português do Brasil (PT-BR). Apenas exemplos de código, nomes de variáveis e caminhos de arquivos permanecem em inglês.
+Todos os artefatos gerados (atualizações no arquivo de fix task, atualizações no review-report.md, fix-report.md consolidado) devem ser escritos em Português do Brasil (PT-BR). Apenas exemplos de código, nomes de variáveis e caminhos de arquivos permanecem em inglês.
 
 ## Error Handling
 - If no file path is provided, list all `pendente` fix task files in `review-fixes/` and ask the user which one to fix.
@@ -108,5 +123,7 @@ Todos os artefatos gerados (atualizações no arquivo de fix task, atualizaçõe
 ## References
 - Fix task file (input): `./prds/prd-[feature-slug]/review-fixes/fix-[R-XX]-[severidade-completa]-[slug].md`
 - Review Report: `./prds/prd-[feature-slug]/review-report.md`
+- Consolidated Fix Report template: resolved in Step 0 (e.g., `.claude/skills/do-execute-review-fix/assets/fix-report-template.md` for Claude Code, `.cursor/rules/do-execute-review-fix/assets/fix-report-template.md` for Cursor AI, `.opencode/skills/do-execute-review-fix/assets/fix-report-template.md` for Opencode)
+- Consolidated Fix Report output: `./prds/prd-[feature-slug]/fix-report.md`
 - PRD: `./prds/prd-[feature-slug]/prd.md`
 - TechSpec: `./prds/prd-[feature-slug]/techspec.md`

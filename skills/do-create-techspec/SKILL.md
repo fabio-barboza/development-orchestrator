@@ -24,9 +24,10 @@ Before anything else, determine the execution environment:
 1. Check for `.claude/` directory in the project root → **Claude Code** → skills dir: `.claude/skills/`
 2. Check for `.github/copilot-instructions.md` or `.github/` directory → **GitHub Copilot** → skills dir: not applicable
 3. Check for `.cursor/rules/` or `.cursor/mcp.json` → **Cursor AI** → skills dir: `.cursor/rules/`
-4. Resolve available tools based on environment:
+4. Check for `opencode.json` in the project root → **Opencode** → skills dir: `.opencode/skills/`
+5. Resolve available tools based on environment:
    - **AskUserQuestion**: use in all environments.
-   - **TaskUpdate**: available in Claude Code; in Copilot and Cursor, skip gracefully
+   - **TaskUpdate**: available in Claude Code; in Copilot, Cursor, and Opencode, skip gracefully
    - **Context7 MCP**: available if configured; fallback to Web Search otherwise
 
 Store resolved environment and tool availability internally and use throughout all remaining steps.
@@ -63,11 +64,11 @@ Store resolved environment and tool availability internally and use throughout a
 3. Do NOT proceed until answers are received.
 
 **Step 6: Standards Compliance Mapping (Mandatory)**
-1. Identify project skills using the skills directory resolved in Step 0. Skip this sub-step if the skills directory is not applicable (e.g., GitHub Copilot without a configured skills path). **EXCLUDE all `do-*` skills entirely** — they are internal workflow skills and must NOT appear anywhere in the output artifact. Only evaluate technology/library skills (e.g., `claude-api`, `find-skills`). For Cursor AI, scan `.cursor/rules/` for `.mdc` files.
+1. Identify project skills using the skills directory resolved in Step 0. Skip this sub-step if the skills directory is not applicable (e.g., GitHub Copilot without a configured skills path). **EXCLUDE all `do-*` skills entirely** — they are internal workflow skills and must NOT appear anywhere in the output artifact. Only evaluate technology/library skills (e.g., `claude-api`, `find-skills`). For Cursor AI, scan `.cursor/rules/` for `.mdc` files. For Opencode, scan `.opencode/skills/`.
 2. Highlight deviations with justification and compliant alternatives.
 
 **Step 7: Generate Tech Spec (Mandatory)**
-1. Read the template at the path resolved in Step 0 (e.g., `.claude/skills/do-create-techspec/assets/techspec-template.md` for Claude Code, `.cursor/rules/do-create-techspec/assets/techspec-template.md` for Cursor AI).
+1. Read the template at the path resolved in Step 0 (e.g., `.claude/skills/do-create-techspec/assets/techspec-template.md` for Claude Code, `.cursor/rules/do-create-techspec/assets/techspec-template.md` for Cursor AI, `.opencode/skills/do-create-techspec/assets/techspec-template.md` for Opencode).
 2. Provide: architecture overview, component design, interfaces, data models, endpoints, integration points, impact analysis, test strategy, observability.
 3. Focus on HOW, not WHAT (the PRD owns what/why).
 4. Avoid repeating functional requirements from the PRD.
@@ -82,7 +83,7 @@ Store resolved environment and tool availability internally and use throughout a
 3. **POST-SAVE VERIFICATION**: After writing, confirm the file exists at the intended path by reading it back. If the file is not found, halt and report the error.
 
 **Step 9: Report Results & Sync Progress (Mandatory)**
-1. **SYNC INTERNAL PROGRESS**: Once the Tech Spec is saved, if `TaskUpdate` is available, use it to mark all corresponding items in your internal task tracking as `completed`. Otherwise, skip this step.
+1. **SYNC INTERNAL PROGRESS**: Once the Tech Spec is saved, if `TaskUpdate` is available (Claude Code only; skip in Copilot, Cursor, and Opencode), use it to mark all corresponding items in your internal task tracking as `completed`. Otherwise, skip this step.
 2. Provide the final file path.
 3. **COMPLIANCE CHECK**: Before responding to the user, verify:
     - Is the Tech Spec file saved correctly?
@@ -109,11 +110,11 @@ Todos os artefatos gerados (documento Tech Spec) devem ser escritos em Portuguê
 
 ## Error Handling
 - If the PRD does not exist at the expected path, halt and ask the user to create it first via the `do-create-prd` skill.
-- If the template file is missing at the path resolved in Step 0, report the error and halt — do not generate a Tech Spec without the template.
+- If the template file is missing at the path resolved in Step 0 (e.g., `.opencode/skills/do-create-techspec/assets/techspec-template.md` for Opencode), report the error and halt — do not generate a Tech Spec without the template.
 - If Context7 MCP is unavailable, fall back to Web Search for technical documentation.
 - If the output file already exists, confirm with the user before overwriting.
 
 ## References
-- Template: resolved in Step 0 (e.g., `.claude/skills/do-create-techspec/assets/techspec-template.md` for Claude Code, `.cursor/rules/do-create-techspec/assets/techspec-template.md` for Cursor AI)
+- Template: resolved in Step 0 (e.g., `.claude/skills/do-create-techspec/assets/techspec-template.md` for Claude Code, `.cursor/rules/do-create-techspec/assets/techspec-template.md` for Cursor AI, `.opencode/skills/do-create-techspec/assets/techspec-template.md` for Opencode)
 - PRD: `prds/prd-[feature-slug]/prd.md`
 - Output: `prds/prd-[feature-slug]/techspec.md`
