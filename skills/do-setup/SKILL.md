@@ -83,7 +83,7 @@ For all tools: if the config file already exists, proceed to Step 2 without over
 **Step 3: Identify Relevant Skills**
 1. List all available skills by scanning the AI tool's skills directories:
    - **Claude Code**: `.claude/skills/`
-   - **Opencode**: `.opencode/skills/`
+   - **Opencode**: `.agents/skills/`
    - **GitHub Copilot**: `.github/` (look for instruction files)
    - **Cursor AI**: `.cursor/rules/` (scan all `.mdc` files)
    For each directory, list every skill/rule file found and read its content.
@@ -180,6 +180,6 @@ Todos os artefatos gerados (seções do arquivo de configuração do projeto, re
 - Output: Project configuration file (e.g., `CLAUDE.md` for Claude Code, `AGENTS.md` for Opencode, `.github/copilot-instructions.md` for GitHub Copilot, `.cursor/rules/project.mdc` or `.cursorrules` for Cursor AI)
 - Skills directories:
   - Claude Code: `.claude/skills/` (each skill has a `SKILL.md`)
-  - Opencode: `.opencode/skills/` (each skill has a `SKILL.md`)
+  - Opencode: `.agents/skills/` (each skill has a `SKILL.md`)
   - GitHub Copilot: `.github/` (instruction files)
   - Cursor AI: `.cursor/rules/` (`.mdc` files with frontmatter)

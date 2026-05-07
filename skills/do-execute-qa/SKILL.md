@@ -18,14 +18,15 @@ You are a senior QA engineer specialized in E2E testing, accessibility validatio
 
 **Step 0: Detect AI Tool Environment**
 Before anything else, determine the execution environment:
-1. Check for `.claude/` directory in the project root → **Claude Code** → skills dir: `.claude/skills/`
-2. Check for `.github/copilot-instructions.md` or `.github/` directory → **GitHub Copilot** → skills dir: not applicable
-3. Check for `.cursor/rules/` or `.cursor/mcp.json` → **Cursor AI** → skills dir: `.cursor/rules/`
-4. Resolve available tools based on environment:
-   - **TaskUpdate**: available in Claude Code; in Copilot and Cursor, skip gracefully
+1. Check for `.claude/` directory in the project root → **Claude Code**
+2. Check for `.github/copilot-instructions.md` or `.github/` directory → **GitHub Copilot**
+3. Check for `.cursor/rules/` or `.cursor/mcp.json` → **Cursor AI**
+4. Check for `opencode.json`, `.opencode/` directory, or `AGENTS.md` → **Opencode**
+5. Resolve available tools based on environment:
+   - **TaskUpdate**: available in Claude Code; in Copilot, Cursor, and Opencode, skip gracefully
    - **Context7 MCP**: available if configured; fallback to Web Search otherwise
 
-Store resolved environment and skills directory internally and use throughout all remaining steps.
+Skill assets/references are loaded via your AI tool's native skill resolver — do not hard-code paths. Store the detected tool and capability flags internally.
 
 **Step 1: Documentation Analysis (Mandatory)**
 1. Read the PRD at `./prds/prd-[feature-slug]/prd.md` and extract ALL numbered functional requirements. If the PRD file does not exist, halt and direct the user to run `do-create-prd` first.
@@ -36,9 +37,9 @@ Store resolved environment and skills directory internally and use throughout al
 6. **DO NOT stop here. DO NOT present the checklist and wait for approval. Proceed IMMEDIATELY to Step 2.**
 
 **Step 2: MCP Discovery & Capability Guard (starts immediately after Step 1 — no pause, no confirmation)**
-1. **MCP Discovery**: Execute the discovery procedure from the shared skills directory resolved in Step 0 (e.g., `.claude/skills/do-shared/do-mcp-discovery-instructions.md` for Claude Code, `.cursor/rules/do-shared/do-mcp-discovery-instructions.md` for Cursor AI):
-   a. Read the MCP configuration file for the current AI tool (`.mcp.json` for Claude Code, `.vscode/mcp.json` for GitHub Copilot, `.cursor/mcp.json` for Cursor) to list configured MCP servers.
-   b. Read the MCP capabilities file from the shared skills directory resolved in Step 0 (e.g., `.claude/skills/do-shared/do-mcp-capabilities.md` for Claude Code, `.cursor/rules/do-shared/do-mcp-capabilities.md` for Cursor AI) to map each server to its capabilities and tools.
+1. **MCP Discovery**: Execute the discovery procedure at `do-shared/references/do-mcp-discovery-instructions.md`:
+   a. Read the MCP configuration file for the current AI tool (`.mcp.json` for Claude Code, `.vscode/mcp.json` for GitHub Copilot, `.cursor/mcp.json` for Cursor, `opencode.json` for Opencode) to list configured MCP servers.
+   b. Read the MCP capabilities file at `do-shared/references/do-mcp-capabilities.md` to map each server to its capabilities and tools.
    c. Build an internal capability map (e.g., `{ "browser-testing": ["playwright"], "message-queue": ["rabbitmq"] }`).
 2. **Capability Guard**: Analyze the PRD, Tech Spec, and Tasks to determine if the feature involves **frontend/UI**, **backend**, or **both**. Apply the capability guard from the discovery instructions:
    - Frontend feature + `browser-testing` MCP available → proceed to Steps 3-5 using browser MCP tools.
@@ -72,7 +73,7 @@ Store resolved environment and skills directory internally and use throughout al
 4. Verify responsiveness if applicable.
 
 **Step 6: Bug Documentation**
-1. Read the bug template from the skills directory resolved in Step 0 (e.g., `.claude/skills/do-execute-qa/assets/bug-template.md` for Claude Code, `.cursor/rules/do-execute-qa/assets/bug-template.md` for Cursor AI).
+1. Read the bug template at `do-execute-qa/assets/bug-template.md`.
 2. For each bug found, create an individual file at `./prds/prd-[feature-slug]/qa-bugs/bug-[XX]-[severidade-completa]-[brief-slug].md`, where:
    - `[XX]` is a sequential number (01, 02, …).
    - `[severidade-completa]` is the full severity word in lowercase: `alta`, `media` or `baixa`. Do NOT abbreviate.
@@ -83,7 +84,7 @@ Store resolved environment and skills directory internally and use throughout al
 5. If a blocking bug is found, document and report immediately.
 
 **Step 7: Generate QA Report (Mandatory)**
-1. Read the report template from the skills directory resolved in Step 0 (e.g., `.claude/skills/do-execute-qa/assets/qa-report-template.md` for Claude Code, `.cursor/rules/do-execute-qa/assets/qa-report-template.md` for Cursor AI).
+1. Read the report template at `do-execute-qa/assets/qa-report-template.md`.
 2. Fill in all sections with actual results.
 3. Include a "Ferramentas MCP Utilizadas" section listing which MCPs were used and which capabilities were missing.
 4. Save the report to `./prds/prd-[feature-slug]/qa-report.md`.
@@ -109,14 +110,14 @@ Todos os artefatos gerados (relatório de QA, arquivos de bug individuais) devem
 - If `qa-bugs/` already contains bug files, continue sequential numbering — never overwrite existing files.
 
 ## References
-- Template: resolved in Step 0 (e.g., `.claude/skills/do-execute-qa/assets/qa-report-template.md` for Claude Code, `.cursor/rules/do-execute-qa/assets/qa-report-template.md` for Cursor AI)
-- Accessibility checklist: resolved in Step 0 (e.g., `.claude/skills/do-execute-qa/references/wcag-checklist.md` for Claude Code, `.cursor/rules/do-execute-qa/references/wcag-checklist.md` for Cursor AI)
-- MCP Discovery: resolved in Step 0 (e.g., `.claude/skills/do-shared/do-mcp-discovery-instructions.md` for Claude Code, `.cursor/rules/do-shared/do-mcp-discovery-instructions.md` for Cursor AI)
-- MCP Registry: resolved in Step 0 (e.g., `.claude/skills/do-shared/do-mcp-capabilities.md` for Claude Code, `.cursor/rules/do-shared/do-mcp-capabilities.md` for Cursor AI)
+- Template: `do-execute-qa/assets/qa-report-template.md`
+- Accessibility checklist: `do-execute-qa/references/wcag-checklist.md`
+- MCP Discovery: `do-shared/references/do-mcp-discovery-instructions.md`
+- MCP Registry: `do-shared/references/do-mcp-capabilities.md`
 - PRD: `./prds/prd-[feature-slug]/prd.md`
 - TechSpec: `./prds/prd-[feature-slug]/techspec.md`
 - Tasks: `./prds/prd-[feature-slug]/tasks/tasks.md`
-- Bug template: resolved in Step 0 (e.g., `.claude/skills/do-execute-qa/assets/bug-template.md` for Claude Code, `.cursor/rules/do-execute-qa/assets/bug-template.md` for Cursor AI)
+- Bug template: `do-execute-qa/assets/bug-template.md`
 - Bugs output dir: `./prds/prd-[feature-slug]/qa-bugs/bug-[XX]-[severidade-completa]-[slug].md`
 - QA Report output: `./prds/prd-[feature-slug]/qa-report.md`
 - Screenshots output dir: `./prds/prd-[feature-slug]/qa-screenshots/`

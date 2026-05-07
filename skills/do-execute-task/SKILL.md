@@ -37,14 +37,15 @@ When an `Edit` tool call fails, follow this escalation ladder:
 ## Procedures
 
 **Step 0: Detect AI Tool Environment (execute silently)**
-1. Check for `.claude/` directory in the project root → **Claude Code** → skills dir: `.claude/skills/`
-2. Check for `.github/copilot-instructions.md` or `.github/` directory → **GitHub Copilot** → skills dir: not applicable
-3. Check for `.cursor/rules/` or `.cursor/mcp.json` → **Cursor AI** → skills dir: `.cursor/rules/`
-4. Resolve available tools:
-   - **TaskUpdate**: available in Claude Code; in Copilot and Cursor, skip gracefully
+1. Check for `.claude/` directory in the project root → **Claude Code**
+2. Check for `.github/copilot-instructions.md` or `.github/` directory → **GitHub Copilot**
+3. Check for `.cursor/rules/` or `.cursor/mcp.json` → **Cursor AI**
+4. Check for `opencode.json`, `.opencode/` directory, or `AGENTS.md` → **Opencode**
+5. Resolve available tools:
+   - **TaskUpdate**: available in Claude Code; in Copilot, Cursor, and Opencode, skip gracefully
    - **Context7 MCP**: available if configured; fallback to Web Search otherwise
 
-Store resolved environment and skills directory internally.
+Skill assets/references are loaded via your AI tool's native skill resolver — do not hard-code paths. Store the detected tool and capability flags internally.
 
 **Step 1: Pre-Task Configuration (Mandatory — execute silently, do NOT present results to user)**
 1. If the user did not provide the `[feature-slug]`, scan the `./prds/` directory to identify the target PRD folder. **AUTOMATIC SELECTION RULE**: If only one PRD folder exists, use it automatically. If multiple exist, select based on this priority: (a) match with task number mentioned by user, (b) most recently modified folder (check timestamps), (c) alphabetically first. **NEVER ask the user to choose.**
@@ -54,7 +55,7 @@ Store resolved environment and skills directory internally.
 5. Read the Tech Spec at `./prds/prd-[feature-slug]/techspec.md` for technical requirements. If the TechSpec file does not exist, **HALT IMMEDIATELY** with a clear error: "TechSpec file missing. Run `do-create-techspec` first." — do NOT ask permission or wait for user response.
 6. Read `./prds/prd-[feature-slug]/tasks/tasks.md` to understand the full task list and verify dependencies. If `tasks.md` does not exist, **HALT IMMEDIATELY** with a clear error: "Tasks file missing. Run `do-create-tasks` first." — do NOT ask permission or wait for user response.
 7. Identify dependencies from previous tasks and verify they are complete.
-8. If the task file contains a `<skills>` section listing relevant skills, read those skill files from the skills directory resolved in Step 0 and incorporate their guidance during implementation.
+8. If the task file contains a `<skills>` section listing relevant skills, read those skill files (let your AI tool resolve them) and incorporate their guidance during implementation.
 
 **Step 2: Load Required Skills**
 1. Identify the technologies involved in the task.
@@ -73,9 +74,9 @@ Store resolved environment and skills directory internally.
 4. Respect ALL `<critical>` tags identified in Step 3 — they are mandatory constraints, not suggestions.
 5. As you complete each subtask listed in the task file (X.1, X.2, etc.), mark it as `[x]` in the `[num]_task.md` file.
 6. Detect the project's package manager from lock files (`bun.lockb` → bun, `pnpm-lock.yaml` → pnpm, `package-lock.json` → npm, default: `npm`).
-7. **MCP Discovery & E2E tests — WHEN TO RUN**: Execute the MCP discovery procedure from the shared skills directory resolved in Step 0 (e.g., `.claude/skills/do-shared/do-mcp-discovery-instructions.md` for Claude Code, `.cursor/rules/do-shared/do-mcp-discovery-instructions.md` for Cursor AI):
-   a. Read the MCP configuration file for the current AI tool (`.mcp.json` for Claude Code, `.vscode/mcp.json` for GitHub Copilot, `.cursor/mcp.json` for Cursor) to list configured MCP servers.
-   b. Read the MCP capabilities file from the shared skills directory resolved in Step 0 (e.g., `.claude/skills/do-shared/do-mcp-capabilities.md` for Claude Code, `.cursor/rules/do-shared/do-mcp-capabilities.md` for Cursor AI) to map each server to capabilities and tools.
+7. **MCP Discovery & E2E tests — WHEN TO RUN**: Execute the MCP discovery procedure at `do-shared/references/do-mcp-discovery-instructions.md`:
+   a. Read the MCP configuration file for the current AI tool (`.mcp.json` for Claude Code, `.vscode/mcp.json` for GitHub Copilot, `.cursor/mcp.json` for Cursor, `opencode.json` for Opencode) to list configured MCP servers.
+   b. Read the MCP capabilities file at `do-shared/references/do-mcp-capabilities.md` to map each server to capabilities and tools.
    c. Build capability map and apply the **capability guard**:
       - Frontend task + `browser-testing` MCP available → run browser E2E.
       - Backend task + backend-capable MCP available (`message-queue`, `database`, `cache`, `api-testing`) → run backend E2E via that MCP.
@@ -138,7 +139,7 @@ The ONLY permitted modification to `tasks.md` is changing `[ ]` to `[x]` for the
 **Step 6: Code Review**
 1. Re-read the task file to ensure you have the latest content (context compression may have discarded earlier reads).
 2. Check if the project is a git repository by running `git rev-parse --is-inside-work-tree`. If git is available, use `git diff` and `git log` to identify files changed as part of this task and read the full context of modified files, not just the diffs. If git is NOT available, manually list all files you created or modified during implementation and read their full content for review.
-3. Read the `code-standards.md` file from the skills directory resolved in Step 0 (e.g., `.claude/skills/do-execute-task/references/code-standards.md` for Claude Code, `.cursor/rules/do-execute-task/references/code-standards.md` for Cursor AI). Review the code against those criteria and verify compliance with the project configuration file if it exists.
+3. Read the `code-standards.md` file at `do-execute-task/references/code-standards.md`. Review the code against those criteria and verify compliance with the project configuration file if it exists.
 4. For each issue found, classify as:
    - **CRÍTICO**: Bugs, problemas de segurança, funcionalidade quebrada, tratamento de erros ausente.
    - **MAIOR**: Violações de padrão de código, testes ausentes, nomenclatura incorreta.
@@ -149,7 +150,7 @@ The ONLY permitted modification to `tasks.md` is changing `[ ]` to `[x]` for the
 
 **Step 7: Create Review File (Mandatory)**
 
-1. Read the template from the skills directory resolved in Step 0 (e.g., `.claude/skills/do-execute-task/assets/review-artifact-template.md` for Claude Code, `.cursor/rules/do-execute-task/assets/review-artifact-template.md` for Cursor AI).
+1. Read the template at `do-execute-task/assets/review-artifact-template.md`.
 2. Determine the review status based on Step 6 findings:
    - **APROVADO**: Sem problemas críticos/maiores.
    - **APROVADO COM OBSERVAÇÕES**: Sem críticos, problemas menores ou poucos maiores não bloqueantes.
@@ -224,8 +225,8 @@ Todos os artefatos gerados (incluindo o arquivo de review) devem ser escritos em
 - PRD: `./prds/prd-[feature-slug]/prd.md`
 - TechSpec: `./prds/prd-[feature-slug]/techspec.md`
 - Tasks: `./prds/prd-[feature-slug]/tasks/tasks.md`
-- Review template: resolved in Step 0 (e.g., `.claude/skills/do-execute-task/assets/review-artifact-template.md` for Claude Code, `.cursor/rules/do-execute-task/assets/review-artifact-template.md` for Cursor AI)
-- Code standards: resolved in Step 0 (e.g., `.claude/skills/do-execute-task/references/code-standards.md` for Claude Code, `.cursor/rules/do-execute-task/references/code-standards.md` for Cursor AI)
-- MCP Discovery: resolved in Step 0 (e.g., `.claude/skills/do-shared/do-mcp-discovery-instructions.md` for Claude Code, `.cursor/rules/do-shared/do-mcp-discovery-instructions.md` for Cursor AI)
-- MCP Registry: resolved in Step 0 (e.g., `.claude/skills/do-shared/do-mcp-capabilities.md` for Claude Code)
+- Review template: `do-execute-task/assets/review-artifact-template.md`
+- Code standards: `do-execute-task/references/code-standards.md`
+- MCP Discovery: `do-shared/references/do-mcp-discovery-instructions.md`
+- MCP Registry: `do-shared/references/do-mcp-capabilities.md`
 - Review output: `[num]_task_review.md` (same directory as the task file)

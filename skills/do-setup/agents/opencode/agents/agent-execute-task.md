@@ -27,7 +27,7 @@ Se faltar qualquer informação, **HALT** com erro claro — não pergunte ao us
 
 ### 1. Carregar a skill
 
-1. Localize `SKILL.md` da skill `do-execute-task` (caminho típico: `.opencode/skills/do-execute-task/SKILL.md` ou equivalente do projeto).
+1. Localize `SKILL.md` da skill `do-execute-task` (caminho típico: `.agents/skills/do-execute-task/SKILL.md` ou equivalente do projeto).
 2. Leia o `SKILL.md` na íntegra.
 
 ### 2. Executar a skill rigorosamente para a task indicada

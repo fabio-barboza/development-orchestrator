@@ -21,14 +21,15 @@ You are a senior project manager specialized in breaking down features into incr
 
 **Step 0: Detect AI Tool Environment**
 Before anything else, determine the execution environment:
-1. Check for `.claude/` directory in the project root → **Claude Code** → skills dir: `.claude/skills/`
-2. Check for `.github/copilot-instructions.md` or `.github/` directory → **GitHub Copilot** → skills dir: not applicable
-3. Check for `.cursor/rules/` or `.cursor/mcp.json` → **Cursor AI** → skills dir: `.cursor/rules/`
-4. Resolve available tools based on environment:
-   - **TaskUpdate**: available in Claude Code; in Copilot and Cursor, skip gracefully
+1. Check for `.claude/` directory in the project root → **Claude Code**
+2. Check for `.github/copilot-instructions.md` or `.github/` directory → **GitHub Copilot**
+3. Check for `.cursor/rules/` or `.cursor/mcp.json` → **Cursor AI**
+4. Check for `opencode.json`, `.opencode/` directory, or `AGENTS.md` → **Opencode**
+5. Resolve available tools based on environment:
+   - **TaskUpdate**: available in Claude Code; in Copilot, Cursor, and Opencode, skip gracefully
    - **Context7 MCP**: available if configured; fallback to Web Search otherwise
 
-Store resolved environment and skills directory internally and use throughout all remaining steps.
+Skill assets/references are loaded via your AI tool's native skill resolver — do not hard-code paths. Store the detected tool and capability flags internally.
 
 **Step 1: Validate Prerequisites**
 1. Confirm the feature slug has been provided.
@@ -53,8 +54,8 @@ Store resolved environment and skills directory internally and use throughout al
 8. Wait for user approval before proceeding to Step 4.
 
 **Step 4: Generate Task Files (Mandatory)**
-1. Read the tasks summary template from the skills directory resolved in Step 0 (e.g., `.claude/skills/do-create-tasks/assets/tasks-template.md` for Claude Code, `.cursor/rules/do-create-tasks/assets/tasks-template.md` for Cursor AI).
-2. Read the individual task template from the skills directory resolved in Step 0 (e.g., `.claude/skills/do-create-tasks/assets/task-template.md` for Claude Code, `.cursor/rules/do-create-tasks/assets/task-template.md` for Cursor AI).
+1. Read the tasks summary template at `do-create-tasks/assets/tasks-template.md`.
+2. Read the individual task template at `do-create-tasks/assets/task-template.md`.
 3. **PATH VERIFICATION**: Before creating any file, confirm the target directory is exactly `./prds/prd-[feature-slug]/tasks/`. Verify the parent directory name starts with `prd-`. Never write to `./prds/[feature-slug]/tasks/` (missing `prd-` prefix).
 4. Create the directory `./prds/prd-[feature-slug]/tasks/` if it does not exist.
 5. Create the summary file: `./prds/prd-[feature-slug]/tasks/tasks.md`.
@@ -100,10 +101,10 @@ Todos os artefatos gerados (tasks.md, arquivos de task individuais) devem ser es
 - If the PRD or Tech Spec is missing, halt and direct the user to the `do-create-prd` or `do-create-techspec` skill.
 - If the user rejects the high-level task list, revise based on feedback and re-present for approval.
 - If the output directory (`./prds/prd-[feature-slug]/tasks/`) already contains task files, confirm with the user before overwriting.
-- If a template file is missing at the paths resolved in Step 0, report the error and halt — do not generate tasks without the templates.
+- If a template file cannot be loaded by your AI tool's skill discovery, report the error and halt — do not generate tasks without the templates.
 
 ## References
-- Templates: resolved in Step 0 (e.g., `.claude/skills/do-create-tasks/assets/tasks-template.md`, `.claude/skills/do-create-tasks/assets/task-template.md` for Claude Code, `.cursor/rules/do-create-tasks/assets/` for Cursor AI)
+- Templates: `do-create-tasks/assets/tasks-template.md`, `do-create-tasks/assets/task-template.md`
 - PRD: `prds/prd-[feature-slug]/prd.md`
 - TechSpec: `prds/prd-[feature-slug]/techspec.md`
 - Output: `./prds/prd-[feature-slug]/tasks/tasks.md`, `./prds/prd-[feature-slug]/tasks/[num]_task.md`
