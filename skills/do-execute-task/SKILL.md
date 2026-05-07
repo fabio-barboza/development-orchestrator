@@ -48,8 +48,8 @@ Store resolved environment and skills directory internally.
 
 **Step 1: Pre-Task Configuration (Mandatory — execute silently, do NOT present results to user)**
 1. If the user did not provide the `[feature-slug]`, scan the `./prds/` directory to identify the target PRD folder. **AUTOMATIC SELECTION RULE**: If only one PRD folder exists, use it automatically. If multiple exist, select based on this priority: (a) match with task number mentioned by user, (b) most recently modified folder (check timestamps), (c) alphabetically first. **NEVER ask the user to choose.**
-2. If the user said "task 3", interpret it as `3.0_task.md`. If the file doesn't exist, try `3_task.md` as a fallback.
-3. Read the task definition file at `./prds/prd-[feature-slug]/tasks/[num]_task.md`.
+2. If the user said "task 3" or "task 3.0", the canonical filename is `3_task.md`. The naming convention is **strictly** `<integer>_task.md` (e.g., `1_task.md`, `11_task.md`) — never `3.0_task.md`, never with descriptive slug. If the exact `<integer>_task.md` file does not exist, list `./prds/prd-[feature-slug]/tasks/` and HALT with a clear error reporting the actual filenames found — do NOT guess or fall back to a similar name.
+3. Read the task definition file at `./prds/prd-[feature-slug]/tasks/[num]_task.md` (where `[num]` is an integer such as `1`, `2`, `11`).
 4. Read the PRD at `./prds/prd-[feature-slug]/prd.md` for context. If the PRD file does not exist, **HALT IMMEDIATELY** with a clear error: "PRD file missing. Run `do-create-prd` first." — do NOT ask permission or wait for user response.
 5. Read the Tech Spec at `./prds/prd-[feature-slug]/techspec.md` for technical requirements. If the TechSpec file does not exist, **HALT IMMEDIATELY** with a clear error: "TechSpec file missing. Run `do-create-techspec` first." — do NOT ask permission or wait for user response.
 6. Read `./prds/prd-[feature-slug]/tasks/tasks.md` to understand the full task list and verify dependencies. If `tasks.md` does not exist, **HALT IMMEDIATELY** with a clear error: "Tasks file missing. Run `do-create-tasks` first." — do NOT ask permission or wait for user response.
@@ -154,7 +154,10 @@ The ONLY permitted modification to `tasks.md` is changing `[ ]` to `[x]` for the
    - **APROVADO**: Sem problemas críticos/maiores.
    - **APROVADO COM OBSERVAÇÕES**: Sem críticos, problemas menores ou poucos maiores não bloqueantes.
    - **MUDANÇAS SOLICITADAS**: Problemas críticos ou múltiplos problemas maiores.
-3. **CREATE THE FILE**: Use the `Write` tool to create `[num]_task_review.md` in `./prds/prd-[feature-slug]/`. This is the MOST IMPORTANT action in this step.
+3. **CREATE THE FILE**: Use the `Write` tool to create `[num]_task_review.md` in `./prds/prd-[feature-slug]/tasks/`. This is the MOST IMPORTANT action in this step.
+   **MANDATORY FILENAME RULE — ABSOLUTE, NON-NEGOTIABLE:**
+   - The filename MUST be exactly `<integer>_task_review.md` matching the integer of the task being reviewed (e.g., task `11_task.md` → review `11_task_review.md`).
+   - **PROHIBITED**: descriptive slugs (`11_weekly_forecast_review.md` ❌), decimal (`11.0_task_review.md` ❌), variants (`review_11.md`, `11_review.md` ❌).
 4. **VERIFY THE FILE EXISTS**: Immediately after the Write tool call, call `read_file` on `./prds/prd-[feature-slug]/tasks/[num]_task_review.md`. You MUST see the file content returned. If the read fails or returns empty → **the Write FAILED. Redo it NOW.**
 5. If the `read_file` succeeds, the file is confirmed created. Proceed to Step 8.
 

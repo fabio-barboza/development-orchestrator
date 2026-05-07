@@ -69,7 +69,7 @@ Exemplo:
 Task(
   subagent_type: "agent-execute-task",
   description: "Executar task 1.0",
-  prompt: "Execute a task 1.0 do PRD localizado em prds/prd-<nome>/. Task file: prds/prd-<nome>/tasks/1.0_task.md. Siga RIGOROSAMENTE o SKILL.md da skill do-execute-task na íntegra (Step 0 a Step 8): leitura de PRD/TechSpec, análise, implementação, gate de testes, marcação [x] em tasks.md, code review, criação do arquivo [num]_task_review.md e gate final de artefatos. Não pule etapas. Não pare para pedir confirmação. Retorne resposta curta no formato definido pelo agente."
+  prompt: "Execute a task 1.0 do PRD localizado em prds/prd-<nome>/. Task file: prds/prd-<nome>/tasks/1_task.md. Siga RIGOROSAMENTE o SKILL.md da skill do-execute-task na íntegra (Step 0 a Step 8): leitura de PRD/TechSpec, análise, implementação, gate de testes, marcação [x] em tasks.md, code review, criação do arquivo [num]_task_review.md e gate final de artefatos. Não pule etapas. Não pare para pedir confirmação. Retorne resposta curta no formato definido pelo agente."
 )
 ```
 

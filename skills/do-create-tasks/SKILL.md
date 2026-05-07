@@ -59,7 +59,12 @@ Store resolved environment and skills directory internally and use throughout al
 4. Create the directory `./prds/prd-[feature-slug]/tasks/` if it does not exist.
 5. Create the summary file: `./prds/prd-[feature-slug]/tasks/tasks.md`.
 6. Create individual task files: `./prds/prd-[feature-slug]/tasks/[num]_task.md`.
-7. Use format X.0 for main tasks, X.Y for subtasks.
+   **MANDATORY FILENAME RULE — ABSOLUTE, NON-NEGOTIABLE:**
+   - The filename MUST be exactly `<integer>_task.md` — e.g., `1_task.md`, `2_task.md`, `10_task.md`, `11_task.md`.
+   - **PROHIBITED**: descriptive slugs (`11_weekly_forecast.md` ❌), decimal numbering in filename (`1.0_task.md` ❌), title fragments (`1_task_login.md` ❌), uppercase (`1_Task.md` ❌), prefixes (`task_1.md` ❌).
+   - The task title (e.g., "Tarefa 1.0: Weekly Forecast") goes INSIDE the file content — NEVER in the filename.
+   - The integer matches the main task number from `tasks.md` (the X in `X.0`). For task `11.0`, the file is `11_task.md`.
+7. Use format X.0 for main tasks, X.Y for subtasks **inside the file content only** — never in the filename.
 8. Do NOT repeat implementation details already in the Tech Spec — reference it instead.
 9. **POST-SAVE VERIFICATION**: After writing all files, list the contents of `./prds/prd-[feature-slug]/tasks/` to confirm all expected files exist. If any file is missing, halt and report the error.
 

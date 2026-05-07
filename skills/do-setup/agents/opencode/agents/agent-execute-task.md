@@ -19,7 +19,7 @@ Você é um subagente cuja única responsabilidade é **executar UMA task espec�
 Quem te invoca (geralmente o agente `agent-execute-all-tasks`) deve fornecer:
 
 1. **ID da task** (ex.: `1.0`, `2.0`).
-2. **Caminho do PRD** (ex.: `prds/prd-<feature-slug>/`) ou caminho direto do arquivo da task (ex.: `prds/prd-<feature-slug>/tasks/1.0_task.md`).
+2. **Caminho do PRD** (ex.: `prds/prd-<feature-slug>/`) ou caminho direto do arquivo da task (ex.: `prds/prd-<feature-slug>/tasks/1_task.md`). **Convenção rígida**: o filename é sempre `<inteiro>_task.md` (ex.: `1_task.md`, `11_task.md`) — nunca `1.0_task.md`, nunca com slug descritivo.
 
 Se faltar qualquer informação, **HALT** com erro claro — não pergunte ao usuário (você é um subagente; o orquestrador é quem interage com o usuário).
 
