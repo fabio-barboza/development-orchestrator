@@ -165,17 +165,17 @@ Execute cada task em ordem:
 
 ### Opção B — Em lote (agent autônomo)
 
-Use o agent `execute-all-tasks` para executar um conjunto de tasks sequencialmente sem intervenção:
+Use o agent `do-execute-all-tasks` para executar um conjunto de tasks sequencialmente sem intervenção:
 
 ```
-/execute-all-tasks prds/prd-login-google/tasks/tasks.md all
+/do-execute-all-tasks prds/prd-login-google/tasks/tasks.md all
 ```
 
 Você também pode executar um range ou uma lista específica:
 
 ```
-/execute-all-tasks prds/prd-login-google/tasks/tasks.md 1.0-4.0
-/execute-all-tasks prds/prd-login-google/tasks/tasks.md 1.0,3.0,5.0
+/do-execute-all-tasks prds/prd-login-google/tasks/tasks.md 1.0-4.0
+/do-execute-all-tasks prds/prd-login-google/tasks/tasks.md 1.0,3.0,5.0
 ```
 
 > O agent executa uma task por vez, garante limpeza de contexto entre elas e para automaticamente em caso de falha. Disponível no Claude Code, Cursor e GitHub Copilot após o `do-setup`.

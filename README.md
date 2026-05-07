@@ -345,7 +345,7 @@ PLANEJAMENTO       EXECUÇÃO           REVIEW GERAL      VALIDAÇÃO
 
 Além das skills (invocadas explicitamente), o DO Framework inclui **agents** — componentes que expõem comandos dedicados para fluxos de trabalho mais complexos. Os agents são instalados automaticamente pelo `do-setup` nos diretórios corretos de cada ferramenta.
 
-### `execute-all-tasks` — Executar Tasks em Sequência
+### `do-execute-all-tasks` — Executar Tasks em Sequência
 
 Orquestra a execução sequencial de todas (ou um subconjunto de) tasks de um PRD, delegando cada uma à skill `do-execute-task` e garantindo isolamento de contexto entre execuções.
 
@@ -361,17 +361,18 @@ Orquestra a execução sequencial de todas (ou um subconjunto de) tasks de um PR
 
 | Ferramenta | Artefato | Invocação |
 |---|---|---|
-| **Claude Code** | Agent (`.claude/agents/`) + Command (`.claude/commands/`) | `/execute-all-tasks <tasks.md> [filtro]` |
-| **Cursor AI** | Rule (`.cursor/rules/`) + Command (`.cursor/commands/`) | `@execute-all-tasks` ou `/execute-all-tasks` |
-| **GitHub Copilot** | Chat Mode (`.github/chatmodes/`) + Prompt (`.github/prompts/`) | `/execute-all-tasks` no chat mode correspondente |
+| **Claude Code** | Agent (`.claude/agents/`) + Command (`.claude/commands/`) | `/do-execute-all-tasks <tasks.md> [filtro]` |
+| **Cursor AI** | Agent (`.cursor/agents/`) + Command (`.cursor/commands/`) | `/do-execute-all-tasks <tasks.md> [filtro]` |
+| **GitHub Copilot** | Agent (`.github/agents/`) + Prompt (`.github/prompts/`) | `/do-execute-all-tasks <tasks.md> [filtro]` |
+| **Opencode** | Agent (`.opencode/agents/`) + Command (`.opencode/commands/`) | `/do-execute-all-tasks <tasks.md> [filtro]` |
 
 **Filtros suportados:**
 
 | Filtro | Exemplo | Comportamento |
 |---|---|---|
-| `all` (default) | `/execute-all-tasks tasks.md all` | Todas as tasks pendentes (não marcadas `[x]`) |
-| Range | `/execute-all-tasks tasks.md 1.0-4.0` | Tasks no intervalo especificado |
-| Lista | `/execute-all-tasks tasks.md 1.0,3.0,5.0` | Tasks específicas por ID |
+| `all` (default) | `/do-execute-all-tasks tasks.md all` | Todas as tasks pendentes (não marcadas `[x]`) |
+| Range | `/do-execute-all-tasks tasks.md 1.0-4.0` | Tasks no intervalo especificado |
+| Lista | `/do-execute-all-tasks tasks.md 1.0,3.0,5.0` | Tasks específicas por ID |
 
 **Instalação:** Feita automaticamente pelo `do-setup`. Para reinstalar apenas os agents sem refazer o setup completo:
 

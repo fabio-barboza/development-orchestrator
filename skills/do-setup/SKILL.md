@@ -31,7 +31,11 @@ Before doing anything else, determine which AI tool is executing this skill:
    - `.cursor/rules/` directory exists → config file: `.cursor/rules/project.mdc`, skills dirs: `.cursor/rules/`
    - `.cursor/mcp.json` exists → confirms Cursor AI (use together with rules detection)
    - `.cursorrules` file exists → config file: `.cursorrules`, skills dirs: none (legacy format)
-5. If none of the above, infer from the current tool context. When in doubt, default to `CLAUDE.md`.
+5. Check for Opencode indicators → **Opencode**:
+   - `opencode.json` exists in the project root, OR
+   - `.opencode/` directory exists in the project root, OR
+   - The current tool context identifies itself as Opencode
+6. If none of the above, infer from the current tool context. When in doubt, default to `CLAUDE.md`.
 
 Store the resolved config file path, the detected AI tool name, and the skills directories internally. Use them consistently throughout all remaining steps.
 
@@ -116,25 +120,30 @@ Merge the following sections into the project configuration file at the path det
 ```
 
 **Step 5: Install Orchestration Agents & Commands**
-Based on the AI tool detected in Step 0, install the `execute-all-tasks` agent and command into the project:
+Based on the AI tool detected in Step 0, install the `do-execute-all-tasks` agent and command into the project:
 
 1. Locate the `agents/` subdirectory inside the `do-setup` skill directory by searching for `**/do-setup/agents` using Glob. This directory was copied alongside the `SKILL.md` when the user ran `npx skills add`.
 2. For each detected AI tool, create the target directories if they don't exist and copy the corresponding files:
 
    **Claude Code** (if `.claude/` was detected):
    - Run `mkdir -p .claude/agents .claude/commands`
-   - Copy `<skill-dir>/agents/claude/agents/execute-all-tasks.md` → `.claude/agents/execute-all-tasks.md`
-   - Copy `<skill-dir>/agents/claude/commands/execute-all-tasks.md` → `.claude/commands/execute-all-tasks.md`
+   - Copy `<skill-dir>/agents/claude/agents/do-execute-all-tasks.md` → `.claude/agents/do-execute-all-tasks.md`
+   - Copy `<skill-dir>/agents/claude/commands/do-execute-all-tasks.md` → `.claude/commands/do-execute-all-tasks.md`
 
    **Cursor AI** (if `.cursor/` was detected):
-   - Run `mkdir -p .cursor/commands .cursor/rules`
-   - Copy `<skill-dir>/agents/cursor/commands/execute-all-tasks.md` → `.cursor/commands/execute-all-tasks.md`
-   - Copy `<skill-dir>/agents/cursor/rules/execute-all-tasks.mdc` → `.cursor/rules/execute-all-tasks.mdc`
+   - Run `mkdir -p .cursor/agents .cursor/commands`
+   - Copy `<skill-dir>/agents/cursor/agents/do-execute-all-tasks.md` → `.cursor/agents/do-execute-all-tasks.md`
+   - Copy `<skill-dir>/agents/cursor/commands/do-execute-all-tasks.md` → `.cursor/commands/do-execute-all-tasks.md`
 
    **GitHub Copilot** (if `.github/` was detected):
-   - Run `mkdir -p .github/chatmodes .github/prompts`
-   - Copy `<skill-dir>/agents/github/chatmodes/execute-all-tasks.chatmode.md` → `.github/chatmodes/execute-all-tasks.chatmode.md`
-   - Copy `<skill-dir>/agents/github/prompts/execute-all-tasks.prompt.md` → `.github/prompts/execute-all-tasks.prompt.md`
+   - Run `mkdir -p .github/agents .github/prompts`
+   - Copy `<skill-dir>/agents/github/agents/do-execute-all-tasks.agent.md` → `.github/agents/do-execute-all-tasks.agent.md`
+   - Copy `<skill-dir>/agents/github/prompts/do-execute-all-tasks.prompt.md` → `.github/prompts/do-execute-all-tasks.prompt.md`
+
+   **Opencode** (if Opencode was detected in Step 0):
+   - Run `mkdir -p .opencode/agents .opencode/commands`
+   - Copy `<skill-dir>/agents/opencode/agents/do-execute-all-tasks.md` → `.opencode/agents/do-execute-all-tasks.md`
+   - Copy all `<skill-dir>/agents/opencode/commands/*.md` → `.opencode/commands/`
 
 3. Confirm to the user which files were installed and for which tools.
 
