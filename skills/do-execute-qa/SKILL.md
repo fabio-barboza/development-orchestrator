@@ -46,10 +46,10 @@ Skill assets/references are loaded via your AI tool's native skill resolver — 
    - Backend feature + backend-capable MCP available (`message-queue`, `database`, `cache`, `api-testing`) → proceed to Step 3 using backend MCP tools (skip Steps 4-5 which are browser-specific).
    - Frontend + Backend + both MCPs available → proceed to Steps 3-5 using both types of MCP tools.
    - Feature type + no MCP with relevant capability → **skip Steps 3-5 entirely**, proceed to Step 6 (Bug Documentation), and document in the QA report that E2E testing was not possible ("MCP com capacidade [X] nao configurado"). Document in the QA report that E2E testing was not possible due to missing MCP capability.
-3. **Environment Preparation** (only if MCP tools will be used):
+3. **Environment Preparation — Service Readiness** (only if MCP tools will be used):
    - Detect the package manager from lock files (`bun.lockb` → bun, `pnpm-lock.yaml` → pnpm, `package-lock.json` → npm, default: `npm`).
-   - **Process reset (MANDATORY before starting)**: Check if any frontend or backend dev server processes are already running (e.g., via `lsof -ti :<port>` or `pgrep -f "npm run dev|bun dev|pnpm dev|node"`). If any are found, terminate them (`kill <pid>`) before proceeding. This ensures a clean environment for testing.
-   - Start the dev server(s) using known-safe commands (`npm run dev`, `npm start`, `bun dev`, `pnpm dev`) — do NOT start brokers or external services; document the gap instead. **If the app fails to start or errors out during startup, do NOT attempt to fix the code or configuration.** Immediately create a bug file at `./prds/prd-[feature-slug]/qa-bugs/bug-[XX]-alta-aplicacao-nao-inicializa.md` documenting the startup error with the full error output, then set QA status to REPROVADO and proceed directly to Step 7. Code fixes are the responsibility of `do-execute-qa-bugfix`.
+   - **Apply `do-shared/references/do-service-readiness.md`**: probe each required service (frontend dev server, backend API, broker, database) first; reuse it if already running; start only safe dev servers if missing (`npm run dev`, `npm start`, `bun dev`, `pnpm dev`); document gaps for external services (broker, database, third-party APIs) instead of attempting to start them. **Never kill a running service** — services already up belong to the user and must be reused as-is.
+   - **If a dev server fails to start or errors out during startup**, do NOT attempt to fix the code or configuration. Immediately create a bug file at `./prds/prd-[feature-slug]/qa-bugs/bug-[XX]-alta-aplicacao-nao-inicializa.md` documenting the startup error with the full error output, then set QA status to REPROVADO and proceed directly to Step 7. Code fixes are the responsibility of `do-execute-qa-bugfix`.
    - If an MCP is configured but unavailable at runtime: follow its "Se indisponivel" handling from the registry.
 
 **Step 3: E2E Tests via MCP (Mandatory — skipped only if capability guard determined no relevant MCP)**
@@ -104,7 +104,7 @@ Todos os artefatos gerados (relatório de QA, arquivos de bug individuais) devem
 ## Error Handling
 - If the PRD does not exist, halt and direct the user to run `do-create-prd`.
 - If the TechSpec or tasks.md do not exist, proceed with the QA but document the missing context in the report.
-- If a required service is not running, attempt to start only the dev server using known-safe commands. If the app fails to start or throws errors, **immediately open a bug file** documenting the startup error (including full error output), finalize the report with status REPROVADO, and stop. Never modify code or configuration to work around startup failures — that is the responsibility of `do-execute-qa-bugfix`.
+- If a required service is not running, apply `do-shared/references/do-service-readiness.md` — probe first, reuse if running, start only safe dev servers when missing, document gaps for external services. Never kill a running service. If the dev server fails to start or throws errors, **immediately open a bug file** documenting the startup error (including full error output), finalize the report with status REPROVADO, and stop. Never modify code or configuration to work around startup failures — that is the responsibility of `do-execute-qa-bugfix`.
 - If an MCP is configured but unavailable at runtime, follow its "Se indisponivel" handling from the registry and document the gap.
 - If a blocking bug prevents testing subsequent features, document it and continue with testable areas.
 - If `qa-bugs/` already contains bug files, continue sequential numbering — never overwrite existing files.
@@ -114,6 +114,7 @@ Todos os artefatos gerados (relatório de QA, arquivos de bug individuais) devem
 - Accessibility checklist: `do-execute-qa/references/wcag-checklist.md`
 - MCP Discovery: `do-shared/references/do-mcp-discovery-instructions.md`
 - MCP Registry: `do-shared/references/do-mcp-capabilities.md`
+- Service Readiness: `do-shared/references/do-service-readiness.md`
 - PRD: `./prds/prd-[feature-slug]/prd.md`
 - TechSpec: `./prds/prd-[feature-slug]/techspec.md`
 - Tasks: `./prds/prd-[feature-slug]/tasks/tasks.md`

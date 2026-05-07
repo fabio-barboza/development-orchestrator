@@ -79,17 +79,18 @@ Skill assets/references are loaded via your AI tool's native skill resolver — 
 **Step 6: Test Execution (Mandatory)**
 1. Detect the project's package manager from lock files (`bun.lockb` → bun, `pnpm-lock.yaml` → pnpm, `package-lock.json` → npm). Default to `npm` if none found.
 2. Run the test suite using the detected package manager (e.g., `npm test`).
-3. **E2E tests via MCP**: Execute the MCP discovery procedure at `do-shared/references/do-mcp-discovery-instructions.md` — read the MCP configuration file for the current AI tool (`.mcp.json` for Claude Code, `.vscode/mcp.json` for GitHub Copilot, `.cursor/mcp.json` for Cursor, `opencode.json` for Opencode) and the MCP capabilities file at `do-shared/references/do-mcp-capabilities.md` to build the capability map. Apply the capability guard:
+3. **Service readiness — MANDATORY before any MCP/E2E that depends on a running service**: Follow the procedure at `do-shared/references/do-service-readiness.md`. Probe each required service (frontend dev server, backend API, broker, database) first; reuse it if already running; start only safe dev servers if missing (`npm run dev`, `npm start`, `bun dev`, `pnpm dev`); document gaps for external services. **Never kill a running service.** If a dev server fails to start, document the failure in the review report as a critical finding and skip the dependent E2E.
+4. **E2E tests via MCP**: Execute the MCP discovery procedure at `do-shared/references/do-mcp-discovery-instructions.md` — read the MCP configuration file for the current AI tool (`.mcp.json` for Claude Code, `.vscode/mcp.json` for GitHub Copilot, `.cursor/mcp.json` for Cursor, `opencode.json` for Opencode) and the MCP capabilities file at `do-shared/references/do-mcp-capabilities.md` to build the capability map. Apply the capability guard:
    - Frontend changes + `browser-testing` MCP → run browser E2E via MCP tools. If MCP is unavailable, document the E2E gap in the review report — do NOT use CLI fallback.
    - Backend changes + backend-capable MCP (`message-queue`, `database`, `cache`, `api-testing`) → run backend E2E via MCP tools.
    - Changes type + no relevant MCP → skip E2E, document gap in review report.
-4. If a `typecheck` script exists in `package.json`, run it. Otherwise, skip type checking.
-5. Verify:
+5. If a `typecheck` script exists in `package.json`, run it. Otherwise, skip type checking.
+6. Verify:
    - All tests pass.
    - New tests added for new code.
    - Coverage did not decrease.
    - Tests are meaningful (not just for coverage).
-6. The review CANNOT be approved if any test fails.
+7. The review CANNOT be approved if any test fails.
 
 **Step 7: Code Quality Analysis (Mandatory)**
 1. Read the code quality checklist at `do-execute-review/references/code-quality-checklist.md`.
@@ -133,6 +134,7 @@ Todos os artefatos gerados (relatório de review, arquivos de tarefa de correç�
 - If tests fail, the review status MUST be REPROVADO regardless of other findings.
 - If PRD/TechSpec/tasks.md are missing, proceed with the review but document the missing context in the report.
 - If a configured MCP is unavailable at runtime, follow its "Se indisponivel" handling from the registry. Do NOT use CLI fallback (e.g., `npx playwright test`) — document the E2E gap in the review report instead.
+- If an MCP requires a running service that is not up, apply `do-shared/references/do-service-readiness.md` — probe first, reuse if running, start only safe dev servers, document gaps for external services. Never kill a running service.
 - Check if there are files that SHOULD have been modified but were not.
 - Be constructive in criticism — always suggest alternatives.
 
@@ -142,6 +144,7 @@ Todos os artefatos gerados (relatório de review, arquivos de tarefa de correç�
 - Code quality checklist: `do-execute-review/references/code-quality-checklist.md`
 - MCP Discovery: `do-shared/references/do-mcp-discovery-instructions.md`
 - MCP Registry: `do-shared/references/do-mcp-capabilities.md`
+- Service Readiness: `do-shared/references/do-service-readiness.md`
 - PRD: `./prds/prd-[feature-slug]/prd.md`
 - TechSpec: `./prds/prd-[feature-slug]/techspec.md`
 - Tasks: `./prds/prd-[feature-slug]/tasks/tasks.md`

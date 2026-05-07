@@ -82,8 +82,9 @@ Skill assets/references are loaded via your AI tool's native skill resolver — 
       - Backend task + backend-capable MCP available (`message-queue`, `database`, `cache`, `api-testing`) → run backend E2E via that MCP.
       - Frontend + Backend + both available → run both.
       - Task type + no relevant MCP → skip E2E, continue with unit/integration tests, document gap in review.
-8. **HOW TO RUN E2E tests**: MUST be executed via the appropriate MCP tools as listed in the capability registry — **NEVER via CLI**. Use the tools described in each MCP's registry entry. For MCPs that require a running service (check "Requer app rodando" in registry), verify the service is accessible before invoking tools. If not running, attempt to start only the dev server using known-safe commands (`npm run dev`, `npm start`, `bun dev`, `pnpm dev`) — for brokers or external services, document the gap instead of attempting to start them automatically.
-9. **If an MCP is unavailable** (connection error, tools not responding): Follow the "Se indisponivel" handling from the MCP's registry entry. Continue with unit/integration tests and document the E2E gap in the review.
+8. **HOW TO RUN E2E tests**: MUST be executed via the appropriate MCP tools as listed in the capability registry — **NEVER via CLI**. Use the tools described in each MCP's registry entry.
+9. **Service readiness — MANDATORY before invoking any MCP/E2E that depends on a running service**: Follow the procedure at `do-shared/references/do-service-readiness.md`. The rule is **check first, reuse if running, start only when needed, never kill running services**. For MCPs whose registry entry has `Requer app rodando: Sim`, run a port/health probe before invoking tools; if the service is not running, start only safe dev servers (`npm run dev`, `npm start`, `bun dev`, `pnpm dev`); for brokers or external services, document the gap instead of attempting to start them automatically.
+10. **If an MCP is unavailable** (connection error, tools not responding): Follow the "Se indisponivel" handling from the MCP's registry entry. Continue with unit/integration tests and document the E2E gap in the review.
 
 **Step 4B: ALL TESTS MUST PASS — NON-NEGOTIABLE GATE**
 
@@ -211,7 +212,7 @@ Perform ALL checks below. If ANY fails, fix it first.
 - If dependencies are not complete, warn the user in a status message and proceed anyway — do NOT wait for confirmation.
 - If tests fail, fix the issues and re-run (up to 5 cycles). NEVER mark the task as complete with failing tests. If stuck after 5 cycles, report to the user and leave the task as incomplete.
 - If the review identifies critical issues, address them (up to 3 fix cycles) before finalizing.
-- If a service required by an MCP is not running (app, broker, etc.), start it or document the gap.
+- If a service required by an MCP is not running (app, broker, etc.), apply `do-shared/references/do-service-readiness.md` — probe first, reuse if running, start only safe dev servers, document gaps for external services. Never kill a running service.
 - If an MCP is unavailable, follow its "Se indisponivel" handling from the registry. Continue with unit/integration tests and document the E2E gap in the review.
 - If git is not initialized, skip git-based diff analysis and manually track changed files.
 - If implementation fails mid-way (compilation errors, incompatible dependencies, etc.), document what was completed and what remains, ensure the codebase compiles (revert broken partial changes if needed), and report the blocker to the user.
@@ -229,4 +230,5 @@ Todos os artefatos gerados (incluindo o arquivo de review) devem ser escritos em
 - Code standards: `do-execute-task/references/code-standards.md`
 - MCP Discovery: `do-shared/references/do-mcp-discovery-instructions.md`
 - MCP Registry: `do-shared/references/do-mcp-capabilities.md`
+- Service Readiness: `do-shared/references/do-service-readiness.md`
 - Review output: `[num]_task_review.md` (same directory as the task file)

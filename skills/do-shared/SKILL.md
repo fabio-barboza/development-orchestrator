@@ -11,6 +11,7 @@ Centralizes references consumed by multiple `do-*` execution skills. Avoids dupl
 ## Contents
 - `references/do-mcp-capabilities.md`: Registry mapping each configured MCP server to its capabilities, tool prefix, runtime requirements, and unavailability handling.
 - `references/do-mcp-discovery-instructions.md`: Standard procedure for discovering MCP servers in the active AI tool's configuration file and applying the capability guard.
+- `references/do-service-readiness.md`: Standard procedure for checking, reusing, and starting services (frontend dev server, backend API, broker, database) before invoking MCP tools or E2E tests. Enforces "check first, reuse if running, start only when needed, never kill running services".
 
 ## Consumers
 The following skills read these references at runtime:
@@ -29,3 +30,4 @@ This skill is **not user-invocable**. Other `do-*` skills cite the absolute path
 ## References
 - MCP Registry: `do-shared/references/do-mcp-capabilities.md`
 - MCP Discovery: `do-shared/references/do-mcp-discovery-instructions.md`
+- Service Readiness: `do-shared/references/do-service-readiness.md`
