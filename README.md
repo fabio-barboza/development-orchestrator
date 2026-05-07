@@ -424,7 +424,7 @@ A localização e o formato do arquivo de configuração de MCPs **varia conform
 | **Claude Code** | `.mcp.json` (raiz do projeto) ou `~/.mcp.json` (global) | `mcpServers` |
 | **GitHub Copilot** | `.vscode/mcp.json` | `servers` |
 | **Cursor** | `.cursor/mcp.json` | `mcpServers` |
-| **Opencode** | `opencode.json` (raiz do projeto) | `mcpServers` |
+| **Opencode** | `opencode.json` (raiz do projeto) | `mcp` |
 
 Os MCPs disponíveis para o DO Framework estão documentados em `skills/do-shared/do-mcp-capabilities.md`. Você pode adicioná-los no arquivo correspondente à sua ferramenta.
 
@@ -531,23 +531,20 @@ Obs: Você pode adicionar novos MCPs e configurá-los no `skills/do-shared/do-mc
 
 ```json
 {
-  "mcpServers": {
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
     "playwright": {
-      "type": "stdio",
-      "command": "npx",
-      "args": ["@playwright/mcp@latest"],
-      "env": {}
+      "type": "local",
+      "command": ["npx", "@playwright/mcp@latest"]
     },
     "context7": {
-      "type": "stdio",
-      "command": "npx",
-      "args": ["-y", "@upstash/context7-mcp@latest"],
-      "env": {}
+      "type": "local",
+      "command": ["npx", "-y", "@upstash/context7-mcp@latest"]
     },
     "rabbitmq": {
-      "type": "stdio",
-      "command": "uvx",
-      "args": [
+      "type": "local",
+      "command": [
+        "uvx",
         "mcp-server-rabbitmq@latest",
         "--rabbitmq-host", "localhost",
         "--port", "5672",
@@ -796,7 +793,7 @@ O DO Framework é agnóstico à ferramenta de IA. Os conceitos, o fluxo de traba
 | **Claude Code** | `.claude/skills/` | `CLAUDE.md` | `.mcp.json` |
 | **GitHub Copilot** | `.github/` (instructions) | `.github/copilot-instructions.md` | `.vscode/mcp.json` |
 | **Cursor** | `.cursor/rules/` (`.mdc` files) | `.cursor/rules/project.mdc` ou `.cursorrules` | `.cursor/mcp.json` |
-| **Opencode** | `.opencode/skills/` | `opencode.json` | `opencode.json` (chave `mcpServers`) |
+| **Opencode** | `.opencode/skills/` | `opencode.json` | `opencode.json` (chave `mcp`) |
 
 ---
 
