@@ -68,6 +68,12 @@ Skill assets/references are loaded via your AI tool's native skill resolver — 
 7. Use format X.0 for main tasks, X.Y for subtasks **inside the file content only** — never in the filename.
 8. Do NOT repeat implementation details already in the Tech Spec — reference it instead.
 9. **POST-SAVE VERIFICATION**: After writing all files, list the contents of `./prds/prd-[feature-slug]/tasks/` to confirm all expected files exist. If any file is missing, halt and report the error.
+10. **DUPLICATE & FILENAME GUARD (applies to all AI tools)**:
+    - Spurious decimal-prefixed duplicates (e.g., `1.0_task.md` alongside the canonical `1_task.md`) corrupt the task pipeline and must be detected and removed regardless of which AI tool is running this skill.
+    - Before creating any file, plan and write down the exact list of filenames you will produce. Every filename MUST match the regex `^[0-9]+_task\.md$` or be exactly `tasks.md`. If your plan includes ANY filename with a decimal point (e.g., `1.0_task.md`, `2.0_task.md`), STOP and rewrite the plan — those filenames are PROHIBITED.
+    - Create files strictly one per task. Do NOT create both `<X>_task.md` and `<X>.0_task.md` — only the integer-prefixed form is allowed. Decimal numbering belongs INSIDE the file content (`# Tarefa X.0:` heading, subtasks `X.1`, `X.2`), never in the filename.
+    - After Step 4.9, scan `./prds/prd-[feature-slug]/tasks/` and identify any file whose name does NOT match `^[0-9]+_task\.md$`, is not exactly `tasks.md`, and is not an `<integer>_task_review.md` (review files are produced by `do-execute-task`, not by this skill — but never delete them if present from prior runs). For every spurious file (e.g., `1.0_task.md`, `2.0_task.md`, `1_task_login.md`), delete it with `rm` via Bash. Re-list the directory afterwards and confirm only `tasks.md`, `<integer>_task.md`, and any pre-existing `<integer>_task_review.md` remain.
+    - If the directory listing still shows any decimal-prefixed task file after deletion, HALT and report the error to the user — do not proceed to Step 5.
 
 **Step 5: Report Results & Sync Progress (Mandatory)**
 1. **SYNC INTERNAL PROGRESS**: Once the tasks are generated, if `TaskUpdate` is available (Claude Code only; skip in Copilot and Cursor), use it to mark all corresponding items in your internal task tracking as `completed`. Otherwise, skip this step.
