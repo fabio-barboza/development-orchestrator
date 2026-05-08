@@ -399,7 +399,7 @@ O DO Framework usa **Model Context Protocol (MCP)** para descoberta dinâmica de
 ### Como Funciona a Descoberta
 
 1. Le o arquivo de configuração MCP da ferramenta de IA (`.mcp.json`, `.vscode/mcp.json`, etc.) → lista MCP servers configurados
-2. Le `do-mcp-capabilities.md` → mapeia cada server a capacidades e tools
+2. Le `do-shared/references/do-mcp-capabilities.md` → mapeia cada server a capacidades e tools
 3. Constroi mapa interno: `{ "browser-testing": ["playwright"], "message-queue": ["rabbitmq"] }`
 4. Aplica **capability guard**: usa MCP disponível conforme tipo da feature
 
@@ -422,9 +422,9 @@ A localização e o formato do arquivo de configuração de MCPs **varia conform
 | **GitHub Copilot** | `.vscode/mcp.json` | `servers` |
 | **Cursor** | `.cursor/mcp.json` | `mcpServers` |
 
-Os MCPs disponíveis para o DO Framework estão documentados em `skills/do-shared/do-mcp-capabilities.md`. Você pode adicioná-los no arquivo correspondente à sua ferramenta.
+Os MCPs disponíveis para o DO Framework estão documentados em `skills/do-shared/references/do-mcp-capabilities.md`. Você pode adicioná-los no arquivo correspondente à sua ferramenta.
 
-Obs: Você pode adicionar novos MCPs e configurá-los no `skills/do-shared/do-mcp-capabilities.md`
+Obs: Você pode adicionar novos MCPs e configurá-los no `skills/do-shared/references/do-mcp-capabilities.md`
 
 **Claude Code — `.mcp.json` (raiz do projeto):**
 
@@ -523,7 +523,7 @@ Obs: Você pode adicionar novos MCPs e configurá-los no `skills/do-shared/do-mc
 }
 ```
 
-**MCPs Disponíveis (já documentados em `do-mcp-capabilities.md`):**
+**MCPs Disponíveis (já documentados em `do-shared/references/do-mcp-capabilities.md`):**
 
 | MCP | Capacidade | Quando Usar |
 |-----|------------|-------------|
@@ -533,7 +533,7 @@ Obs: Você pode adicionar novos MCPs e configurá-los no `skills/do-shared/do-mc
 
 ### Registry de Capacidades
 
-**Arquivo:** `skills/do-shared/do-mcp-capabilities.md`
+**Arquivo:** `skills/do-shared/references/do-mcp-capabilities.md`
 
 Documenta cada MCP com:
 - Capacidades (browser-testing, documentation, message-queue, etc.)
@@ -546,7 +546,7 @@ Documenta cada MCP com:
 ### Adicionar Novo MCP (Zero Code Changes)
 
 1. Configurar no arquivo MCP da sua ferramenta (`.mcp.json`, `.vscode/mcp.json`, etc.)
-2. Adicionar entrada em `do-mcp-capabilities.md`
+2. Adicionar entrada em `do-shared/references/do-mcp-capabilities.md`
 3. **Pronto** — skills descobrem automaticamente, nenhuma edição nas skills necessária
 
 ## Prerequisitos do Ambiente
@@ -601,7 +601,7 @@ uvx --version
    }
    ```
 
-2. Adicionar entrada em `do-mcp-capabilities.md`:
+2. Adicionar entrada em `do-shared/references/do-mcp-capabilities.md`:
    ```markdown
    ### playwright
    - **Capacidades:** browser-testing
@@ -730,8 +730,8 @@ uvx --version
 
 | Arquivo | Propósito |
 |---------|-----------|
-| `do-mcp-capabilities.md` | Registry central de MCPs e suas capacidades |
-| `do-mcp-discovery-instructions.md` | Procedimento de descoberta dinâmica de MCPs |
+| `do-shared/references/do-mcp-capabilities.md` | Registry central de MCPs e suas capacidades |
+| `do-shared/references/do-mcp-discovery-instructions.md` | Procedimento de descoberta dinâmica de MCPs |
 | Arquivo de configuração MCP (`.mcp.json`, `.vscode/mcp.json`, etc.) | Configuração de MCP servers ativos no projeto — localização varia por ferramenta de IA |
 | Arquivo de configuração do projeto (`CLAUDE.md`, `.github/copilot-instructions.md`, etc.) | Contexto do projeto gerado por `do-setup` — nome varia por ferramenta de IA |
 

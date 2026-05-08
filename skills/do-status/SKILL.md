@@ -46,6 +46,12 @@ Progresso: X/Y tasks concluídas (Z%)
 ## Output Language
 Report in Brazilian Portuguese (PT-BR).
 
+## Error Handling
+- If `./prds/` does not exist or contains no `prd-*` folder, halt with: "No PRDs found — run `do-create-prd` first."
+- If `tasks.md` does not exist for the selected PRD, halt with: "tasks.md not found — run `do-create-tasks` first."
+- If multiple `prd-*` folders exist and none was specified, select the most recently modified — never block on user input.
+- If a task is marked `[x]` but its review file is missing, list the inconsistency under "Artefatos ausentes" — do not modify any file.
+
 ## References
 - Tasks index: `./prds/prd-[feature-slug]/tasks/tasks.md`
 - Task files: `./prds/prd-[feature-slug]/tasks/[num]_task.md`
