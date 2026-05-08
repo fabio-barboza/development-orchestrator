@@ -123,7 +123,10 @@ Merge the following sections into the project configuration file at the path det
 ```
 
 **Step 5: Install Orchestration Agents & Commands**
-Based on the AI tool detected in Step 0, install the `agent-execute-all-tasks` orchestrator, the `agent-execute-task` worker subagent and the slash command into the project. Both agents are required: the orchestrator delegates each task to a fresh `agent-execute-task` subagent (isolated context per task) so the orchestrator's own context window doesn't blow up across long task lists.
+Based on the AI tool detected in Step 0, install the `agent-execute-task` worker subagent and the slash command for orchestration. The orchestration logic of the queue lives in different places depending on the AI tool's subagent nesting policy:
+
+- **Claude Code, Cursor, GitHub Copilot**: subagents **cannot** spawn other subagents by default ([Claude Code docs](https://code.claude.com/docs/en/sub-agents); Copilot requires `chat.subagents.allowInvocationsFromSubagents=true`, which is off by default). The orchestration loop lives **inside the slash command/prompt itself** (runs on the main agent), and only `agent-execute-task` is installed as a subagent. Each task is delegated via the platform's task tool (one nesting level — allowed).
+- **Opencode**: subagent nesting is allowed natively. Both `agent-execute-all-tasks` (orchestrator) and `agent-execute-task` (worker) are installed as subagents.
 
 > Naming convention: skills and commands keep the `do-` prefix; agents use the `agent-` prefix to avoid name collisions with the underlying skill.
 
@@ -132,21 +135,24 @@ Based on the AI tool detected in Step 0, install the `agent-execute-all-tasks` o
 
    **Claude Code** (if `.claude/` was detected):
    - Run `mkdir -p .claude/agents .claude/commands`
-   - Copy `<skill-dir>/agents/claude/agents/agent-execute-all-tasks.md` → `.claude/agents/agent-execute-all-tasks.md`
    - Copy `<skill-dir>/agents/claude/agents/agent-execute-task.md` → `.claude/agents/agent-execute-task.md`
    - Copy `<skill-dir>/agents/claude/commands/do-execute-all-tasks.md` → `.claude/commands/do-execute-all-tasks.md`
+   - **Do NOT** copy any `agent-execute-all-tasks.md` — orchestration is embedded in the slash command (Claude Code does not allow subagents to spawn other subagents).
+   - If a previous install left a stale `.claude/agents/agent-execute-all-tasks.md` in the project, delete it (`rm -f .claude/agents/agent-execute-all-tasks.md`).
 
    **Cursor AI** (if `.cursor/` was detected):
    - Run `mkdir -p .cursor/agents .cursor/commands`
-   - Copy `<skill-dir>/agents/cursor/agents/agent-execute-all-tasks.md` → `.cursor/agents/agent-execute-all-tasks.md`
    - Copy `<skill-dir>/agents/cursor/agents/agent-execute-task.md` → `.cursor/agents/agent-execute-task.md`
    - Copy `<skill-dir>/agents/cursor/commands/do-execute-all-tasks.md` → `.cursor/commands/do-execute-all-tasks.md`
+   - **Do NOT** copy any `agent-execute-all-tasks.md` — orchestration is embedded in the slash command.
+   - If a previous install left a stale `.cursor/agents/agent-execute-all-tasks.md`, delete it (`rm -f .cursor/agents/agent-execute-all-tasks.md`).
 
    **GitHub Copilot** (if `.github/` was detected):
    - Run `mkdir -p .github/agents .github/prompts`
-   - Copy `<skill-dir>/agents/github/agents/agent-execute-all-tasks.agent.md` → `.github/agents/agent-execute-all-tasks.agent.md`
    - Copy `<skill-dir>/agents/github/agents/agent-execute-task.agent.md` → `.github/agents/agent-execute-task.agent.md`
    - Copy `<skill-dir>/agents/github/prompts/do-execute-all-tasks.prompt.md` → `.github/prompts/do-execute-all-tasks.prompt.md`
+   - **Do NOT** copy any `agent-execute-all-tasks.agent.md` — orchestration is embedded in the prompt.
+   - If a previous install left a stale `.github/agents/agent-execute-all-tasks.agent.md`, delete it (`rm -f .github/agents/agent-execute-all-tasks.agent.md`).
 
    **Opencode** (if Opencode was detected in Step 0):
    - Run `mkdir -p .opencode/agents .opencode/commands`
