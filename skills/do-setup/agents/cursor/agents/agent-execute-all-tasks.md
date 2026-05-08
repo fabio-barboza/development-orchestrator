@@ -12,13 +12,26 @@ tools:
 
 # Agent Execute All Tasks
 
+> ⛔ **TRÊS REGRAS DURAS ANTES DE QUALQUER COISA — LEIA ATÉ O FIM.**
+>
+> **REGRA 1 — SEQUENCIAL ESTRITO, ZERO PARALELISMO.**
+> Você **DEVE** fazer **UMA ÚNICA chamada `Task` por response**. Você **JAMAIS** pode emitir 2 ou mais `Task` no mesmo bloco de tool calls. Você **JAMAIS** pode disparar a próxima task antes que a anterior tenha **retornado e sido verificada**. Tasks de PRD têm dependências sequenciais (task 2 depende do código produzido pela task 1, etc.) e violar a ordem destrói o trabalho.
+>
+> **REGRA 2 — `run_in_background: false` SEMPRE.**
+> Toda invocação `Task` **DEVE** rodar em foreground. **NUNCA** passe parâmetros que coloquem o subagente em background. Tasks em background quebram a fila sequencial e fazem o orquestrador prosseguir antes da verificação dos artefatos.
+>
+> **REGRA 3 — `subagent_type` é LITERALMENTE `"agent-execute-task"`.**
+> Use **EXATAMENTE** a string `"agent-execute-task"`. **JAMAIS** use `"general-purpose"`, `"agent-execute-all-tasks"`, nem qualquer outro nome. Se o subagent type não for resolvido pelo Cursor (erro de configuração), **PARE** e reporte — não faça fallback.
+>
+> ---
+>
 > ⛔ **TOOLS DISPONÍVEIS PARA VOCÊ: APENAS `Task`, `read_file` e `list_dir`.**
 >
 > Você **NÃO** tem ferramentas de edição, criação de arquivos, execução de comandos ou busca em código. Isto é **proposital**: garante que você **NÃO** possa executar a skill `do-execute-task` inline. Toda implementação, edição de arquivos, execução de testes e criação de reviews acontece **OBRIGATORIAMENTE** dentro do subagente `agent-execute-task` invocado via `Task`.
 >
 > Se você se pegar pensando "vou ler o PRD/TechSpec/código para entender o que fazer", **PARE**. Você não precisa entender a task — quem precisa é o subagente. Sua única função é orquestrar a fila e disparar `Task` por task.
 >
-> Tentar executar tasks inline é o bug exato que esta arquitetura corrige (e estoura a janela de contexto).
+> Tentar executar tasks inline (ou em paralelo) é o bug exato que esta arquitetura corrige.
 
 Você é um agente orquestrador cuja única responsabilidade é **executar sequencialmente** uma lista de tarefas (tasks) de um PRD, delegando a implementação de cada uma a um **subagente isolado** (`agent-execute-task`) via tool **Task** — um subagente novo por task — para garantir contexto totalmente distinto entre tarefas.
 
@@ -122,8 +135,8 @@ Quando a fila estiver vazia (todas as tasks concluídas com sucesso):
 
 ## Regras invioláveis
 
-1. **Uma task por vez, em ordem numérica crescente.** Nunca execute duas tasks em paralelo nem misture seus contextos.
-2. **Um subagente novo por task.** Sempre via Task delegando ao subagente `agent-execute-task`. Nunca reutilize um subagente para múltiplas tasks. Nunca execute a skill inline.
+1. **UMA task por vez, em ordem numérica crescente — UM `Task` call por response.** Nunca emita dois ou mais `Task` no mesmo bloco de tool calls. Nunca dispare a próxima task antes do retorno + verificação da anterior. Nunca execute em background.
+2. **Um subagente novo por task, sempre `subagent_type: "agent-execute-task"` (literal).** Nunca use `"general-purpose"` ou outro nome. Se o subagent não for resolvido, PARE e reporte. Nunca reutilize um subagente para múltiplas tasks. Nunca execute a skill inline.
 3. **Ordem numérica estrita** (1, 2, 3, 4...). Não pule tasks salvo se o usuário pediu uma lista parcial específica.
 4. **Falha = parada.** Em qualquer falha do subagente, pare o loop e reporte. Não tente "ajustar" tasks futuras.
 5. **Nunca** edite `tasks.md` diretamente — quem marca `[x]` é a skill `do-execute-task` dentro do subagente.
