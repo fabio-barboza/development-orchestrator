@@ -739,6 +739,8 @@ uvx --version
 
 O DO Framework é agnóstico à ferramenta de IA. Os conceitos, o fluxo de trabalho e os artefatos gerados funcionam com qualquer ferramenta que suporte skills/instruções customizadas.
 
+> **Ferramentas testadas:** As skills e agents do DO Framework foram testados com **Opencode**, **Claude Code**, **Cursor** e **GitHub Copilot**. Por serem implementados como skills (instruções em arquivos de texto), possivelmente funcionam com outras ferramentas que suportem o mesmo mecanismo — mas não há garantia de compatibilidade.
+
 **Convenções de caminho**: Os arquivos de skill referenciam internamente o diretório `.claude/skills/` (convenção do Claude Code). Se você usa outra ferramenta, os arquivos estarão no diretório equivalente dessa ferramenta (ex: `.github/` para GitHub Copilot).
 
 | Ferramenta | Diretório de Skills | Config do Projeto | Config MCP |

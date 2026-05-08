@@ -4,6 +4,8 @@ Este manual mostra como usar o DO Framework do começo ao fim, passo a passo.
 
 > Para detalhes completos de cada skill, consulte o [README.md](README.md).
 
+> **Ferramentas testadas:** As skills e agents do DO Framework foram testados com **Opencode**, **Claude Code**, **Cursor** e **GitHub Copilot**. Por serem implementados como skills (instruções em arquivos de texto), possivelmente funcionam com outras ferramentas que suportem o mesmo mecanismo — mas não há garantia de compatibilidade.
+
 ## Economia de Tokens — Use o Modelo Certo em Cada Fase
 
 Cada etapa do framework opera de forma completamente independente. O contexto de uma fase não é carregado na próxima — apenas os artefatos gerados (arquivos `.md`) são passados adiante. Isso permite uma estratégia de custo eficiente:
