@@ -1,5 +1,8 @@
 # Tarefa X.0: [Título da Tarefa]
 
+<!-- Filename rule: este arquivo DEVE ser salvo como `<X>_task.md` (ex.: 1_task.md, 11_task.md). Nunca use `X.0_task.md` nem inclua o título no filename. -->
+
+
 <critical>Ler os arquivos de prd.md e techspec.md desta pasta, se você não ler esses arquivos sua tarefa será invalidada</critical>
 
 ## Visão Geral

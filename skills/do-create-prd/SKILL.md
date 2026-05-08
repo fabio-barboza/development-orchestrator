@@ -26,14 +26,15 @@ In GitHub Copilot and Cursor AI, each user message starts a fresh invocation —
 
 **Step 0: Detect AI Tool Environment**
 Before anything else, determine the execution environment:
-1. Check for `.claude/` directory in the project root → **Claude Code** → skills dir: `.claude/skills/`
-2. Check for `.github/copilot-instructions.md` or `.github/` directory → **GitHub Copilot** → skills dir: not applicable
-3. Check for `.cursor/rules/` or `.cursor/mcp.json` → **Cursor AI** → skills dir: `.cursor/rules/`
-4. Resolve available tools based on environment:
+1. Check for `.claude/` directory in the project root → **Claude Code**
+2. Check for `.github/copilot-instructions.md` or `.github/` directory → **GitHub Copilot**
+3. Check for `.cursor/rules/` or `.cursor/mcp.json` → **Cursor AI**
+4. Check for `opencode.json`, `.opencode/` directory, or `AGENTS.md` → **Opencode**
+5. Resolve available tools based on environment:
    - **AskUserQuestion**: use in all environments.
-   - **TaskUpdate**: available in Claude Code; in Copilot and Cursor, skip gracefully.
+   - **TaskUpdate**: available in Claude Code; in Copilot, Cursor, and Opencode, skip gracefully.
 
-Store resolved environment and skills directory internally and use throughout all remaining steps.
+Skill assets/references are loaded via your AI tool's native skill resolver — do not hard-code paths. Store the detected tool and capability flags internally.
 
 **Step 1: Validate Prerequisites**
 1. Confirm the feature name or description has been provided by the user.
@@ -57,7 +58,7 @@ Store resolved environment and skills directory internally and use throughout al
 2. Present the plan to the user for alignment.
 
 **Step 4: Draft the PRD (Mandatory)**
-1. Read the template at the path resolved in Step 0 (e.g., `.claude/skills/do-create-prd/assets/prd-template.md` for Claude Code, `.cursor/rules/do-create-prd/assets/prd-template.md` for Cursor AI).
+1. Read the template at `do-create-prd/assets/prd-template.md`.
 2. Focus on WHAT and WHY, never on HOW (implementation belongs in Tech Spec).
 3. Include numbered functional requirements.
 4. Keep the document under 2,000 words.
@@ -97,10 +98,10 @@ Todos os artefatos gerados (documento PRD, resumos) devem ser escritos em Portug
 
 ## Error Handling
 - If the user provides insufficient context, ask follow-up clarification questions before proceeding.
-- If the template file is missing at the skills directory path (e.g., `.claude/skills/do-create-prd/assets/prd-template.md` for Claude Code, `.cursor/rules/do-create-prd/assets/prd-template.md` for Cursor AI), report the error and halt — do not generate a PRD without the template.
+- If the template file is missing at the skills directory path (e.g., `do-create-prd/assets/prd-template.md`), report the error and halt — do not generate a PRD without the template.
 - If the output directory already exists, confirm with the user before overwriting.
 - If the output file cannot be written (permission error, invalid path), report the error to the user.
 
 ## References
-- Template: resolved by environment (e.g., `.claude/skills/do-create-prd/assets/prd-template.md` for Claude Code, `.cursor/rules/do-create-prd/assets/prd-template.md` for Cursor AI)
+- Template: `do-create-prd/assets/prd-template.md`
 - Output: `./prds/prd-[feature-slug]/prd.md`

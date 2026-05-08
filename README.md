@@ -38,6 +38,8 @@ Este comando irá:
 2. Configurar no seu ambiente de agente
 3. Fazer disponível para uso imediato nos seus projetos
 
+> ⚠️ **Reinicie a ferramenta após o `npx skills add`.** A maioria das ferramentas de IA (Claude Code, Cursor, GitHub Copilot, opencode) **não recarrega automaticamente** a lista de skills/comandos quando arquivos novos aparecem no disco. Se você abrir o autocomplete e os comandos `/do-*` não estiverem listados, **feche e reabra a ferramenta** (ou recarregue a janela do IDE / reinicie a sessão de chat). Isso vale tanto após o `npx skills add` quanto após o `do-setup` (que adiciona os slash commands em `.claude/commands/`, `.cursor/commands/`, `.github/prompts/` ou `.opencode/commands/`).
+
 
 ## Fluxo do Framework — Pipeline Completa
 
@@ -168,6 +170,12 @@ PLANEJAMENTO       EXECUÇÃO           REVIEW GERAL      VALIDAÇÃO
 **Output:** Arquivo de configuração do projeto (`CLAUDE.md`, `.github/copilot-instructions.md`, `.cursor/rules/project.mdc`, ou `.cursorrules`) atualizado com contexto do projeto
 
 **Argumento opcional:** `/do-setup agents` — pula a análise do projeto e instala apenas os agents/commands (útil quando o setup já foi feito anteriormente)
+
+> **Opencode (apenas na 1ª execução):** ao contrário das outras ferramentas (Claude Code, Cursor, GitHub Copilot), o opencode **não reconhece skills via `/<skill>`**. Por isso, a *primeira* invocação do `do-setup` precisa ser feita em linguagem natural:
+> ```
+> Execute do-setup
+> ```
+> O `do-setup` então copia **todos os slash commands `/do-*`** do framework (`/do-setup`, `/do-create-prd`, `/do-create-techspec`, `/do-create-tasks`, `/do-execute-task`, `/do-execute-all-tasks`, etc.) para `.opencode/commands/`. **A partir daí, todos os comandos passam a funcionar normalmente com a sintaxe `/` no opencode** — inclusive `/do-setup` em re-execuções e `/do-setup agents`.
 
 ---
 
@@ -345,9 +353,11 @@ PLANEJAMENTO       EXECUÇÃO           REVIEW GERAL      VALIDAÇÃO
 
 Além das skills (invocadas explicitamente), o DO Framework inclui **agents** — componentes que expõem comandos dedicados para fluxos de trabalho mais complexos. Os agents são instalados automaticamente pelo `do-setup` nos diretórios corretos de cada ferramenta.
 
-### `execute-all-tasks` — Executar Tasks em Sequência
+### `do-execute-all-tasks` — Executar Tasks em Sequência
 
-Orquestra a execução sequencial de todas (ou um subconjunto de) tasks de um PRD, delegando cada uma à skill `do-execute-task` e garantindo isolamento de contexto entre execuções.
+Orquestra a execução sequencial de todas (ou um subconjunto de) tasks de um PRD. O slash command `/do-execute-all-tasks` aciona o agente `agent-execute-all-tasks`, que delega cada task a um **subagente isolado** (`agent-execute-task`) via Task tool — um subagente novo por task — para garantir contexto totalmente distinto entre execuções e evitar estouro da janela de contexto em filas longas.
+
+> Convenção de nomes: skills e commands usam o prefixo `do-`; agents usam o prefixo `agent-` para não colidir com a skill `do-execute-task` que é executada dentro do worker.
 
 **Quando usar:** Ao invés de rodar `/do-execute-task` manualmente task por task, use este agent para executar um lote de forma autônoma.
 
@@ -355,23 +365,24 @@ Orquestra a execução sequencial de todas (ou um subconjunto de) tasks de um PR
 - Uma task por vez — nunca executa em paralelo
 - Ordem numérica estrita
 - Para imediatamente em caso de falha e reporta o problema
-- Limpeza de contexto obrigatória entre tasks
+- **Isolamento real de contexto via subagente** (Task tool / `#runSubagent`) — não é apenas instrução textual ao modelo
 
 **Disponível nas ferramentas:**
 
 | Ferramenta | Artefato | Invocação |
 |---|---|---|
-| **Claude Code** | Agent (`.claude/agents/`) + Command (`.claude/commands/`) | `/execute-all-tasks <tasks.md> [filtro]` |
-| **Cursor AI** | Rule (`.cursor/rules/`) + Command (`.cursor/commands/`) | `@execute-all-tasks` ou `/execute-all-tasks` |
-| **GitHub Copilot** | Chat Mode (`.github/chatmodes/`) + Prompt (`.github/prompts/`) | `/execute-all-tasks` no chat mode correspondente |
+| **Claude Code** | Agents (`.claude/agents/agent-execute-all-tasks.md` + `.claude/agents/agent-execute-task.md`) + Command (`.claude/commands/do-execute-all-tasks.md`) | `/do-execute-all-tasks <tasks.md> [filtro]` |
+| **Cursor AI** | Agents (`.cursor/agents/agent-execute-all-tasks.md` + `.cursor/agents/agent-execute-task.md`) + Command (`.cursor/commands/do-execute-all-tasks.md`) | `/do-execute-all-tasks <tasks.md> [filtro]` |
+| **GitHub Copilot** | Agents (`.github/agents/agent-execute-all-tasks.agent.md` + `.github/agents/agent-execute-task.agent.md`) + Prompt (`.github/prompts/do-execute-all-tasks.prompt.md`) | `/do-execute-all-tasks <tasks.md> [filtro]` |
+| **Opencode** | Agents (`.opencode/agents/agent-execute-all-tasks.md` + `.opencode/agents/agent-execute-task.md`) + Command (`.opencode/commands/do-execute-all-tasks.md`) | `/do-execute-all-tasks <tasks.md> [filtro]` |
 
 **Filtros suportados:**
 
 | Filtro | Exemplo | Comportamento |
 |---|---|---|
-| `all` (default) | `/execute-all-tasks tasks.md all` | Todas as tasks pendentes (não marcadas `[x]`) |
-| Range | `/execute-all-tasks tasks.md 1.0-4.0` | Tasks no intervalo especificado |
-| Lista | `/execute-all-tasks tasks.md 1.0,3.0,5.0` | Tasks específicas por ID |
+| `all` (default) | `/do-execute-all-tasks tasks.md all` | Todas as tasks pendentes (não marcadas `[x]`) |
+| Range | `/do-execute-all-tasks tasks.md 1.0-4.0` | Tasks no intervalo especificado |
+| Lista | `/do-execute-all-tasks tasks.md 1.0,3.0,5.0` | Tasks específicas por ID |
 
 **Instalação:** Feita automaticamente pelo `do-setup`. Para reinstalar apenas os agents sem refazer o setup completo:
 
@@ -388,7 +399,7 @@ O DO Framework usa **Model Context Protocol (MCP)** para descoberta dinâmica de
 ### Como Funciona a Descoberta
 
 1. Le o arquivo de configuração MCP da ferramenta de IA (`.mcp.json`, `.vscode/mcp.json`, etc.) → lista MCP servers configurados
-2. Le `do-mcp-capabilities.md` → mapeia cada server a capacidades e tools
+2. Le `do-shared/references/do-mcp-capabilities.md` → mapeia cada server a capacidades e tools
 3. Constroi mapa interno: `{ "browser-testing": ["playwright"], "message-queue": ["rabbitmq"] }`
 4. Aplica **capability guard**: usa MCP disponível conforme tipo da feature
 
@@ -411,9 +422,9 @@ A localização e o formato do arquivo de configuração de MCPs **varia conform
 | **GitHub Copilot** | `.vscode/mcp.json` | `servers` |
 | **Cursor** | `.cursor/mcp.json` | `mcpServers` |
 
-Os MCPs disponíveis para o DO Framework estão documentados em `skills/do-shared/do-mcp-capabilities.md`. Você pode adicioná-los no arquivo correspondente à sua ferramenta.
+Os MCPs disponíveis para o DO Framework estão documentados em `skills/do-shared/references/do-mcp-capabilities.md`. Você pode adicioná-los no arquivo correspondente à sua ferramenta.
 
-Obs: Você pode adicionar novos MCPs e configurá-los no `skills/do-shared/do-mcp-capabilities.md`
+Obs: Você pode adicionar novos MCPs e configurá-los no `skills/do-shared/references/do-mcp-capabilities.md`
 
 **Claude Code — `.mcp.json` (raiz do projeto):**
 
@@ -512,7 +523,7 @@ Obs: Você pode adicionar novos MCPs e configurá-los no `skills/do-shared/do-mc
 }
 ```
 
-**MCPs Disponíveis (já documentados em `do-mcp-capabilities.md`):**
+**MCPs Disponíveis (já documentados em `do-shared/references/do-mcp-capabilities.md`):**
 
 | MCP | Capacidade | Quando Usar |
 |-----|------------|-------------|
@@ -522,7 +533,7 @@ Obs: Você pode adicionar novos MCPs e configurá-los no `skills/do-shared/do-mc
 
 ### Registry de Capacidades
 
-**Arquivo:** `skills/do-shared/do-mcp-capabilities.md`
+**Arquivo:** `skills/do-shared/references/do-mcp-capabilities.md`
 
 Documenta cada MCP com:
 - Capacidades (browser-testing, documentation, message-queue, etc.)
@@ -535,7 +546,7 @@ Documenta cada MCP com:
 ### Adicionar Novo MCP (Zero Code Changes)
 
 1. Configurar no arquivo MCP da sua ferramenta (`.mcp.json`, `.vscode/mcp.json`, etc.)
-2. Adicionar entrada em `do-mcp-capabilities.md`
+2. Adicionar entrada em `do-shared/references/do-mcp-capabilities.md`
 3. **Pronto** — skills descobrem automaticamente, nenhuma edição nas skills necessária
 
 ## Prerequisitos do Ambiente
@@ -590,7 +601,7 @@ uvx --version
    }
    ```
 
-2. Adicionar entrada em `do-mcp-capabilities.md`:
+2. Adicionar entrada em `do-shared/references/do-mcp-capabilities.md`:
    ```markdown
    ### playwright
    - **Capacidades:** browser-testing
@@ -719,8 +730,8 @@ uvx --version
 
 | Arquivo | Propósito |
 |---------|-----------|
-| `do-mcp-capabilities.md` | Registry central de MCPs e suas capacidades |
-| `do-mcp-discovery-instructions.md` | Procedimento de descoberta dinâmica de MCPs |
+| `do-shared/references/do-mcp-capabilities.md` | Registry central de MCPs e suas capacidades |
+| `do-shared/references/do-mcp-discovery-instructions.md` | Procedimento de descoberta dinâmica de MCPs |
 | Arquivo de configuração MCP (`.mcp.json`, `.vscode/mcp.json`, etc.) | Configuração de MCP servers ativos no projeto — localização varia por ferramenta de IA |
 | Arquivo de configuração do projeto (`CLAUDE.md`, `.github/copilot-instructions.md`, etc.) | Contexto do projeto gerado por `do-setup` — nome varia por ferramenta de IA |
 

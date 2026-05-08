@@ -37,24 +37,25 @@ When an `Edit` tool call fails, follow this escalation ladder:
 ## Procedures
 
 **Step 0: Detect AI Tool Environment (execute silently)**
-1. Check for `.claude/` directory in the project root → **Claude Code** → skills dir: `.claude/skills/`
-2. Check for `.github/copilot-instructions.md` or `.github/` directory → **GitHub Copilot** → skills dir: not applicable
-3. Check for `.cursor/rules/` or `.cursor/mcp.json` → **Cursor AI** → skills dir: `.cursor/rules/`
-4. Resolve available tools:
-   - **TaskUpdate**: available in Claude Code; in Copilot and Cursor, skip gracefully
+1. Check for `.claude/` directory in the project root → **Claude Code**
+2. Check for `.github/copilot-instructions.md` or `.github/` directory → **GitHub Copilot**
+3. Check for `.cursor/rules/` or `.cursor/mcp.json` → **Cursor AI**
+4. Check for `opencode.json`, `.opencode/` directory, or `AGENTS.md` → **Opencode**
+5. Resolve available tools:
+   - **TaskUpdate**: available in Claude Code; in Copilot, Cursor, and Opencode, skip gracefully
    - **Context7 MCP**: available if configured; fallback to Web Search otherwise
 
-Store resolved environment and skills directory internally.
+Skill assets/references are loaded via your AI tool's native skill resolver — do not hard-code paths. Store the detected tool and capability flags internally.
 
 **Step 1: Pre-Task Configuration (Mandatory — execute silently, do NOT present results to user)**
 1. If the user did not provide the `[feature-slug]`, scan the `./prds/` directory to identify the target PRD folder. **AUTOMATIC SELECTION RULE**: If only one PRD folder exists, use it automatically. If multiple exist, select based on this priority: (a) match with task number mentioned by user, (b) most recently modified folder (check timestamps), (c) alphabetically first. **NEVER ask the user to choose.**
-2. If the user said "task 3", interpret it as `3.0_task.md`. If the file doesn't exist, try `3_task.md` as a fallback.
-3. Read the task definition file at `./prds/prd-[feature-slug]/tasks/[num]_task.md`.
+2. If the user said "task 3" or "task 3.0", the canonical filename is `3_task.md`. The naming convention is **strictly** `<integer>_task.md` (e.g., `1_task.md`, `11_task.md`) — never `3.0_task.md`, never with descriptive slug. If the exact `<integer>_task.md` file does not exist, list `./prds/prd-[feature-slug]/tasks/` and HALT with a clear error reporting the actual filenames found — do NOT guess or fall back to a similar name.
+3. Read the task definition file at `./prds/prd-[feature-slug]/tasks/[num]_task.md` (where `[num]` is an integer such as `1`, `2`, `11`).
 4. Read the PRD at `./prds/prd-[feature-slug]/prd.md` for context. If the PRD file does not exist, **HALT IMMEDIATELY** with a clear error: "PRD file missing. Run `do-create-prd` first." — do NOT ask permission or wait for user response.
 5. Read the Tech Spec at `./prds/prd-[feature-slug]/techspec.md` for technical requirements. If the TechSpec file does not exist, **HALT IMMEDIATELY** with a clear error: "TechSpec file missing. Run `do-create-techspec` first." — do NOT ask permission or wait for user response.
 6. Read `./prds/prd-[feature-slug]/tasks/tasks.md` to understand the full task list and verify dependencies. If `tasks.md` does not exist, **HALT IMMEDIATELY** with a clear error: "Tasks file missing. Run `do-create-tasks` first." — do NOT ask permission or wait for user response.
 7. Identify dependencies from previous tasks and verify they are complete.
-8. If the task file contains a `<skills>` section listing relevant skills, read those skill files from the skills directory resolved in Step 0 and incorporate their guidance during implementation.
+8. If the task file contains a `<skills>` section listing relevant skills, read those skill files (let your AI tool resolve them) and incorporate their guidance during implementation.
 
 **Step 2: Load Required Skills**
 1. Identify the technologies involved in the task.
@@ -73,16 +74,17 @@ Store resolved environment and skills directory internally.
 4. Respect ALL `<critical>` tags identified in Step 3 — they are mandatory constraints, not suggestions.
 5. As you complete each subtask listed in the task file (X.1, X.2, etc.), mark it as `[x]` in the `[num]_task.md` file.
 6. Detect the project's package manager from lock files (`bun.lockb` → bun, `pnpm-lock.yaml` → pnpm, `package-lock.json` → npm, default: `npm`).
-7. **MCP Discovery & E2E tests — WHEN TO RUN**: Execute the MCP discovery procedure from the shared skills directory resolved in Step 0 (e.g., `.claude/skills/do-shared/do-mcp-discovery-instructions.md` for Claude Code, `.cursor/rules/do-shared/do-mcp-discovery-instructions.md` for Cursor AI):
-   a. Read the MCP configuration file for the current AI tool (`.mcp.json` for Claude Code, `.vscode/mcp.json` for GitHub Copilot, `.cursor/mcp.json` for Cursor) to list configured MCP servers.
-   b. Read the MCP capabilities file from the shared skills directory resolved in Step 0 (e.g., `.claude/skills/do-shared/do-mcp-capabilities.md` for Claude Code, `.cursor/rules/do-shared/do-mcp-capabilities.md` for Cursor AI) to map each server to capabilities and tools.
+7. **MCP Discovery & E2E tests — WHEN TO RUN**: Execute the MCP discovery procedure at `do-shared/references/do-mcp-discovery-instructions.md`:
+   a. Read the MCP configuration file for the current AI tool (`.mcp.json` for Claude Code, `.vscode/mcp.json` for GitHub Copilot, `.cursor/mcp.json` for Cursor, `opencode.json` for Opencode) to list configured MCP servers.
+   b. Read the MCP capabilities file at `do-shared/references/do-mcp-capabilities.md` to map each server to capabilities and tools.
    c. Build capability map and apply the **capability guard**:
       - Frontend task + `browser-testing` MCP available → run browser E2E.
       - Backend task + backend-capable MCP available (`message-queue`, `database`, `cache`, `api-testing`) → run backend E2E via that MCP.
       - Frontend + Backend + both available → run both.
       - Task type + no relevant MCP → skip E2E, continue with unit/integration tests, document gap in review.
-8. **HOW TO RUN E2E tests**: MUST be executed via the appropriate MCP tools as listed in the capability registry — **NEVER via CLI**. Use the tools described in each MCP's registry entry. For MCPs that require a running service (check "Requer app rodando" in registry), verify the service is accessible before invoking tools. If not running, attempt to start only the dev server using known-safe commands (`npm run dev`, `npm start`, `bun dev`, `pnpm dev`) — for brokers or external services, document the gap instead of attempting to start them automatically.
-9. **If an MCP is unavailable** (connection error, tools not responding): Follow the "Se indisponivel" handling from the MCP's registry entry. Continue with unit/integration tests and document the E2E gap in the review.
+8. **HOW TO RUN E2E tests**: MUST be executed via the appropriate MCP tools as listed in the capability registry — **NEVER via CLI**. Use the tools described in each MCP's registry entry.
+9. **Service readiness — MANDATORY before invoking any MCP/E2E that depends on a running service**: Follow the procedure at `do-shared/references/do-service-readiness.md`. The rule is **check first, reuse if running, start only when needed, never kill running services**. For MCPs whose registry entry has `Requer app rodando: Sim`, run a port/health probe before invoking tools; if the service is not running, start only safe dev servers (`npm run dev`, `npm start`, `bun dev`, `pnpm dev`); for brokers or external services, document the gap instead of attempting to start them automatically.
+10. **If an MCP is unavailable** (connection error, tools not responding): Follow the "Se indisponivel" handling from the MCP's registry entry. Continue with unit/integration tests and document the E2E gap in the review.
 
 **Step 4B: ALL TESTS MUST PASS — NON-NEGOTIABLE GATE**
 
@@ -138,7 +140,7 @@ The ONLY permitted modification to `tasks.md` is changing `[ ]` to `[x]` for the
 **Step 6: Code Review**
 1. Re-read the task file to ensure you have the latest content (context compression may have discarded earlier reads).
 2. Check if the project is a git repository by running `git rev-parse --is-inside-work-tree`. If git is available, use `git diff` and `git log` to identify files changed as part of this task and read the full context of modified files, not just the diffs. If git is NOT available, manually list all files you created or modified during implementation and read their full content for review.
-3. Read the `code-standards.md` file from the skills directory resolved in Step 0 (e.g., `.claude/skills/do-execute-task/references/code-standards.md` for Claude Code, `.cursor/rules/do-execute-task/references/code-standards.md` for Cursor AI). Review the code against those criteria and verify compliance with the project configuration file if it exists.
+3. Read the `code-standards.md` file at `do-execute-task/references/code-standards.md`. Review the code against those criteria and verify compliance with the project configuration file if it exists.
 4. For each issue found, classify as:
    - **CRÍTICO**: Bugs, problemas de segurança, funcionalidade quebrada, tratamento de erros ausente.
    - **MAIOR**: Violações de padrão de código, testes ausentes, nomenclatura incorreta.
@@ -149,12 +151,15 @@ The ONLY permitted modification to `tasks.md` is changing `[ ]` to `[x]` for the
 
 **Step 7: Create Review File (Mandatory)**
 
-1. Read the template from the skills directory resolved in Step 0 (e.g., `.claude/skills/do-execute-task/assets/review-artifact-template.md` for Claude Code, `.cursor/rules/do-execute-task/assets/review-artifact-template.md` for Cursor AI).
+1. Read the template at `do-execute-task/assets/review-artifact-template.md`.
 2. Determine the review status based on Step 6 findings:
    - **APROVADO**: Sem problemas críticos/maiores.
    - **APROVADO COM OBSERVAÇÕES**: Sem críticos, problemas menores ou poucos maiores não bloqueantes.
    - **MUDANÇAS SOLICITADAS**: Problemas críticos ou múltiplos problemas maiores.
-3. **CREATE THE FILE**: Use the `Write` tool to create `[num]_task_review.md` in `./prds/prd-[feature-slug]/`. This is the MOST IMPORTANT action in this step.
+3. **CREATE THE FILE**: Use the `Write` tool to create `[num]_task_review.md` in `./prds/prd-[feature-slug]/tasks/`. This is the MOST IMPORTANT action in this step.
+   **MANDATORY FILENAME RULE — ABSOLUTE, NON-NEGOTIABLE:**
+   - The filename MUST be exactly `<integer>_task_review.md` matching the integer of the task being reviewed (e.g., task `11_task.md` → review `11_task_review.md`).
+   - **PROHIBITED**: descriptive slugs (`11_weekly_forecast_review.md` ❌), decimal (`11.0_task_review.md` ❌), variants (`review_11.md`, `11_review.md` ❌).
 4. **VERIFY THE FILE EXISTS**: Immediately after the Write tool call, call `read_file` on `./prds/prd-[feature-slug]/tasks/[num]_task_review.md`. You MUST see the file content returned. If the read fails or returns empty → **the Write FAILED. Redo it NOW.**
 5. If the `read_file` succeeds, the file is confirmed created. Proceed to Step 8.
 
@@ -207,7 +212,7 @@ Perform ALL checks below. If ANY fails, fix it first.
 - If dependencies are not complete, warn the user in a status message and proceed anyway — do NOT wait for confirmation.
 - If tests fail, fix the issues and re-run (up to 5 cycles). NEVER mark the task as complete with failing tests. If stuck after 5 cycles, report to the user and leave the task as incomplete.
 - If the review identifies critical issues, address them (up to 3 fix cycles) before finalizing.
-- If a service required by an MCP is not running (app, broker, etc.), start it or document the gap.
+- If a service required by an MCP is not running (app, broker, etc.), apply `do-shared/references/do-service-readiness.md` — probe first, reuse if running, start only safe dev servers, document gaps for external services. Never kill a running service.
 - If an MCP is unavailable, follow its "Se indisponivel" handling from the registry. Continue with unit/integration tests and document the E2E gap in the review.
 - If git is not initialized, skip git-based diff analysis and manually track changed files.
 - If implementation fails mid-way (compilation errors, incompatible dependencies, etc.), document what was completed and what remains, ensure the codebase compiles (revert broken partial changes if needed), and report the blocker to the user.
@@ -221,8 +226,9 @@ Todos os artefatos gerados (incluindo o arquivo de review) devem ser escritos em
 - PRD: `./prds/prd-[feature-slug]/prd.md`
 - TechSpec: `./prds/prd-[feature-slug]/techspec.md`
 - Tasks: `./prds/prd-[feature-slug]/tasks/tasks.md`
-- Review template: resolved in Step 0 (e.g., `.claude/skills/do-execute-task/assets/review-artifact-template.md` for Claude Code, `.cursor/rules/do-execute-task/assets/review-artifact-template.md` for Cursor AI)
-- Code standards: resolved in Step 0 (e.g., `.claude/skills/do-execute-task/references/code-standards.md` for Claude Code, `.cursor/rules/do-execute-task/references/code-standards.md` for Cursor AI)
-- MCP Discovery: resolved in Step 0 (e.g., `.claude/skills/do-shared/do-mcp-discovery-instructions.md` for Claude Code, `.cursor/rules/do-shared/do-mcp-discovery-instructions.md` for Cursor AI)
-- MCP Registry: resolved in Step 0 (e.g., `.claude/skills/do-shared/do-mcp-capabilities.md` for Claude Code)
+- Review template: `do-execute-task/assets/review-artifact-template.md`
+- Code standards: `do-execute-task/references/code-standards.md`
+- MCP Discovery: `do-shared/references/do-mcp-discovery-instructions.md`
+- MCP Registry: `do-shared/references/do-mcp-capabilities.md`
+- Service Readiness: `do-shared/references/do-service-readiness.md`
 - Review output: `[num]_task_review.md` (same directory as the task file)

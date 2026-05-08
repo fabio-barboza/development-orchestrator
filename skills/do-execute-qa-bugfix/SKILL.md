@@ -25,14 +25,15 @@ If no file path is provided, list all `aberto` bug files in `qa-bugs/` and ask t
 
 **Step 0: Detect AI Tool Environment**
 Before anything else, determine the execution environment:
-1. Check for `.claude/` directory in the project root → **Claude Code** → skills dir: `.claude/skills/`
-2. Check for `.github/copilot-instructions.md` or `.github/` directory → **GitHub Copilot** → skills dir: not applicable
-3. Check for `.cursor/rules/` or `.cursor/mcp.json` → **Cursor AI** → skills dir: `.cursor/rules/`
-4. Resolve available tools based on environment:
-   - **TaskUpdate**: available in Claude Code; in Copilot and Cursor, skip gracefully
+1. Check for `.claude/` directory in the project root → **Claude Code**
+2. Check for `.github/copilot-instructions.md` or `.github/` directory → **GitHub Copilot**
+3. Check for `.cursor/rules/` or `.cursor/mcp.json` → **Cursor AI**
+4. Check for `opencode.json`, `.opencode/` directory, or `AGENTS.md` → **Opencode**
+5. Resolve available tools based on environment:
+   - **TaskUpdate**: available in Claude Code; in Copilot, Cursor, and Opencode, skip gracefully
    - **Context7 MCP**: available if configured; fallback to Web Search otherwise
 
-Store resolved environment and skills directory internally and use throughout all remaining steps.
+Skill assets/references are loaded via your AI tool's native skill resolver — do not hard-code paths. Store the detected tool and capability flags internally.
 
 **Step 1: Context Analysis (Mandatory)**
 1. Read the bug file provided by the user. If the file does not exist, halt and report.
@@ -65,7 +66,7 @@ Store resolved environment and skills directory internally and use throughout al
 3. Choose test type based on bug nature (unit / integration / E2E) as described in the reference.
 
 **Step 5: MCP Validation (Mandatory when applicable)**
-1. Execute the MCP discovery procedure from the shared skills directory resolved in Step 0 (e.g., `.claude/skills/do-shared/do-mcp-discovery-instructions.md` for Claude Code, `.cursor/rules/do-shared/do-mcp-discovery-instructions.md` for Cursor AI).
+1. Execute the MCP discovery procedure at `do-shared/references/do-mcp-discovery-instructions.md`.
 2. For bugs affecting the **UI** (and `browser-testing` MCP available): run `mkdir -p ./prds/prd-[feature-slug]/qa-screenshots` via Bash, then navigate, reproduce the fix flow, and capture screenshot evidence using `filename: prds/prd-[feature-slug]/qa-screenshots/fix-[BUG-XX]-[slug].png`.
 3. For bugs affecting **backend** (and backend-capable MCP available): validate end-to-end via MCP tools.
 4. If no relevant MCP available: document the validation gap in the fix report, rely on unit/integration tests only.
@@ -102,9 +103,9 @@ Todos os artefatos gerados (atualizações no arquivo de bug, seções de resolu
 
 ## References
 - Bug file (input): `./prds/prd-[feature-slug]/qa-bugs/bug-[XX]-[severidade-completa]-[slug].md`
-- Regression test patterns: resolved in Step 0 (e.g., `.claude/skills/do-execute-qa-bugfix/references/regression-test-patterns.md` for Claude Code, `.cursor/rules/do-execute-qa-bugfix/references/regression-test-patterns.md` for Cursor AI)
-- MCP Discovery: resolved in Step 0 (e.g., `.claude/skills/do-shared/do-mcp-discovery-instructions.md` for Claude Code, `.cursor/rules/do-shared/do-mcp-discovery-instructions.md` for Cursor AI)
-- MCP Registry: resolved in Step 0 (e.g., `.claude/skills/do-shared/do-mcp-capabilities.md` for Claude Code, `.cursor/rules/do-shared/do-mcp-capabilities.md` for Cursor AI)
+- Regression test patterns: `do-execute-qa-bugfix/references/regression-test-patterns.md`
+- MCP Discovery: `do-shared/references/do-mcp-discovery-instructions.md`
+- MCP Registry: `do-shared/references/do-mcp-capabilities.md`
 - PRD: `./prds/prd-[feature-slug]/prd.md`
 - TechSpec: `./prds/prd-[feature-slug]/techspec.md`
 - Screenshots: `./prds/prd-[feature-slug]/qa-screenshots/`
