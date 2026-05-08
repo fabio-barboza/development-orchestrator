@@ -2,7 +2,7 @@
 name: agent-execute-task
 description: Subagente isolado que executa UMA única task de um PRD seguindo rigorosamente a skill `do-execute-task`. Use quando precisar implementar uma task específica em contexto separado do orquestrador. Não use para criar PRD/TechSpec/tasks, QA ou review.
 tools: Read, Write, Edit, Glob, Grep, Bash, SlashCommand
-model: sonnet
+model: inherit
 ---
 
 # Agent Execute Task

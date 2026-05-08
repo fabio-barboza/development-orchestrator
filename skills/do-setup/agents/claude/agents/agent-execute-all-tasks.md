@@ -2,7 +2,7 @@
 name: agent-execute-all-tasks
 description: Use proativamente quando o usuário pedir para "executar todas as tasks", "rodar a lista de tasks", "iterar sobre as tasks de um PRD" ou similar. Itera sequencialmente sobre uma lista de tarefas de um PRD e executa cada uma em SUBAGENTE ISOLADO via Task tool, garantindo contexto distinto entre tarefas. Não use para criação de PRD/TechSpec, QA, code review ou correção de bugs específicos.
 tools: Task, Read, Glob
-model: sonnet
+model: inherit
 ---
 
 # Agent Execute All Tasks
