@@ -2,16 +2,18 @@
 name: Agent Execute Task
 description: Subagente isolado que executa UMA única task de um PRD seguindo rigorosamente a skill `do-execute-task`. Use quando precisar implementar uma task específica em contexto separado do orquestrador. Não use para criar PRD/TechSpec/tasks, QA ou review.
 tools:
-  - read_file
-  - list_dir
-  - file_search
-  - grep_search
-  - run_in_terminal
-  - get_terminal_output
-  - get_errors
-  - insert_edit_into_file
-  - replace_string_in_file
-  - create_file
+  - read/readFile
+  - read/problems
+  - search/listDirectory
+  - search/fileSearch
+  - search/textSearch
+  - search/codebase
+  - search/usages
+  - execute/runInTerminal
+  - execute/getTerminalOutput
+  - edit/editFiles
+  - edit/createFile
+  - edit/createDirectory
 user-invocable: false
 ---
 
@@ -32,8 +34,8 @@ Se faltar qualquer informação, **HALT** com erro claro — não pergunte ao us
 
 ### 1. Carregar a skill
 
-1. Localize o arquivo `SKILL.md` da skill `do-execute-task` em `.github/skills/do-execute-task/SKILL.md` (ou `.claude/skills/do-execute-task/SKILL.md`) com `file_search`.
-2. Leia o arquivo na íntegra com `read_file`.
+1. Localize o arquivo `SKILL.md` da skill `do-execute-task` em `.github/skills/do-execute-task/SKILL.md` (ou `.claude/skills/do-execute-task/SKILL.md`) com `search/fileSearch`.
+2. Leia o arquivo na íntegra com `read/readFile`.
 
 ### 2. Executar a skill rigorosamente para a task indicada
 
