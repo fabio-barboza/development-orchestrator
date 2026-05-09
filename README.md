@@ -421,6 +421,7 @@ A localização e o formato do arquivo de configuração de MCPs **varia conform
 | **Claude Code** | `.mcp.json` (raiz do projeto) ou `~/.mcp.json` (global) | `mcpServers` |
 | **GitHub Copilot** | `.vscode/mcp.json` | `servers` |
 | **Cursor** | `.cursor/mcp.json` | `mcpServers` |
+| **Opencode** | `opencode.json` (raiz do projeto) ou `~/.config/opencode/opencode.json` (global) | `mcp` |
 
 Os MCPs disponíveis para o DO Framework estão documentados em `skills/do-shared/references/do-mcp-capabilities.md`. Você pode adicioná-los no arquivo correspondente à sua ferramenta.
 
@@ -518,6 +519,41 @@ Obs: Você pode adicionar novos MCPs e configurá-los no `skills/do-shared/refer
         "--password", "guest",
         "--api-port", "15672"
       ]
+    }
+  }
+}
+```
+
+**Opencode — `opencode.json` (raiz do projeto):**
+
+> Diferente das outras ferramentas, o Opencode usa a chave `mcp` (não `mcpServers`/`servers`), `type: "local"`, `command` como **array unificado** (binário + args juntos), `environment` no lugar de `env`, e exige a flag `enabled: true` para ativar cada server.
+
+```json
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "playwright": {
+      "type": "local",
+      "command": ["npx", "@playwright/mcp@latest"],
+      "enabled": true
+    },
+    "context7": {
+      "type": "local",
+      "command": ["npx", "-y", "@upstash/context7-mcp@latest"],
+      "enabled": true
+    },
+    "rabbitmq": {
+      "type": "local",
+      "command": [
+        "uvx",
+        "mcp-server-rabbitmq@latest",
+        "--rabbitmq-host", "localhost",
+        "--port", "5672",
+        "--username", "guest",
+        "--password", "guest",
+        "--api-port", "15672"
+      ],
+      "enabled": true
     }
   }
 }
