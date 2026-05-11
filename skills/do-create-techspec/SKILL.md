@@ -35,6 +35,7 @@ Skill assets/references are loaded via your AI tool's native skill resolver — 
 **Step 1: Validate Prerequisites**
 1. Confirm the feature slug has been provided.
 2. Verify the PRD exists at `prds/prd-[feature-slug]/prd.md`. If missing, halt and report.
+3. **Detect project surface (silent)**: inspect the project to set `project_surface = visual | backend`. Signals: `package.json` with frontend deps (`react`/`vue`/`svelte`/`next`/`angular`/`solid`), or files like `*.jsx`/`*.tsx`/`*.vue`/`*.svelte`/`*.html`/`*.dart`/`*.swift`/`*.kt`/`*.xaml`, or `web/`, `frontend/`, `mobile/`, `ios/`, `android/` directories. If the PRD contains an "Identidade Visual" section with substantive content, force `project_surface = visual`. Otherwise default to `backend`. Visual-implementation blocks apply ONLY when `project_surface = visual`.
 
 **Step 2: Analyze PRD (Mandatory)**
 1. Read the PRD completely — do NOT skip this step.
@@ -46,6 +47,18 @@ Skill assets/references are loaded via your AI tool's native skill resolver — 
 2. Map symbols, dependencies, and critical paths.
 3. Analyze: callers/callees, configs, middleware, persistence, concurrency, error handling, tests, infra.
 4. Explore solution strategies, patterns, risks, and alternatives.
+
+**Step 3.5: Visual Pattern Discovery (silent — ONLY when `project_surface = visual` AND the PRD has NO substantive "Identidade Visual" section)**
+
+Mature projects often follow established visual conventions in the codebase without re-declaring them in every PRD. When the PRD is silent on visual identity but the project is visual, perform a silent discovery pass to extract the project's existing visual standard:
+
+1. **Design tokens**: scan global style files (`index.css`, `globals.css`, `theme.css`, any `:root` blocks) for CSS variables. Scan `theme.ts`/`theme.js`/`tokens.ts`/`design-tokens/*` for theme keys. **List the exact token names** (e.g., `--bg-primary`, `theme.colors.accent`) so they can be cited later.
+2. **Styling methodology**: sample 3–5 existing UI components to detect the convention in use — utility classes (Tailwind), BEM, CSS Modules (`*.module.css`), CSS-in-JS (`styled-components`, `emotion`), CSS variables + plain selectors, native StyleSheet (React Native / iOS / Android), Flutter `ThemeData`, etc.
+3. **Breakpoints / adaptive rules**: search existing CSS for `@media (min-width: ...)` patterns OR mobile platform conventions; record the actual breakpoint values used.
+4. **Theme system**: search for theme provider patterns (`ThemeProvider`, `data-theme` attribute on `:root`/`<html>`, root class swap, etc.) and theme toggling logic.
+5. **Style file organization**: identify where styles live (global file vs co-located `*.module.css` vs design-system folder vs per-component CSS-in-JS).
+
+Store findings as `discovered_visual_patterns`. They become the authoritative source for the "Implementação Visual" section in Step 7.9 when the PRD is silent. If `project_surface = backend` OR the PRD already declares visual identity explicitly, SKIP this step silently.
 
 **Step 4: Research (Mandatory)**
 1. Use Context7 MCP to resolve technical questions about frameworks and libraries.
@@ -60,6 +73,7 @@ Skill assets/references are loaded via your AI tool's native skill resolver — 
    - External dependencies.
    - Key interfaces.
    - Test scenarios.
+   - **Visual implementation** (ONLY if `project_surface = visual`): styling methodology, design token architecture, theme system, responsive/adaptive strategy. **Source priority**: (1) PRD's "Identidade Visual" section when present; (2) `discovered_visual_patterns` from Step 3.5 when the PRD is silent — present the discovered patterns to the user via `AskUserQuestion` for confirmation/refinement (e.g., "Padrões existentes detectados: Tailwind + tokens em theme.ts. Adotar para esta feature?"); (3) ask the user from scratch only if both sources are empty. If `project_surface = backend`, OMIT this block.
    - Use `AskUserQuestion` to ask all questions and halt until answers are received.
 3. Do NOT proceed until answers are received.
 
@@ -76,6 +90,18 @@ Skill assets/references are loaded via your AI tool's native skill resolver — 
 6. Keep under ~2,000 words.
 7. Do NOT deviate from the template structure.
 8. Prefer existing libraries over custom development.
+9. **Visual Implementation section (conditional)**: If `project_surface = visual`, the Tech Spec MUST include an "Implementação Visual" section. Source of content:
+   - **PRD declares visual identity explicitly** → derive from the PRD's "Identidade Visual" section.
+   - **PRD is silent (typical for mature projects)** → derive from `discovered_visual_patterns` (Step 3.5), confirmed by the user at Step 5. Open the section with this note: *"Padrões existentes do projeto a seguir — PRD silencioso sobre identidade, esta feature adota o sistema vigente descoberto via análise do codebase."*
+
+   The section MUST cover:
+   - **Styling methodology** (BEM + CSS variables, utility-first/Tailwind, CSS Modules, CSS-in-JS, StyleSheet nativo, Flutter ThemeData, etc.) — declare what the project uses; do not prescribe.
+   - **Design token mapping** — **list the exact token names available** (CSS variable names like `--bg-primary`, theme object keys like `theme.colors.accent`, or platform equivalents). These names are consumed by the "Validação de Identidade Visual / CSS" task that `do-create-tasks` appends automatically when `project_surface = visual`.
+   - **Theme system architecture** (how themes are applied at runtime).
+   - **Responsive / adaptive strategy** (web: breakpoint values; mobile: screen-size adaptation, orientation).
+   - **Style file organization** (global vs component-scoped; per platform when applicable).
+
+   If `project_surface = backend`, OMIT this section entirely.
 
 **Step 8: Save Tech Spec (Mandatory)**
 1. **PATH VERIFICATION**: Before writing, confirm the target path is exactly `./prds/prd-[feature-slug]/techspec.md`. Verify the directory name starts with `prd-`. Verify the PRD directory exists (it must, since the PRD was read in Step 2).
@@ -105,6 +131,7 @@ Todos os artefatos gerados (documento Tech Spec) devem ser escritos em Portuguê
 - [ ] Key technical clarifications answered.
 - [ ] Tech Spec generated using the template.
 - [ ] Project skills verified for compliance.
+- [ ] Visual implementation conventions documented (only if `project_surface = visual`; otherwise N/A).
 - [ ] File written to `./prds/prd-[feature-slug]/techspec.md`.
 - [ ] Final output path provided and confirmed.
 

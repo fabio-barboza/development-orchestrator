@@ -38,6 +38,25 @@
 - Considerações e requisitos de UI/UX
 - Requisitos de acessibilidade]
 
+### Identidade Visual
+
+> **Aplicabilidade**: incluir esta seção APENAS se a feature tem camada visual (frontend, mobile, full-stack). Para projetos backend-only (API, CLI, worker, library), REMOVER a seção inteira ao gerar o PRD.
+
+[Especificar a identidade visual da feature, adaptando ao tipo de projeto:
+
+- **Paleta de cores**: cores primária, secundária, accent, neutras, semânticas (error, success, warning)
+- **Tipografia**: fontes, escalas de tamanho (heading, body, caption)
+- **Layout**: convenções de espaçamento (padding/margin scale), border-radius
+  - Web: grid/flexbox
+  - Mobile: layouts nativos (Stack, Flex, AutoLayout, ConstraintLayout)
+- **Breakpoints / adaptação a tela**:
+  - Web: mobile-first (320px+), tablet (768px+), desktop (1024px+)
+  - Mobile: orientação portrait/landscape, tablet vs phone
+- **Temas dinâmicos**: condições que disparam mudança de tema (dark/light, contextual), paleta por tema
+- **Design tokens**: abordagem para tokens reutilizáveis (CSS variables, theme objects, design system, etc.)
+- **Metodologia de estilo**: a escolha do projeto (CSS variables + BEM, CSS-in-JS, utility-first/Tailwind, CSS Modules, StyleSheet nativo, etc.) — declarar qual é, sem prescrever
+- **Acessibilidade**: nível alvo (web: WCAG AA, contraste 4.5:1 | mobile: diretrizes de acessibilidade da plataforma)]
+
 ## Restrições Técnicas de Alto Nível
 
 [Capture apenas restrições e considerações de alto nível (**evite soluções de design – essas pertencem à Tech Spec**):
