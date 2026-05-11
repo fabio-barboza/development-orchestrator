@@ -39,6 +39,11 @@ Skill assets/references are loaded via your AI tool's native skill resolver — 
 **Step 1: Validate Prerequisites**
 1. Confirm the feature name or description has been provided by the user.
 2. Derive the slug in kebab-case and apply the mandatory `prd-` prefix for the output directory: `./prds/prd-[feature-slug]/`. Example: `user-auth` → `./prds/prd-user-auth/`.
+3. **Detect project surface (silent)**: Determine whether the feature has a visual surface by inspecting the project:
+   - **Visual surface present** (frontend / mobile / full-stack): signals include `package.json` with `react`/`vue`/`svelte`/`next`/`angular`/`solid` deps; presence of `*.jsx`/`*.tsx`/`*.vue`/`*.svelte`/`*.html`/`*.dart`/`*.swift`/`*.kt`/`*.xaml`; a `web/`, `frontend/`, `mobile/`, `ios/`, `android/` directory.
+   - **Backend-only**: no UI signals (API service, library, CLI, worker, ETL).
+   - If unclear, default to **backend-only** unless the user explicitly mentions UI, screens, components, or visual aspects.
+   - Store as `project_surface = visual | backend`. All visual-identity blocks below apply ONLY when `project_surface = visual`.
 
 **Step 2: Clarify Requirements (Mandatory)**
 1. Use `AskUserQuestion` to ask the user clarification questions before generating any content. Halt until answers are received.
@@ -47,7 +52,12 @@ Skill assets/references are loaded via your AI tool's native skill resolver — 
    - **Users and Stories**: Primary users, user stories, main flows.
    - **Core Functionality**: Data inputs/outputs, actions.
    - **Scope and Planning**: What is NOT included, dependencies.
-   - **Design and Experience**: UI/UX guidelines and accessibility.
+   - **Design and Experience** (ONLY if `project_surface = visual`): UI/UX guidelines and accessibility.
+     - Visual identity: color palette (primary, secondary, accent), typography scale, layout patterns, responsive breakpoints (web) or platform conventions (mobile).
+     - Theme system: dynamic themes (dark/light, contextual), design token approach.
+     - Styling methodology: the project's chosen approach (CSS variables, CSS-in-JS, utility-first, native styling APIs, BEM, etc.) — let the user pick; do NOT prescribe one.
+     - Accessibility targets: WCAG level (AA recommended for web) or platform accessibility guidelines (mobile).
+   - If `project_surface = backend`, OMIT the Design and Experience block entirely from the questions.
 3. Do NOT proceed to Step 3 until clarification answers are received.
 
 **Step 3: Plan the PRD (Mandatory)**
@@ -78,6 +88,7 @@ Skill assets/references are loaded via your AI tool's native skill resolver — 
     - Is the PRD file saved correctly?
     - Is the internal task tracking synchronized?
     - Did you follow the template structure?
+    - If `project_surface = visual`: visual identity requirements were captured (colors, themes, breakpoints). If `backend`, this check is N/A.
 
 ## Output Language
 Todos os artefatos gerados (documento PRD, resumos) devem ser escritos em Português do Brasil (PT-BR). Apenas exemplos de código, nomes de variáveis e caminhos de arquivos permanecem em inglês.
@@ -93,6 +104,7 @@ Todos os artefatos gerados (documento PRD, resumos) devem ser escritos em Portug
 - [ ] Detailed plan created.
 - [ ] PRD generated using the template.
 - [ ] Numbered functional requirements included.
+- [ ] Visual identity requirements specified (only if `project_surface = visual`; otherwise N/A).
 - [ ] File saved to `./prds/prd-[feature-slug]/prd.md`.
 - [ ] Final path provided.
 

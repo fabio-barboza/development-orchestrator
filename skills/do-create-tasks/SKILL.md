@@ -36,6 +36,7 @@ Skill assets/references are loaded via your AI tool's native skill resolver — 
 2. Verify the PRD exists at `./prds/prd-[feature-slug]/prd.md`. The directory MUST be `prd-[feature-slug]` — never `[feature-slug]` alone. If missing, halt.
 3. Verify the Tech Spec exists at `./prds/prd-[feature-slug]/techspec.md`. If missing, halt.
 4. **Path check**: Before creating any file, confirm you are writing to `./prds/prd-[feature-slug]/tasks/` — not `./prds/[feature-slug]/tasks/`.
+5. **Detect project surface (silent)**: set `project_surface = visual | backend`. Force `visual` if the PRD has an "Identidade Visual" section OR the Tech Spec has an "Implementação Visual" section. Otherwise inspect frontend signals (deps, file extensions, directories). Default to `backend` when uncertain. Visual-coverage rules below apply ONLY when `project_surface = visual` AND the specific task touches UI files.
 
 **Step 2: Analyze PRD and Tech Spec (Mandatory)**
 1. Read the PRD completely to extract requirements.
@@ -67,12 +68,20 @@ Skill assets/references are loaded via your AI tool's native skill resolver — 
    - The integer matches the main task number from `tasks.md` (the X in `X.0`). For task `11.0`, the file is `11_task.md`.
 7. Use format X.0 for main tasks, X.Y for subtasks **inside the file content only** — never in the filename.
 8. Do NOT repeat implementation details already in the Tech Spec — reference it instead.
-9. **POST-SAVE VERIFICATION**: After writing all files, list the contents of `./prds/prd-[feature-slug]/tasks/` to confirm all expected files exist. If any file is missing, halt and report the error.
-10. **DUPLICATE & FILENAME GUARD (applies to all AI tools)**:
+9. **VISUAL IDENTITY COVERAGE (conditional — applies ONLY when `project_surface = visual` AND the specific task touches UI files)**:
+   - Identify which tasks touch UI files (components, screens, native UI views, style sheets). Backend-only tasks within a visual project (controllers, services, migrations, jobs, queue workers) MUST NOT receive visual blocks — leave the "Identidade Visual" template section OUT of those task files.
+   - For UI-touching tasks:
+     - Fill the "Identidade Visual" section of the task template with: style files to be modified, classes/selectors to create, design tokens to use, breakpoints / adaptive rules to respect, themes to apply.
+     - Reference the visual identity requirements from the PRD and the "Implementação Visual" section of the Tech Spec.
+     - Include a `<critical>` tag on style coverage:
+       `<critical>Toda classe/seletor de estilo usado na UI DEVE ter regra correspondente no arquivo de estilo. Lacunas serão detectadas no review e documentadas no review — não interrompem o fluxo.</critical>`
+   - When `project_surface = backend`, OMIT the visual block from every task file.
+10. **POST-SAVE VERIFICATION**: After writing all files, list the contents of `./prds/prd-[feature-slug]/tasks/` to confirm all expected files exist. If any file is missing, halt and report the error.
+11. **DUPLICATE & FILENAME GUARD (applies to all AI tools)**:
     - Spurious decimal-prefixed duplicates (e.g., `1.0_task.md` alongside the canonical `1_task.md`) corrupt the task pipeline and must be detected and removed regardless of which AI tool is running this skill.
     - Before creating any file, plan and write down the exact list of filenames you will produce. Every filename MUST match the regex `^[0-9]+_task\.md$` or be exactly `tasks.md`. If your plan includes ANY filename with a decimal point (e.g., `1.0_task.md`, `2.0_task.md`), STOP and rewrite the plan — those filenames are PROHIBITED.
     - Create files strictly one per task. Do NOT create both `<X>_task.md` and `<X>.0_task.md` — only the integer-prefixed form is allowed. Decimal numbering belongs INSIDE the file content (`# Tarefa X.0:` heading, subtasks `X.1`, `X.2`), never in the filename.
-    - After Step 4.9, scan `./prds/prd-[feature-slug]/tasks/` and identify any file whose name does NOT match `^[0-9]+_task\.md$`, is not exactly `tasks.md`, and is not an `<integer>_task_review.md` (review files are produced by `do-execute-task`, not by this skill — but never delete them if present from prior runs). For every spurious file (e.g., `1.0_task.md`, `2.0_task.md`, `1_task_login.md`), delete it with `rm` via Bash. Re-list the directory afterwards and confirm only `tasks.md`, `<integer>_task.md`, and any pre-existing `<integer>_task_review.md` remain.
+    - After Step 4.10 (POST-SAVE VERIFICATION), scan `./prds/prd-[feature-slug]/tasks/` and identify any file whose name does NOT match `^[0-9]+_task\.md$`, is not exactly `tasks.md`, and is not an `<integer>_task_review.md` (review files are produced by `do-execute-task`, not by this skill — but never delete them if present from prior runs). For every spurious file (e.g., `1.0_task.md`, `2.0_task.md`, `1_task_login.md`), delete it with `rm` via Bash. Re-list the directory afterwards and confirm only `tasks.md`, `<integer>_task.md`, and any pre-existing `<integer>_task_review.md` remain.
     - If the directory listing still shows any decimal-prefixed task file after deletion, HALT and report the error to the user — do not proceed to Step 5.
 
 **Step 5: Report Results & Sync Progress (Mandatory)**
@@ -100,6 +109,7 @@ Todos os artefatos gerados (tasks.md, arquivos de task individuais) devem ser es
 - [ ] High-level task list approved by user.
 - [ ] Task files generated using templates.
 - [ ] Each task has unit and integration test subtasks.
+- [ ] UI-touching tasks include "Identidade Visual" subsection (only if `project_surface = visual`; otherwise N/A).
 - [ ] Files saved to `./prds/prd-[feature-slug]/tasks/`.
 - [ ] Results presented to user.
 

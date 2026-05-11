@@ -35,6 +35,7 @@ Skill assets/references are loaded via your AI tool's native skill resolver — 
 **Step 1: Validate Prerequisites**
 1. Confirm the feature slug has been provided.
 2. Verify the PRD exists at `prds/prd-[feature-slug]/prd.md`. If missing, halt and report.
+3. **Detect project surface (silent)**: inspect the project to set `project_surface = visual | backend`. Signals: `package.json` with frontend deps (`react`/`vue`/`svelte`/`next`/`angular`/`solid`), or files like `*.jsx`/`*.tsx`/`*.vue`/`*.svelte`/`*.html`/`*.dart`/`*.swift`/`*.kt`/`*.xaml`, or `web/`, `frontend/`, `mobile/`, `ios/`, `android/` directories. If the PRD contains an "Identidade Visual" section with substantive content, force `project_surface = visual`. Otherwise default to `backend`. Visual-implementation blocks apply ONLY when `project_surface = visual`.
 
 **Step 2: Analyze PRD (Mandatory)**
 1. Read the PRD completely — do NOT skip this step.
@@ -60,6 +61,7 @@ Skill assets/references are loaded via your AI tool's native skill resolver — 
    - External dependencies.
    - Key interfaces.
    - Test scenarios.
+   - **Visual implementation** (ONLY if `project_surface = visual`): the styling methodology already declared in the PRD (or, if absent, ask for it), design token architecture, theme system mechanics, responsive/adaptive strategy. If `project_surface = backend`, OMIT this block.
    - Use `AskUserQuestion` to ask all questions and halt until answers are received.
 3. Do NOT proceed until answers are received.
 
@@ -76,6 +78,13 @@ Skill assets/references are loaded via your AI tool's native skill resolver — 
 6. Keep under ~2,000 words.
 7. Do NOT deviate from the template structure.
 8. Prefer existing libraries over custom development.
+9. **Visual Implementation section (conditional)**: If `project_surface = visual` AND the PRD specifies visual identity requirements, the Tech Spec MUST include an "Implementação Visual" section covering:
+   - Styling methodology declared by the project (BEM + CSS variables, utility-first, CSS modules, CSS-in-JS, StyleSheet nativo, etc.) — adopt what the PRD/project defines; do not prescribe a specific methodology.
+   - Design token mapping (PRD tokens → concrete tokens: CSS variables, theme object keys, or platform equivalents)
+   - Theme system architecture (how themes are applied at runtime)
+   - Responsive / adaptive strategy (web: breakpoints; mobile: screen-size adaptation, orientation)
+   - Style file organization (global vs component-scoped; per platform when applicable)
+   If `project_surface = backend`, OMIT the Visual Implementation section entirely.
 
 **Step 8: Save Tech Spec (Mandatory)**
 1. **PATH VERIFICATION**: Before writing, confirm the target path is exactly `./prds/prd-[feature-slug]/techspec.md`. Verify the directory name starts with `prd-`. Verify the PRD directory exists (it must, since the PRD was read in Step 2).
@@ -105,6 +114,7 @@ Todos os artefatos gerados (documento Tech Spec) devem ser escritos em Portuguê
 - [ ] Key technical clarifications answered.
 - [ ] Tech Spec generated using the template.
 - [ ] Project skills verified for compliance.
+- [ ] Visual implementation conventions documented (only if `project_surface = visual`; otherwise N/A).
 - [ ] File written to `./prds/prd-[feature-slug]/techspec.md`.
 - [ ] Final output path provided and confirmed.
 

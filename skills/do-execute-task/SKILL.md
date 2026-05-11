@@ -141,13 +141,27 @@ The ONLY permitted modification to `tasks.md` is changing `[ ]` to `[x]` for the
 1. Re-read the task file to ensure you have the latest content (context compression may have discarded earlier reads).
 2. Check if the project is a git repository by running `git rev-parse --is-inside-work-tree`. If git is available, use `git diff` and `git log` to identify files changed as part of this task and read the full context of modified files, not just the diffs. If git is NOT available, manually list all files you created or modified during implementation and read their full content for review.
 3. Read the `code-standards.md` file at `do-execute-task/references/code-standards.md`. Review the code against those criteria and verify compliance with the project configuration file if it exists.
-4. For each issue found, classify as:
+4. **Detect task surface (silent)**: set `task_surface = visual | backend`. A task is `visual` if it modifies UI files in this run (any `*.jsx`/`*.tsx`/`*.vue`/`*.svelte`/`*.html`/`*.dart`/`*.swift`/`*.kt`/`*.xaml`/`*.css`/`*.scss`/`*.module.css`/native StyleSheet file). Otherwise `backend`. Visual-identity checks below run ONLY when `task_surface = visual`. For `backend` tasks, mark visual checks as **N/A** in the review and skip them silently — DO NOT halt or warn.
+5. **VISUAL IDENTITY REVIEW (only when `task_surface = visual`; documents findings, NEVER halts the flow)**:
+   a. Extract ALL class/selector references used in the UI files modified by this task (JSX/TSX `className`, Vue `class`, native StyleSheet keys, Flutter named styles, etc.).
+   b. For each modified style file, extract ALL defined selectors/keys.
+   c. **Coverage Check**: Every UI class/selector reference SHOULD have a corresponding style rule.
+      - 1–3 missing → **MAIOR**.
+      - 4+ missing OR component visually broken → **CRÍTICO**.
+   d. **Hardcoded value check**: flag literal color/spacing values that should reference design tokens (CSS variables, theme keys).
+      - Isolated cases → **MENOR**.
+      - Task was supposed to implement theme support → **MAIOR**.
+   e. **Theme check**: when the PRD specifies dynamic themes, verify tokens are used (not literals) for themeable properties.
+   f. **Responsive/adaptive check**: verify breakpoints (web) or adaptive rules (mobile) from the PRD are respected.
+   g. **PRD-gap warning**: if the PRD specifies visual identity but the task doesn't address what it should have, log a WARNING in the review: "PRD especifica requisitos visuais que esta tarefa não endereçou totalmente — ver Recomendações."
+   h. **NEVER block the flow on visual findings.** Visual issues are documented in the review (Conformidade com Identidade Visual + Problemas) but do NOT halt execution. Up to 3 best-effort fix cycles can be attempted within Step 6.8 (Address issues); remaining issues go into the final review as documented gaps with status **APROVADO COM OBSERVAÇÕES** or **MUDANÇAS SOLICITADAS**.
+6. For each issue found, classify as:
    - **CRÍTICO**: Bugs, problemas de segurança, funcionalidade quebrada, tratamento de erros ausente.
    - **MAIOR**: Violações de padrão de código, testes ausentes, nomenclatura incorreta.
    - **MENOR**: Sugestões de estilo, melhorias menores.
    - **POSITIVO**: Coisas bem feitas que merecem reconhecimento.
-5. Run the test suite using the detected package manager. If a `typecheck` script exists in `package.json`, run it. Include any failures as critical issues.
-6. Address any issues identified. **Iteration limit**: You may perform a maximum of 3 fix-and-review cycles. If critical issues persist after 3 cycles, mark as **MUDANÇAS SOLICITADAS** in Step 7.
+7. Run the test suite using the detected package manager. If a `typecheck` script exists in `package.json`, run it. Include any failures as critical issues.
+8. Address any issues identified. **Iteration limit**: You may perform a maximum of 3 fix-and-review cycles. If critical issues persist after 3 cycles, mark as **MUDANÇAS SOLICITADAS** in Step 7 and document them — do NOT halt the flow.
 
 **Step 7: Create Review File (Mandatory)**
 
@@ -188,21 +202,33 @@ Perform ALL checks below. If ANY fails, fix it first.
 
 5. **CHECK 5 — Requirements cross-check**: List all requirements from the task file and confirm each is implemented and tested.
 
-6. **CHECK 6 — Critical tags**: Verify all `<critical>` tags from the task file were satisfied.
+6. **CHECK 6 — Critical tags**: Verify all `<critical>` tags from the task file were satisfied. Visual coverage `<critical>` tags are non-blocking — see CHECK 7.
 
-**BLOCKING RULE: If Check 1, 2, 3, or 4 fails, you are PROHIBITED from sending a final response. Fix the issue and re-run the checks. A task with failing tests is NEVER complete.**
+7. **CHECK 7 — Visual Identity Coverage (conditional, non-blocking)**:
+   - **Applicability**: run ONLY when `task_surface = visual` (the task modified UI files). For backend tasks, mark CHECK 7 as **N/A** and skip silently.
+   - When applicable:
+     a. For each UI file modified, extract all class/selector references.
+     b. For each style file modified, extract all defined selectors/keys.
+     c. Verify every reference has a corresponding style rule.
+     d. Best-effort fix: if any reference is missing styles, attempt to add the missing rules during the Step 6 fix cycle. **DO NOT halt the flow if it cannot be resolved.**
+     e. Document the coverage result (✅ / ⚠️ / ❌) in the review file, listing every missing reference. Unresolved gaps → review status **APROVADO COM OBSERVAÇÕES** or **MUDANÇAS SOLICITADAS**, but the flow ALWAYS completes.
+
+**BLOCKING RULE: ONLY Check 1, 2, 3, and 4 are blocking. If any of these fails, you are PROHIBITED from sending a final response until fixed. A task with failing tests is NEVER complete.**
+
+**NON-BLOCKING RULE: CHECK 5, CHECK 6 (visual `<critical>`), and CHECK 7 are NEVER blocking. Visual identity issues, unsatisfied visual critical tags, and unmet requirements are documented in the review (Conformidade com Identidade Visual section + Problemas) and surface in the final response, but they DO NOT halt the flow. The flow JAMAIS pode ser interrompido por problemas visuais — sempre documentados, nunca bloqueantes.**
 
 **ANTI-HALLUCINATION ENFORCEMENT**: If your final response includes ✅ for an artifact but the corresponding `read_file` tool call in Step 7 was never made or returned an error, you are LYING to the user. This is the worst possible outcome. When in doubt, re-read the file.
 
-7. **FINAL OUTPUT MANIFEST** (include in your final response to the user):
+8. **FINAL OUTPUT MANIFEST** (include in your final response to the user):
    ```
    📋 Artefatos:
    - Testes: ✅ Todos passando
    - [num]_task_review.md: ✅ Criado ([STATUS])
    - tasks.md: ✅ Atualizado (task [num] marcada como concluída)
    - [num]_task.md: ✅ Subtasks marcadas como concluídas
+   - Identidade Visual: ✅ Conforme | ⚠️ Lacunas documentadas | N/A (backend)
    ```
-   If any artifact shows ❌ instead of ✅, you have violated this skill's rules. Do NOT send the response — fix the artifact first.
+   If any blocking artifact (Testes/Review/tasks.md/Subtasks) shows ❌, you have violated this skill's rules — fix it. The Identidade Visual line is informational; ⚠️ is acceptable as long as gaps are documented in the review.
 
 ## Error Handling
 - If the task file does not exist, halt and report to the user.
@@ -211,7 +237,8 @@ Perform ALL checks below. If ANY fails, fix it first.
 - If `tasks.md` does not exist, halt and direct the user to run `do-create-tasks`.
 - If dependencies are not complete, warn the user in a status message and proceed anyway — do NOT wait for confirmation.
 - If tests fail, fix the issues and re-run (up to 5 cycles). NEVER mark the task as complete with failing tests. If stuck after 5 cycles, report to the user and leave the task as incomplete.
-- If the review identifies critical issues, address them (up to 3 fix cycles) before finalizing.
+- If the review identifies critical issues, address them (up to 3 fix cycles) before finalizing. After 3 cycles, mark **MUDANÇAS SOLICITADAS** and finalize — do NOT halt the flow.
+- If the review identifies missing styles for UI class/selector references (visual project), attempt to add them within the fix cycles. Severity: 1–3 missing = **MAIOR**, 4+ = **CRÍTICO**. **Unresolved visual gaps NEVER halt the flow** — they are documented in the review's "Conformidade com Identidade Visual" section and surface in the final manifest as `⚠️ Lacunas documentadas`. The next task in the pipeline continues normally.
 - If a service required by an MCP is not running (app, broker, etc.), apply `do-shared/references/do-service-readiness.md` — probe first, reuse if running, start only safe dev servers, document gaps for external services. Never kill a running service.
 - If an MCP is unavailable, follow its "Se indisponivel" handling from the registry. Continue with unit/integration tests and document the E2E gap in the review.
 - If git is not initialized, skip git-based diff analysis and manually track changed files.

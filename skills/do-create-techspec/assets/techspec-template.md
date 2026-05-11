@@ -76,6 +76,21 @@ interface NomeServico {
 
 - Teste o frontend junto com o backend **usando o Playwright**]
 
+## Implementação Visual
+
+> **Aplicabilidade**: incluir esta seção APENAS se o PRD tem "Identidade Visual" (projetos frontend / mobile / full-stack). Para projetos backend-only, REMOVER a seção inteira ao gerar o Tech Spec.
+
+[Documentar como a identidade visual definida no PRD será implementada concretamente. Adaptar à plataforma:
+
+- **Metodologia de estilo**: declarar a abordagem do projeto (BEM + CSS variables, utility-first/Tailwind, CSS Modules, CSS-in-JS, StyleSheet nativo iOS/Android, Flutter ThemeData, etc.). Não prescrever — apenas declarar a escolhida.
+- **Design Tokens**: mapear os tokens do PRD para artefatos concretos do projeto (ex.: CSS variables `--bg-primary`, chaves de theme object, design system tokens). Listar o nome exato a usar.
+- **Theme System**: como os temas são aplicados em runtime (data-attribute, classe no root, provider, etc.) e estratégia de troca.
+- **Adaptação a tela**:
+  - Web: breakpoints (mobile-first 320px+, tablet 768px+, desktop 1024px+) ou os que o PRD definir
+  - Mobile: estratégia de adaptação (tamanho de tela, orientação, tablet vs phone)
+- **Organização dos arquivos de estilo**: global vs componente; convenção de localização (ex.: `index.css` para globais, `*.module.css` por componente, ou equivalente da plataforma).
+- **Regra de cobertura de classes/estilos**: toda classe/seletor de estilo usada na UI DEVE ter regra correspondente no arquivo de estilo (vale para CSS, StyleSheet, etc.). Lacunas devem ser detectadas no review e documentadas — não interrompem o fluxo.]
+
 ## Sequenciamento de Desenvolvimento
 
 ### Ordem de Construção

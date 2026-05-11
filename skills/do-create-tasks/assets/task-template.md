@@ -35,6 +35,19 @@
 
 <critical>SEMPRE CRIE E EXECUTE OS TESTES DA TAREFA ANTES DE CONSIDERÁ-LA FINALIZADA</critical>
 
+## Identidade Visual
+
+> **Aplicabilidade**: incluir esta seção APENAS se a tarefa toca arquivos de UI (componentes, telas, folhas de estilo) em um projeto com camada visual (frontend / mobile / full-stack). Para tarefas puramente backend (controllers, services, migrations, jobs, workers) ou em projetos backend-only, REMOVER esta seção inteira ao gerar o arquivo da tarefa.
+
+[Para tarefas que tocam UI, especificar:
+- Arquivos de estilo a modificar (ex.: `index.css`, `App.css`, `*.module.css`, `StyleSheet` nativo, Flutter `ThemeData`)
+- Classes/seletores a criar (CSS, BEM, utility classes, etc., conforme metodologia declarada no TechSpec)
+- Design tokens a usar (variáveis CSS, theme object keys, platform tokens)
+- Breakpoints / regras adaptativas a respeitar (web: 320/768/1024; mobile: tamanho de tela, orientação)
+- Temas a aplicar]
+
+<critical>Toda classe/seletor de estilo usado na UI DEVE ter regra correspondente no arquivo de estilo. Lacunas serão detectadas no review e DOCUMENTADAS na conclusão — não interrompem o fluxo.</critical>
+
 ## Arquivos relevantes
 
 - [Arquivos relevantes desta tarefa]
