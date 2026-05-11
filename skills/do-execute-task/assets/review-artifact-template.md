@@ -51,7 +51,16 @@
 
 > **Aplicabilidade**: incluir esta seção APENAS quando a tarefa modifica arquivos de UI (`task_surface = visual`). Para tarefas backend, marque a seção inteira como `N/A` ou remova-a.
 >
-> **Não-bloqueante**: lacunas listadas aqui são DOCUMENTADAS, não interrompem o fluxo. O status final do review pode ser APROVADO COM OBSERVAÇÕES mesmo com gaps visuais.
+> **Simetria por severidade (3 tiers)**:
+> - Conformidade total → **APROVADO** ou **APROVADO COM OBSERVAÇÕES**. Pipeline continua.
+> - Gaps **MAIOR/MENOR** após `visual_retry = 2/2` → **APROVADO COM OBSERVAÇÕES**. Pipeline continua (cosmético segue).
+> - Gaps **CRÍTICO** após `visual_retry = 2/2` (4+ classes/seletores sem regra, tela visualmente quebrada, theme exigido não aplicado) → **MUDANÇAS SOLICITADAS** e **PIPELINE HALTED**, paralelo a teste falhando.
+>
+> **Task-level gate**: o executor TEM que ter rodado o ACTIVE RETRY LOOP de `do-execute-task` Step 6.5. O contador `visual_retry` abaixo prova que o retry rodou.
+
+**visual_retry**: `[0/2 | 1/2 | 2/2]` — número de ciclos de retry visual executados nesta task.
+
+**Severidade dos gaps residuais**: `[ Nenhum | MENOR | MAIOR | CRÍTICO ]` — severidade máxima das lacunas que persistiram após o retry. `CRÍTICO` HALTA o pipeline.
 
 | Critério | Status |
 |----------|--------|
@@ -64,7 +73,9 @@
 ### Detalhes de Identidade Visual
 
 [Descrever classes/seletores verificados, tokens usados, e qualquer lacuna identificada.
-Listar referências de UI que não tinham regras correspondentes, indicar se foram corrigidas ou se ficaram documentadas como pendência.
+Listar referências de UI que não tinham regras correspondentes ANTES do retry.
+Para cada ciclo de retry, descrever: o que foi tentado, o que foi fechado, o que persistiu.
+Se `visual_retry = 2/2` e ainda há gap, listar para cada gap residual: (arquivo, referência, regra/token esperado, motivo do retry não ter fechado).
 Se `task_surface = backend`, escrever apenas: "N/A — tarefa backend, sem alterações de UI."]
 
 ## Recomendações

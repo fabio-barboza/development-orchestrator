@@ -46,7 +46,7 @@
 - Breakpoints / regras adaptativas a respeitar (web: 320/768/1024; mobile: tamanho de tela, orientação)
 - Temas a aplicar]
 
-<critical>Toda classe/seletor de estilo usado na UI DEVE ter regra correspondente no arquivo de estilo. Lacunas serão detectadas no review e DOCUMENTADAS na conclusão — não interrompem o fluxo.</critical>
+<critical>Toda classe/seletor de estilo usado na UI DEVE ter regra correspondente no arquivo de estilo. Quando o review (Step 6.5 do do-execute-task) detectar lacunas, o executor TENTARÁ fechá-las ativamente com até 2 ciclos de retry visual (gerar regras faltantes, trocar literais por design tokens, adicionar adaptações). Após `visual_retry = 2/2`: gaps MAIOR/MENOR remanescentes são documentados e o pipeline continua; gaps CRÍTICO remanescentes (4+ classes faltando, tela visualmente quebrada, theme exigido não aplicado) HALTAM o pipeline — paralelo a teste falhando.</critical>
 
 ## Arquivos relevantes
 

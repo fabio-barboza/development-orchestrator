@@ -74,7 +74,7 @@ Skill assets/references are loaded via your AI tool's native skill resolver — 
      - Fill the "Identidade Visual" section of the task template with: style files to be modified, classes/selectors to create, design tokens to use, breakpoints / adaptive rules to respect, themes to apply.
      - Reference the visual identity requirements from the PRD and the "Implementação Visual" section of the Tech Spec.
      - Include a `<critical>` tag on style coverage:
-       `<critical>Toda classe/seletor de estilo usado na UI DEVE ter regra correspondente no arquivo de estilo. Lacunas serão detectadas no review e documentadas no review — não interrompem o fluxo.</critical>`
+       `<critical>Toda classe/seletor de estilo usado na UI DEVE ter regra correspondente no arquivo de estilo. Quando o review (Step 6.5 do do-execute-task) detectar lacunas, o executor TENTARÁ fechá-las ativamente com até 2 ciclos de retry visual (gerar regras faltantes, trocar literais por design tokens, adicionar adaptações). Após visual_retry = 2/2: gaps MAIOR/MENOR remanescentes são documentados e o pipeline continua; gaps CRÍTICO remanescentes (4+ classes faltando, tela visualmente quebrada, theme exigido não aplicado) HALTAM o pipeline — paralelo a teste falhando.</critical>`
    - When `project_surface = backend`, OMIT the visual block from every task file.
 10. **POST-SAVE VERIFICATION**: After writing all files, list the contents of `./prds/prd-[feature-slug]/tasks/` to confirm all expected files exist. If any file is missing, halt and report the error.
 11. **DUPLICATE & FILENAME GUARD (applies to all AI tools)**:

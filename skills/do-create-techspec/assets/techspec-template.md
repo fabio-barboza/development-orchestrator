@@ -89,7 +89,7 @@ interface NomeServico {
   - Web: breakpoints (mobile-first 320px+, tablet 768px+, desktop 1024px+) ou os que o PRD definir
   - Mobile: estratégia de adaptação (tamanho de tela, orientação, tablet vs phone)
 - **Organização dos arquivos de estilo**: global vs componente; convenção de localização (ex.: `index.css` para globais, `*.module.css` por componente, ou equivalente da plataforma).
-- **Regra de cobertura de classes/estilos**: toda classe/seletor de estilo usada na UI DEVE ter regra correspondente no arquivo de estilo (vale para CSS, StyleSheet, etc.). Lacunas devem ser detectadas no review e documentadas — não interrompem o fluxo.]
+- **Regra de cobertura de classes/estilos**: toda classe/seletor de estilo usada na UI DEVE ter regra correspondente no arquivo de estilo (vale para CSS, StyleSheet, etc.). Quando o review (Step 6.5 do `do-execute-task`) detectar lacunas, o executor tentará fechá-las com até 2 ciclos de retry visual. Após `visual_retry = 2/2`: gaps MAIOR/MENOR remanescentes são documentados e o pipeline continua; gaps CRÍTICO remanescentes (4+ classes/seletores sem regra, tela visualmente quebrada, theme exigido não aplicado) HALTAM o pipeline — paralelo a teste falhando.]
 
 ## Sequenciamento de Desenvolvimento
 

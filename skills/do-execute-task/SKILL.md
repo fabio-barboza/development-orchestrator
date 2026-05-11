@@ -142,26 +142,43 @@ The ONLY permitted modification to `tasks.md` is changing `[ ]` to `[x]` for the
 2. Check if the project is a git repository by running `git rev-parse --is-inside-work-tree`. If git is available, use `git diff` and `git log` to identify files changed as part of this task and read the full context of modified files, not just the diffs. If git is NOT available, manually list all files you created or modified during implementation and read their full content for review.
 3. Read the `code-standards.md` file at `do-execute-task/references/code-standards.md`. Review the code against those criteria and verify compliance with the project configuration file if it exists.
 4. **Detect task surface (silent)**: set `task_surface = visual | backend`. A task is `visual` if it modifies UI files in this run (any `*.jsx`/`*.tsx`/`*.vue`/`*.svelte`/`*.html`/`*.dart`/`*.swift`/`*.kt`/`*.xaml`/`*.css`/`*.scss`/`*.module.css`/native StyleSheet file). Otherwise `backend`. Visual-identity checks below run ONLY when `task_surface = visual`. For `backend` tasks, mark visual checks as **N/A** in the review and skip them silently — DO NOT halt or warn.
-5. **VISUAL IDENTITY REVIEW (only when `task_surface = visual`; documents findings, NEVER halts the flow)**:
+5. **VISUAL IDENTITY REVIEW with ACTIVE RETRY (only when `task_surface = visual`)**:
+   This is a **task-level gate** with **symmetry by severity**: visual gaps MUST be actively retried before declaring the task complete. The retry loop is dedicated and separate from the general fix cycles in Step 6.8. After retries are exhausted: residual MAIOR/MENOR gaps are documented and the pipeline continues; residual CRÍTICO gaps HALT the pipeline (parallel to failing tests). See sub-step `i.` (EXIT CONDITION) for the precise rule.
+
+   **Reference baseline (silent, before letter-coded checks)**: establish what counts as "the project's visual standard" before evaluating gaps. Source priority:
+   1. Tech Spec's "Implementação Visual" section (authoritative when present and substantive).
+   2. Codebase discovery fallback (when the Tech Spec is silent, vague, or absent — typical for mature projects with established conventions): scan global style files (`index.css`/`globals.css`/`theme.css`, any `:root` blocks) for CSS variables; scan `theme.ts`/`tokens.ts`/`design-tokens/*` for theme keys; sample 3–5 existing components to detect the styling methodology and breakpoint values in use; check for theme provider patterns (`ThemeProvider`, `data-theme`, root class swap).
+
+   Store the result as `visual_reference` (the available tokens, the methodology in use, the breakpoints, the theme mechanism). Use `visual_reference` as the standard against which checks (d) hardcoded values, (e) themes, and (f) responsive/adaptive are evaluated. If `visual_reference` is empty (rare — possibly a misdetected backend), skip (d)–(f) and rely on (c) for coherence-only verification.
+
    a. Extract ALL class/selector references used in the UI files modified by this task (JSX/TSX `className`, Vue `class`, native StyleSheet keys, Flutter named styles, etc.).
    b. For each modified style file, extract ALL defined selectors/keys.
-   c. **Coverage Check**: Every UI class/selector reference SHOULD have a corresponding style rule.
+   c. **Coverage Check**: every UI class/selector reference MUST have a corresponding style rule.
       - 1–3 missing → **MAIOR**.
       - 4+ missing OR component visually broken → **CRÍTICO**.
-   d. **Hardcoded value check**: flag literal color/spacing values that should reference design tokens (CSS variables, theme keys).
-      - Isolated cases → **MENOR**.
-      - Task was supposed to implement theme support → **MAIOR**.
-   e. **Theme check**: when the PRD specifies dynamic themes, verify tokens are used (not literals) for themeable properties.
-   f. **Responsive/adaptive check**: verify breakpoints (web) or adaptive rules (mobile) from the PRD are respected.
+   d. **Hardcoded value check**: flag literal color/spacing/typography values that should reference design tokens listed in `visual_reference` (CSS variables, theme keys, platform tokens). When a token from `visual_reference` matches the intended semantic (e.g., the literal `#0066cc` and `--accent: #0066cc` both exist), the literal MUST be replaced.
+      - Isolated cases (1–3 hardcoded values when a matching token exists) → **MENOR**.
+      - Task was supposed to implement theme support OR many hardcoded values when tokens are abundant in `visual_reference` → **MAIOR**.
+   e. **Theme check**: when `visual_reference` includes a theme system (theme provider, `data-theme`, root class swap), verify tokens are used (not literals) for themeable properties so themes apply correctly.
+   f. **Responsive/adaptive check**: verify breakpoints (web) or adaptive rules (mobile) listed in `visual_reference` are respected.
    g. **PRD-gap warning**: if the PRD specifies visual identity but the task doesn't address what it should have, log a WARNING in the review: "PRD especifica requisitos visuais que esta tarefa não endereçou totalmente — ver Recomendações."
-   h. **NEVER block the flow on visual findings.** Visual issues are documented in the review (Conformidade com Identidade Visual + Problemas) but do NOT halt execution. Up to 3 best-effort fix cycles can be attempted within Step 6.8 (Address issues); remaining issues go into the final review as documented gaps with status **APROVADO COM OBSERVAÇÕES** or **MUDANÇAS SOLICITADAS**.
+   h. **ACTIVE RETRY LOOP (MANDATORY when c/d/e/f find ANY gap)**:
+      Initialize `visual_retry = 0`. While gaps remain AND `visual_retry < 2`:
+      - Apply targeted fixes: generate the missing CSS/style rules from the UI references, replace hardcoded literals with the appropriate design tokens (drawn from the PRD's "Identidade Visual" and TechSpec's "Implementação Visual"), add the missing breakpoint/adaptive rules.
+      - Re-run sub-checks (a)–(g) on the modified files.
+      - Increment `visual_retry`.
+      Record the final `visual_retry` value (`0/2`, `1/2`, or `2/2`) in the review file's "Conformidade com Identidade Visual" section.
+   i. **EXIT CONDITION (symmetry by severity)**:
+      - **All visual checks pass** within the retry budget → proceed to Step 6.6, status path goes to **APROVADO** or **APROVADO COM OBSERVAÇÕES**. Pipeline continues.
+      - **Only MAIOR/MENOR gaps remain** after `visual_retry = 2/2` → document EACH residual gap in the review (file, reference, expected token/rule, reason retry could not close) and PROCEED to Step 6.6. Review status becomes **APROVADO COM OBSERVAÇÕES** (cosmetic gaps post-retry). Pipeline continues — cosmetic gaps do NOT halt the flow.
+      - **Any CRÍTICO gap remains** after `visual_retry = 2/2` (4+ classes/seletores without rule OR component visually broken OR theme support required and not applied) → document the gap in the review with **MUDANÇAS SOLICITADAS** status, and **HALT the pipeline**. This is parallel to a failing test after 5 retry cycles in Step 4B. The next task does NOT begin until the user provides guidance and the CRÍTICO gap is resolved.
 6. For each issue found, classify as:
    - **CRÍTICO**: Bugs, problemas de segurança, funcionalidade quebrada, tratamento de erros ausente.
    - **MAIOR**: Violações de padrão de código, testes ausentes, nomenclatura incorreta.
    - **MENOR**: Sugestões de estilo, melhorias menores.
    - **POSITIVO**: Coisas bem feitas que merecem reconhecimento.
 7. Run the test suite using the detected package manager. If a `typecheck` script exists in `package.json`, run it. Include any failures as critical issues.
-8. Address any issues identified. **Iteration limit**: You may perform a maximum of 3 fix-and-review cycles. If critical issues persist after 3 cycles, mark as **MUDANÇAS SOLICITADAS** in Step 7 and document them — do NOT halt the flow.
+8. Address any issues identified. **Iteration limit**: You may perform a maximum of 3 fix-and-review cycles. If critical issues persist after 3 cycles, mark as **MUDANÇAS SOLICITADAS** in Step 7 and document them — do NOT halt the flow. **Exception**: residual CRÍTICO visual gaps after `visual_retry = 2/2` (Step 6.5) DO halt the pipeline — that is the specific gate defined in Step 6.5.i and CHECK 7, parallel to failing tests.
 
 **Step 7: Create Review File (Mandatory)**
 
@@ -204,18 +221,25 @@ Perform ALL checks below. If ANY fails, fix it first.
 
 6. **CHECK 6 — Critical tags**: Verify all `<critical>` tags from the task file were satisfied. Visual coverage `<critical>` tags are non-blocking — see CHECK 7.
 
-7. **CHECK 7 — Visual Identity Coverage (conditional, non-blocking)**:
+7. **CHECK 7 — Visual Identity Coverage (symmetry by severity)**:
    - **Applicability**: run ONLY when `task_surface = visual` (the task modified UI files). For backend tasks, mark CHECK 7 as **N/A** and skip silently.
-   - When applicable:
-     a. For each UI file modified, extract all class/selector references.
-     b. For each style file modified, extract all defined selectors/keys.
-     c. Verify every reference has a corresponding style rule.
-     d. Best-effort fix: if any reference is missing styles, attempt to add the missing rules during the Step 6 fix cycle. **DO NOT halt the flow if it cannot be resolved.**
-     e. Document the coverage result (✅ / ⚠️ / ❌) in the review file, listing every missing reference. Unresolved gaps → review status **APROVADO COM OBSERVAÇÕES** or **MUDANÇAS SOLICITADAS**, but the flow ALWAYS completes.
+   - **Semantics (3 tiers)**:
+     - **Task-level gate**: Step 6.5's ACTIVE RETRY LOOP MUST have actually executed before the task is declared complete (`visual_retry` counter recorded in the review).
+     - **Pipeline-safe for cosmetic gaps**: residual MAIOR/MENOR gaps after `visual_retry = 2/2` are documented; pipeline continues.
+     - **Pipeline-blocking for CRÍTICO gaps**: residual CRÍTICO gaps after `visual_retry = 2/2` HALT the pipeline — parallel to failing tests.
+   - When applicable, verify:
+     a. The review file records the `visual_retry` counter (`0/2`, `1/2`, or `2/2`). If the field is absent → **STOP. Step 6.5 was skipped. Go back and execute the ACTIVE RETRY LOOP, then update the review.**
+     b. The review file records "Severidade dos gaps residuais": `Nenhum | MENOR | MAIOR | CRÍTICO`.
+     c. If residual severity is **CRÍTICO** → CHECK 7 FAILS. **HALT the pipeline.** Report the gap clearly in the final response (file, reference, expected token/rule, reason retry failed) and DO NOT begin the next task.
+     d. If residual severity is **MAIOR/MENOR** → CHECK 7 passes via documentation. Pipeline continues.
+     e. If gaps are documented, the review file lists EACH (file, reference, expected rule/token, reason retry failed).
+     f. The coverage result (✅ / ⚠️ / ❌) is recorded in the FINAL OUTPUT MANIFEST (Step 8.8).
 
-**BLOCKING RULE: ONLY Check 1, 2, 3, and 4 are blocking. If any of these fails, you are PROHIBITED from sending a final response until fixed. A task with failing tests is NEVER complete.**
+**PIPELINE-BLOCKING RULE: Check 1, 2, 3, 4 are ALWAYS blocking. CHECK 7 is ALSO blocking when residual severity after `visual_retry = 2/2` is CRÍTICO (4+ classes/seletores sem regra, component visually broken, ou theme support exigido e não aplicado). If any blocking check fails, you are PROHIBITED from sending a final response until fixed. The pipeline halts in parallel to failing tests. A task with failing tests OR a residual CRÍTICO visual gap is NEVER complete.**
 
-**NON-BLOCKING RULE: CHECK 5, CHECK 6 (visual `<critical>`), and CHECK 7 are NEVER blocking. Visual identity issues, unsatisfied visual critical tags, and unmet requirements are documented in the review (Conformidade com Identidade Visual section + Problemas) and surface in the final response, but they DO NOT halt the flow. The flow JAMAIS pode ser interrompido por problemas visuais — sempre documentados, nunca bloqueantes.**
+**TASK-LEVEL GATE: CHECK 7 (when `task_surface = visual`) requires that Step 6.5's ACTIVE RETRY LOOP actually executed — the `visual_retry` counter MUST appear in the review file. If the retry was skipped, you MUST return to Step 6.5 and execute it now.**
+
+**NON-BLOCKING RULE: CHECK 5, CHECK 6 (visual `<critical>` tags), and CHECK 7 residuals of severity MAIOR or MENOR are NEVER blocking. Unmet requirements, unsatisfied visual critical tags, and cosmetic visual gaps after retry are documented in the review (Conformidade com Identidade Visual section + Problemas) and surface in the final response, but they DO NOT halt the flow. Gaps cosméticos JAMAIS interrompem o pipeline — somente CRÍTICO interrompe, paralelo a teste falhando.**
 
 **ANTI-HALLUCINATION ENFORCEMENT**: If your final response includes ✅ for an artifact but the corresponding `read_file` tool call in Step 7 was never made or returned an error, you are LYING to the user. This is the worst possible outcome. When in doubt, re-read the file.
 
@@ -226,9 +250,9 @@ Perform ALL checks below. If ANY fails, fix it first.
    - [num]_task_review.md: ✅ Criado ([STATUS])
    - tasks.md: ✅ Atualizado (task [num] marcada como concluída)
    - [num]_task.md: ✅ Subtasks marcadas como concluídas
-   - Identidade Visual: ✅ Conforme | ⚠️ Lacunas documentadas | N/A (backend)
+   - Identidade Visual: ✅ Conforme (visual_retry: X/2) | ⚠️ Lacunas MAIOR/MENOR após retry (2/2) | ❌ CRÍTICO persistente (2/2) — PIPELINE HALTED | N/A (backend)
    ```
-   If any blocking artifact (Testes/Review/tasks.md/Subtasks) shows ❌, you have violated this skill's rules — fix it. The Identidade Visual line is informational; ⚠️ is acceptable as long as gaps are documented in the review.
+   If any blocking artifact (Testes/Review/tasks.md/Subtasks) shows ❌, OR if Identidade Visual shows ❌ CRÍTICO persistente, you have violated this skill's rules — fix it before sending the final response. The Identidade Visual line MUST include the `visual_retry` counter when applicable (proves the retry loop ran); ⚠️ MAIOR/MENOR is acceptable and pipeline continues; ❌ CRÍTICO is pipeline-blocking, parallel to failing tests.
 
 ## Error Handling
 - If the task file does not exist, halt and report to the user.
@@ -237,8 +261,10 @@ Perform ALL checks below. If ANY fails, fix it first.
 - If `tasks.md` does not exist, halt and direct the user to run `do-create-tasks`.
 - If dependencies are not complete, warn the user in a status message and proceed anyway — do NOT wait for confirmation.
 - If tests fail, fix the issues and re-run (up to 5 cycles). NEVER mark the task as complete with failing tests. If stuck after 5 cycles, report to the user and leave the task as incomplete.
-- If the review identifies critical issues, address them (up to 3 fix cycles) before finalizing. After 3 cycles, mark **MUDANÇAS SOLICITADAS** and finalize — do NOT halt the flow.
-- If the review identifies missing styles for UI class/selector references (visual project), attempt to add them within the fix cycles. Severity: 1–3 missing = **MAIOR**, 4+ = **CRÍTICO**. **Unresolved visual gaps NEVER halt the flow** — they are documented in the review's "Conformidade com Identidade Visual" section and surface in the final manifest as `⚠️ Lacunas documentadas`. The next task in the pipeline continues normally.
+- If the review identifies critical issues (non-visual), address them (up to 3 fix cycles) before finalizing. After 3 cycles, mark **MUDANÇAS SOLICITADAS** and finalize — do NOT halt the flow. **Exception**: residual CRÍTICO visual gaps follow the rule in Step 6.5.i and CHECK 7 — they HALT the pipeline after `visual_retry = 2/2`, parallel to failing tests.
+- If the review identifies missing styles for UI class/selector references (visual project), the executor MUST run the ACTIVE RETRY LOOP from Step 6.5 — up to 2 dedicated visual retries to close gaps before documenting them. Severity: 1–3 missing = **MAIOR**, 4+ OR component visually broken OR theme support required and not applied = **CRÍTICO**. After 2 retries:
+  - Residual **MAIOR/MENOR** gaps → documented in the review (with `visual_retry: 2/2`); surface in the manifest as `⚠️ Lacunas MAIOR/MENOR após retry (2/2)`. Pipeline continues — the next task starts normally.
+  - Residual **CRÍTICO** gaps → documented in the review with status **MUDANÇAS SOLICITADAS**; surface in the manifest as `❌ CRÍTICO persistente (2/2) — PIPELINE HALTED`. **HALT the pipeline**, parallel to failing tests after 5 retry cycles. The next task does NOT begin until the user provides guidance and the CRÍTICO gap is resolved.
 - If a service required by an MCP is not running (app, broker, etc.), apply `do-shared/references/do-service-readiness.md` — probe first, reuse if running, start only safe dev servers, document gaps for external services. Never kill a running service.
 - If an MCP is unavailable, follow its "Se indisponivel" handling from the registry. Continue with unit/integration tests and document the E2E gap in the review.
 - If git is not initialized, skip git-based diff analysis and manually track changed files.

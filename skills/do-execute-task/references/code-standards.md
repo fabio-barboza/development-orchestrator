@@ -22,12 +22,14 @@
 
 ## Visual / UI Styling
 
-> **Applicability**: this section applies ONLY when the task modifies UI files in a visual project (frontend, mobile, full-stack). For backend-only tasks/projects, this entire section is **N/A** and must be skipped silently. Visual issues are ALWAYS documented in the review, NEVER blockers of the flow.
+> **Applicability**: this section applies ONLY when the task modifies UI files in a visual project (frontend, mobile, full-stack). For backend-only tasks/projects, this entire section is **N/A** and must be skipped silently. Visual issues are ALWAYS documented in the review. Residual severity after `visual_retry = 2/2` determines whether the pipeline continues (MAIOR/MENOR → continue) or halts (CRÍTICO → halt, parallel to failing tests). See `do-execute-task` Step 6.5 for the full rule.
 
 The concrete styling methodology is **declared by the project** in the Tech Spec ("Implementação Visual" section) — could be CSS variables + BEM, utility-first/Tailwind, CSS Modules, CSS-in-JS, native StyleSheet (React Native / iOS / Android), Flutter `ThemeData`, etc. The principles below apply regardless of methodology; the specific syntax follows the project's choice.
 
 - **Design tokens over literals**: themeable values (colors, spacing, radii, typography) MUST reference the project's tokens (CSS variables, theme keys, design system tokens, platform tokens), not literal values. Hardcoded values are flagged in review as MENOR (isolated) or MAIOR (when theming is in scope).
-- **Style coverage rule**: every class / selector / style key referenced in UI code SHOULD have a corresponding rule defined. Gaps are documented in the review and surface in the final manifest, but DO NOT halt the flow.
+- **Style coverage rule (symmetry by severity)**: every class / selector / style key referenced in UI code MUST have a corresponding rule defined. When gaps are detected, the executor runs the ACTIVE RETRY LOOP defined in `do-execute-task` Step 6.5 — up to 2 dedicated retries to close the gaps (generate missing rules, replace hardcoded literals with tokens, add adaptive rules). After `visual_retry = 2/2`:
+  - Residual **MAIOR/MENOR** gaps (1–3 classes faltando OR literais hardcoded isolados) → documented and pipeline continues. Cosmético segue.
+  - Residual **CRÍTICO** gaps (4+ classes/seletores sem regra, OR component visually broken, OR theme support exigido e não aplicado) → HALT the pipeline, parallel to a failing test. Reported clearly to the user; next task does NOT begin until resolved.
 - **Adaptive layout**: respect the strategy declared in the PRD/Tech Spec.
   - Web: mobile-first when so declared (base styles for the smallest viewport, `@media (min-width: ...)` to scale up).
   - Mobile: handle screen-size variation, orientation, and tablet vs. phone per platform conventions.
