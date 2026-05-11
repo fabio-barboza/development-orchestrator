@@ -24,11 +24,23 @@ Check if the user invoked this skill with the argument `agents` (e.g., `/do-setu
 - If the argument **is** `agents`: set mode = `agents-only`. Skip Steps 1–4 and 6. Execute only Step 0 (AI tool selection) and Step 5 (install agents).
 - If no argument or any other argument: set mode = `full`. Execute all steps in order.
 
-**Step 0: Ask the User Which AI Tool to Configure (MANDATORY FIRST ACTION)**
+**Step 0: Ask the User Which AI Tool to Configure (MANDATORY FIRST ACTION — HARD STOP)**
 
-This is the **very first action** the skill performs — before reading any file, scanning any directory, or running any other check. Do **not** attempt to auto-detect the AI tool from project files; previous detection logic was unreliable and is now replaced by an explicit user choice.
+> ⛔ **HARD STOP — DO NOT SKIP THIS QUESTION UNDER ANY CIRCUMSTANCE.**
+>
+> This question is the **very first action** of the skill. It is **MANDATORY** even when:
+> - you (the model) are running inside OpenCode, Claude Code, Cursor, or GitHub Copilot — the host you are running in is **IRRELEVANT** to the answer; the user may want to configure THIS project for a DIFFERENT tool;
+> - the project already contains `.claude/`, `.opencode/`, `AGENTS.md`, `.cursor/`, `.github/`, `opencode.json`, `CLAUDE.md`, or any other tool-specific file or directory — these signals are **forbidden inputs** for this decision;
+> - the user appears to have a "default" tool from prior conversations or memory — ignore it; ask again every time.
+>
+> ❌ **DO NOT** auto-detect, infer, guess, default, pre-fill, or assume the answer.
+> ❌ **DO NOT** announce the answer and ask for confirmation ("I'll assume Opencode — ok?"). That is still skipping the question.
+> ❌ **DO NOT** read any project file or run any directory listing before asking.
+> ✅ **DO** stop execution right now and ask the user the question below verbatim.
 
-Ask the user the following question, presenting exactly these four options:
+### The question to ask (verbatim)
+
+Present these four options to the user, exactly:
 
 > **Para qual ferramenta agêntica o projeto deve ser configurado?**
 >
@@ -37,9 +49,23 @@ Ask the user the following question, presenting exactly these four options:
 > 3. **Cursor AI** — gera `.cursor/rules/project.mdc` (ou `.cursorrules` legado), usa `.cursor/rules/`, instala agentes em `.cursor/agents/` e comandos em `.cursor/commands/`.
 > 4. **Opencode** — gera `AGENTS.md`, usa `.agents/skills/`, instala agentes em `.opencode/agents/` e comandos em `.opencode/commands/`.
 
-Use whichever interactive question mechanism is available in the current host (e.g., `AskUserQuestion` in Claude Code). If no structured question tool is available, print the four numbered options in plain text and wait for the user to reply with the option number or name. Do **not** proceed until the user has answered.
+### How to ask
 
-Once the user selects an option, resolve the configuration as follows and store these values internally for use in every subsequent step:
+- If the host provides a structured question tool (e.g., `AskUserQuestion` in Claude Code), use it with these four options.
+- Otherwise, emit the four numbered options as plain text in your reply and **end the turn immediately**. Do not call any other tool, do not read files, do not write anything. Yield control to the user and wait for their reply.
+- After yielding, **the next user message is the answer**. Accept the option number (1–4) or the tool name. If the answer is ambiguous, ask again — never guess.
+
+### Acceptance criteria (you must satisfy ALL before proceeding to Step 1)
+
+- [ ] The four options were presented to the user in this turn or a previous turn of the current invocation.
+- [ ] The user has explicitly replied with one of: `1`, `2`, `3`, `4`, `Claude Code`, `GitHub Copilot`, `Cursor AI`, or `Opencode`.
+- [ ] You have NOT read any project file, listed any directory, or run any Bash command yet.
+
+If any criterion is unmet, **return to the top of Step 0** and ask again.
+
+### Resolution table
+
+Once the user answers, store these values internally for use in every subsequent step:
 
 | Option | AI Tool | Config file | Skills directory | Agents directory | Commands directory |
 |--------|---------|-------------|------------------|------------------|--------------------|
@@ -48,7 +74,7 @@ Once the user selects an option, resolve the configuration as follows and store 
 | 3 | Cursor AI | `.cursor/rules/project.mdc` (or `.cursorrules` if the user explicitly asks for the legacy format) | `.cursor/rules/` | `.cursor/agents/` | `.cursor/commands/` |
 | 4 | Opencode | `AGENTS.md` | `.agents/skills/` | `.opencode/agents/` | `.opencode/commands/` |
 
-After the user has selected the tool, continue with the remaining steps using the selected tool's paths and conventions consistently.
+Only after the user has explicitly selected one option, continue to Step 1 using the selected tool's paths and conventions consistently.
 
 **Step 1: Initialize Project Configuration**
 The initialization strategy depends on the AI tool selected by the user in Step 0:
