@@ -106,15 +106,17 @@ Merge the following sections into the project configuration file at the path det
 - **Integrations:** [external services]
 
 ## Available Skills
+**IMPORTANTE: Quando iniciar qualquer tarefa relacionada às tecnologias ou padrões listados abaixo, você DEVE carregar e seguir a skill correspondente lendo o arquivo no caminho indicado antes de prosseguir. Não ignore as skills disponíveis — elas contêm convenções, restrições e padrões obrigatórios para este projeto.**
+
 **NOTE: Only list non-`do-*` skills here. Never include workflow skills (do-setup, do-create-prd, do-create-techspec, do-create-tasks, do-execute-task, do-execute-review, do-execute-qa, etc.) in this table.**
-| Skill | Path | When to use |
-|-------|------|-------------|
+| Skill | Caminho | Quando usar |
+|-------|---------|-------------|
 | [name] | [skills-dir]/[skill]/SKILL.md | [usage context] |
 
 ## Uncovered Skills
-| Technology | Note |
-|------------|------|
-| [e.g., Java/Quarkus] | No skill available locally — add manually to the skills directory |
+| Tecnologia | Observação |
+|------------|------------|
+| [e.g., Java/Quarkus] | Nenhuma skill disponível localmente — adicione manualmente ao diretório de skills |
 
 ## Project Conventions
 - **Naming:** [file and folder naming patterns]
