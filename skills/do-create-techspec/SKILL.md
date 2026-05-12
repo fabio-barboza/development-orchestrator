@@ -12,32 +12,32 @@ You are a senior software architect specialized in translating product requireme
 **This skill is interactive by design.** It requires user input at Step 5 (technical clarifications) before generating the spec. Do NOT proceed past Step 5 without explicit user answers.
 
 ## Execution Constraints
-**CRITICAL: This skill MUST NOT execute the application, run tests, start servers, compile code, or perform any runtime validation.** Its sole purpose is to produce the Tech Spec document. All analysis must be done by reading files and inspecting the directory structure — never by running the application.
+**CRITICAL: This skill MUST NOT execute the application, run tests, start servers, compile code, or perform any runtime validation.** Its sole purpose is to produce the Tech Spec document. All analysis must be done by reading files and inspecting the directory structure - never by running the application.
 
 ## Directory Convention
-**MANDATORY:** PRD directories ALWAYS follow the pattern `./prds/prd-[feature-slug]/` where `prd-` is a required prefix. Example: feature `user-auth` → directory `./prds/prd-user-auth/`. **NEVER** reference a path like `./prds/user-auth/` (without the `prd-` prefix). When locating a PRD directory, scan `./prds/` for a folder matching `prd-[feature-slug]`.
+**MANDATORY:** PRD directories ALWAYS follow the pattern `./prds/prd-[feature-slug]/` where `prd-` is a required prefix. Example: feature `user-auth` -> directory `./prds/prd-user-auth/`. **NEVER** reference a path like `./prds/user-auth/` (without the `prd-` prefix). When locating a PRD directory, scan `./prds/` for a folder matching `prd-[feature-slug]`.
 
 ## Procedures
 
 **Step 0: Detect AI Tool Environment**
 Before anything else, determine the execution environment:
-1. Check for `.claude/` directory in the project root → **Claude Code**
-2. Check for `.github/copilot-instructions.md` or `.github/` directory → **GitHub Copilot**
-3. Check for `.cursor/rules/` or `.cursor/mcp.json` → **Cursor AI**
-4. Check for `opencode.json`, `.opencode/` directory, or `AGENTS.md` → **Opencode**
+1. Check for `.claude/` directory in the project root -> **Claude Code**
+2. Check for `.github/copilot-instructions.md` or `.github/` directory -> **GitHub Copilot**
+3. Check for `.cursor/rules/` or `.cursor/mcp.json` -> **Cursor AI**
+4. Check for `opencode.json`, `.opencode/` directory, or `AGENTS.md` -> **Opencode**
 5. Resolve available tools based on environment:
    - **AskUserQuestion**: use in all environments.
    - **TaskUpdate**: available in Claude Code; in Copilot, Cursor, and Opencode, skip gracefully
    - **Context7 MCP**: available if configured; fallback to Web Search otherwise
 
-Skill assets/references are loaded via your AI tool's native skill resolver — do not hard-code paths. Store the detected tool and capability flags internally.
+Skill assets/references are loaded via your AI tool's native skill resolver - do not hard-code paths. Store the detected tool and capability flags internally.
 
 **Step 1: Validate Prerequisites**
 1. Confirm the feature slug has been provided.
 2. Verify the PRD exists at `prds/prd-[feature-slug]/prd.md`. If missing, halt and report.
 
 **Step 2: Analyze PRD (Mandatory)**
-1. Read the PRD completely — do NOT skip this step.
+1. Read the PRD completely - do NOT skip this step.
 2. Identify technical content, constraints, and success metrics.
 3. Extract core requirements for architectural consideration.
 
@@ -64,7 +64,7 @@ Skill assets/references are loaded via your AI tool's native skill resolver — 
 3. Do NOT proceed until answers are received.
 
 **Step 6: Standards Compliance Mapping (Mandatory)**
-1. Identify project skills available to your AI tool (use the tool's native skill discovery — do not assume a fixed directory). **EXCLUDE all `do-*` skills entirely** — they are internal workflow skills and must NOT appear anywhere in the output artifact. Only evaluate technology/library skills (e.g., `claude-api`, `find-skills`).
+1. Identify project skills available to your AI tool (use the tool's native skill discovery - do not assume a fixed directory). **EXCLUDE all `do-*` skills entirely** - they are internal workflow skills and must NOT appear anywhere in the output artifact. Only evaluate technology/library skills (e.g., `claude-api`, `find-skills`).
 2. Highlight deviations with justification and compliant alternatives.
 
 **Step 7: Generate Tech Spec (Mandatory)**
@@ -110,7 +110,7 @@ Todos os artefatos gerados (documento Tech Spec) devem ser escritos em Portuguê
 
 ## Error Handling
 - If the PRD does not exist at the expected path, halt and ask the user to create it first via the `do-create-prd` skill.
-- If the template file is missing within this skill, report the error and halt — do not generate a Tech Spec without the template.
+- If the template file is missing within this skill, report the error and halt - do not generate a Tech Spec without the template.
 - If Context7 MCP is unavailable, fall back to Web Search for technical documentation.
 - If the output file already exists, confirm with the user before overwriting.
 

@@ -18,7 +18,7 @@
 
 ### Interfaces Principais
 
-[Defina interfaces de serviço principais (≤20 linhas por exemplo):
+[Defina interfaces de serviço principais (<=20 linhas por exemplo):
 
 ```
 // Exemplo de definição de interface (use a linguagem do projeto)
