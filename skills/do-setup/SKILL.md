@@ -132,7 +132,9 @@ For all tools: if the config file already exists, proceed to Step 2 without over
    - An identified pattern or integration (queues, database, API, etc.)
 
 **Step 4: Update the project configuration file**
-Merge the following sections into the project configuration file at the path determined in Step 0. Preserve all existing content and append or update only the sections below:
+Merge the following sections into the project configuration file at the path determined in Step 0. Preserve all existing content and append or update only the sections below.
+
+> **Instrução ao agente (não incluir no arquivo gerado):** Na seção `## Available Skills`, escreva SOMENTE o parágrafo IMPORTANTE, o exemplo e a tabela. Nunca inclua skills `do-*` (do-setup, do-create-prd, do-create-techspec, do-create-tasks, do-execute-task, do-execute-review, do-execute-qa, etc.) na tabela. O parágrafo IMPORTANTE é **obrigatório** — não omita, não parafraseie.
 
 ```markdown
 ## Project Summary
@@ -142,9 +144,12 @@ Merge the following sections into the project configuration file at the path det
 - **Integrations:** [external services]
 
 ## Available Skills
-**IMPORTANTE: Quando iniciar qualquer tarefa relacionada às tecnologias ou padrões listados abaixo, você DEVE carregar e seguir a skill correspondente lendo o arquivo no caminho indicado antes de prosseguir. Não ignore as skills disponíveis — elas contêm convenções, restrições e padrões obrigatórios para este projeto.**
+**IMPORTANTE: Antes de iniciar qualquer tarefa, leia o arquivo da skill correspondente à tecnologia ou padrão envolvido usando a ferramenta de leitura de arquivos disponível na sua plataforma. As skills contêm convenções, restrições e padrões obrigatórios para este projeto — não prossiga sem lê-las.**
 
 **NOTE: Only list non-`do-*` skills here. Never include workflow skills (do-setup, do-create-prd, do-create-techspec, do-create-tasks, do-execute-task, do-execute-review, do-execute-qa, etc.) in this table.**
+
+Exemplo: para trabalhar com [primeira-tecnologia], leia o arquivo `[caminho-da-primeira-skill]` antes de qualquer implementação.
+
 | Skill | Caminho | Quando usar |
 |-------|---------|-------------|
 | [name] | [skills-dir]/[skill]/SKILL.md | [usage context] |
@@ -209,6 +214,7 @@ Based on the AI tool selected by the user in Step 0, install the `agent-execute-
 4. **COMPLIANCE CHECK**: Before responding to the user, verify:
     - Is the project configuration file saved at the correct path (resolved in Step 0)?
     - Did you accurately identify the project stack and skills?
+    - Leia a seção `## Available Skills` no arquivo gerado e confirme que o parágrafo `**IMPORTANTE:**` está presente antes da tabela. Se não estiver, insira-o agora antes de responder ao usuário.
 
 ## Output Language
 Todos os artefatos gerados (seções do arquivo de configuração do projeto, resumos) devem ser escritos em Português do Brasil (PT-BR). Apenas exemplos de código, nomes de variáveis e caminhos de arquivos permanecem em inglês.
