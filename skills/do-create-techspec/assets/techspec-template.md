@@ -18,7 +18,7 @@
 
 ### Interfaces Principais
 
-[Defina interfaces de serviço principais (≤20 linhas por exemplo):
+[Defina interfaces de serviço principais (<=20 linhas por exemplo):
 
 ```
 // Exemplo de definição de interface (use a linguagem do projeto)
@@ -82,14 +82,14 @@ interface NomeServico {
 
 [Documentar como a identidade visual definida no PRD será implementada concretamente. Adaptar à plataforma:
 
-- **Metodologia de estilo**: declarar a abordagem do projeto (BEM + CSS variables, utility-first/Tailwind, CSS Modules, CSS-in-JS, StyleSheet nativo iOS/Android, Flutter ThemeData, etc.). Não prescrever — apenas declarar a escolhida.
+- **Metodologia de estilo**: declarar a abordagem do projeto (BEM + CSS variables, utility-first/Tailwind, CSS Modules, CSS-in-JS, StyleSheet nativo iOS/Android, Flutter ThemeData, etc.). Não prescrever - apenas declarar a escolhida.
 - **Design Tokens**: mapear os tokens do PRD para artefatos concretos do projeto (ex.: CSS variables `--bg-primary`, chaves de theme object, design system tokens). Listar o nome exato a usar.
 - **Theme System**: como os temas são aplicados em runtime (data-attribute, classe no root, provider, etc.) e estratégia de troca.
 - **Adaptação a tela**:
   - Web: breakpoints (mobile-first 320px+, tablet 768px+, desktop 1024px+) ou os que o PRD definir
   - Mobile: estratégia de adaptação (tamanho de tela, orientação, tablet vs phone)
 - **Organização dos arquivos de estilo**: global vs componente; convenção de localização (ex.: `index.css` para globais, `*.module.css` por componente, ou equivalente da plataforma).
-- **Regra de cobertura de classes/estilos**: toda classe/seletor usado na UI DEVE ter regra correspondente no arquivo de estilo (vale para CSS, StyleSheet, etc.). A verificação dessa cobertura — junto com uso de design tokens, breakpoints/adaptação a tela e temas — é executada pela tarefa final "Validação de Identidade Visual / CSS" que `do-create-tasks` anexa automaticamente quando `project_surface = visual`.]
+- **Regra de cobertura de classes/estilos**: toda classe/seletor usado na UI DEVE ter regra correspondente no arquivo de estilo (vale para CSS, StyleSheet, etc.). A verificação dessa cobertura - junto com uso de design tokens, breakpoints/adaptação a tela e temas - é executada pela tarefa final "Validação de Identidade Visual / CSS" que `do-create-tasks` anexa automaticamente quando `project_surface = visual`.]
 
 ## Sequenciamento de Desenvolvimento
 

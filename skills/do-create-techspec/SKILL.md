@@ -12,25 +12,25 @@ You are a senior software architect specialized in translating product requireme
 **This skill is interactive by design.** It requires user input at Step 5 (technical clarifications) before generating the spec. Do NOT proceed past Step 5 without explicit user answers.
 
 ## Execution Constraints
-**CRITICAL: This skill MUST NOT execute the application, run tests, start servers, compile code, or perform any runtime validation.** Its sole purpose is to produce the Tech Spec document. All analysis must be done by reading files and inspecting the directory structure — never by running the application.
+**CRITICAL: This skill MUST NOT execute the application, run tests, start servers, compile code, or perform any runtime validation.** Its sole purpose is to produce the Tech Spec document. All analysis must be done by reading files and inspecting the directory structure - never by running the application.
 
 ## Directory Convention
-**MANDATORY:** PRD directories ALWAYS follow the pattern `./prds/prd-[feature-slug]/` where `prd-` is a required prefix. Example: feature `user-auth` → directory `./prds/prd-user-auth/`. **NEVER** reference a path like `./prds/user-auth/` (without the `prd-` prefix). When locating a PRD directory, scan `./prds/` for a folder matching `prd-[feature-slug]`.
+**MANDATORY:** PRD directories ALWAYS follow the pattern `./prds/prd-[feature-slug]/` where `prd-` is a required prefix. Example: feature `user-auth` -> directory `./prds/prd-user-auth/`. **NEVER** reference a path like `./prds/user-auth/` (without the `prd-` prefix). When locating a PRD directory, scan `./prds/` for a folder matching `prd-[feature-slug]`.
 
 ## Procedures
 
 **Step 0: Detect AI Tool Environment**
 Before anything else, determine the execution environment:
-1. Check for `.claude/` directory in the project root → **Claude Code**
-2. Check for `.github/copilot-instructions.md` or `.github/` directory → **GitHub Copilot**
-3. Check for `.cursor/rules/` or `.cursor/mcp.json` → **Cursor AI**
-4. Check for `opencode.json`, `.opencode/` directory, or `AGENTS.md` → **Opencode**
+1. Check for `.claude/` directory in the project root -> **Claude Code**
+2. Check for `.github/copilot-instructions.md` or `.github/` directory -> **GitHub Copilot**
+3. Check for `.cursor/rules/` or `.cursor/mcp.json` -> **Cursor AI**
+4. Check for `opencode.json`, `.opencode/` directory, or `AGENTS.md` -> **Opencode**
 5. Resolve available tools based on environment:
    - **AskUserQuestion**: use in all environments.
    - **TaskUpdate**: available in Claude Code; in Copilot, Cursor, and Opencode, skip gracefully
    - **Context7 MCP**: available if configured; fallback to Web Search otherwise
 
-Skill assets/references are loaded via your AI tool's native skill resolver — do not hard-code paths. Store the detected tool and capability flags internally.
+Skill assets/references are loaded via your AI tool's native skill resolver - do not hard-code paths. Store the detected tool and capability flags internally.
 
 **Step 1: Validate Prerequisites**
 1. Confirm the feature slug has been provided.
@@ -38,7 +38,7 @@ Skill assets/references are loaded via your AI tool's native skill resolver — 
 3. **Detect project surface (silent)**: inspect the project to set `project_surface = visual | backend`. Signals: `package.json` with frontend deps (`react`/`vue`/`svelte`/`next`/`angular`/`solid`), or files like `*.jsx`/`*.tsx`/`*.vue`/`*.svelte`/`*.html`/`*.dart`/`*.swift`/`*.kt`/`*.xaml`, or `web/`, `frontend/`, `mobile/`, `ios/`, `android/` directories. If the PRD contains an "Identidade Visual" section with substantive content, force `project_surface = visual`. Otherwise default to `backend`. Visual-implementation blocks apply ONLY when `project_surface = visual`.
 
 **Step 2: Analyze PRD (Mandatory)**
-1. Read the PRD completely — do NOT skip this step.
+1. Read the PRD completely - do NOT skip this step.
 2. Identify technical content, constraints, and success metrics.
 3. Extract core requirements for architectural consideration.
 
@@ -48,12 +48,12 @@ Skill assets/references are loaded via your AI tool's native skill resolver — 
 3. Analyze: callers/callees, configs, middleware, persistence, concurrency, error handling, tests, infra.
 4. Explore solution strategies, patterns, risks, and alternatives.
 
-**Step 3.5: Visual Pattern Discovery (silent — ONLY when `project_surface = visual` AND the PRD has NO substantive "Identidade Visual" section)**
+**Step 3.5: Visual Pattern Discovery (silent - ONLY when `project_surface = visual` AND the PRD has NO substantive "Identidade Visual" section)**
 
 Mature projects often follow established visual conventions in the codebase without re-declaring them in every PRD. When the PRD is silent on visual identity but the project is visual, perform a silent discovery pass to extract the project's existing visual standard:
 
 1. **Design tokens**: scan global style files (`index.css`, `globals.css`, `theme.css`, any `:root` blocks) for CSS variables. Scan `theme.ts`/`theme.js`/`tokens.ts`/`design-tokens/*` for theme keys. **List the exact token names** (e.g., `--bg-primary`, `theme.colors.accent`) so they can be cited later.
-2. **Styling methodology**: sample 3–5 existing UI components to detect the convention in use — utility classes (Tailwind), BEM, CSS Modules (`*.module.css`), CSS-in-JS (`styled-components`, `emotion`), CSS variables + plain selectors, native StyleSheet (React Native / iOS / Android), Flutter `ThemeData`, etc.
+2. **Styling methodology**: sample 3-5 existing UI components to detect the convention in use - utility classes (Tailwind), BEM, CSS Modules (`*.module.css`), CSS-in-JS (`styled-components`, `emotion`), CSS variables + plain selectors, native StyleSheet (React Native / iOS / Android), Flutter `ThemeData`, etc.
 3. **Breakpoints / adaptive rules**: search existing CSS for `@media (min-width: ...)` patterns OR mobile platform conventions; record the actual breakpoint values used.
 4. **Theme system**: search for theme provider patterns (`ThemeProvider`, `data-theme` attribute on `:root`/`<html>`, root class swap, etc.) and theme toggling logic.
 5. **Style file organization**: identify where styles live (global file vs co-located `*.module.css` vs design-system folder vs per-component CSS-in-JS).
@@ -73,12 +73,12 @@ Store findings as `discovered_visual_patterns`. They become the authoritative so
    - External dependencies.
    - Key interfaces.
    - Test scenarios.
-   - **Visual implementation** (ONLY if `project_surface = visual`): styling methodology, design token architecture, theme system, responsive/adaptive strategy. **Source priority**: (1) PRD's "Identidade Visual" section when present; (2) `discovered_visual_patterns` from Step 3.5 when the PRD is silent — present the discovered patterns to the user via `AskUserQuestion` for confirmation/refinement (e.g., "Padrões existentes detectados: Tailwind + tokens em theme.ts. Adotar para esta feature?"); (3) ask the user from scratch only if both sources are empty. If `project_surface = backend`, OMIT this block.
+   - **Visual implementation** (ONLY if `project_surface = visual`): styling methodology, design token architecture, theme system, responsive/adaptive strategy. **Source priority**: (1) PRD's "Identidade Visual" section when present; (2) `discovered_visual_patterns` from Step 3.5 when the PRD is silent - present the discovered patterns to the user via `AskUserQuestion` for confirmation/refinement (e.g., "Padrões existentes detectados: Tailwind + tokens em theme.ts. Adotar para esta feature?"); (3) ask the user from scratch only if both sources are empty. If `project_surface = backend`, OMIT this block.
    - Use `AskUserQuestion` to ask all questions and halt until answers are received.
 3. Do NOT proceed until answers are received.
 
 **Step 6: Standards Compliance Mapping (Mandatory)**
-1. Identify project skills available to your AI tool (use the tool's native skill discovery — do not assume a fixed directory). **EXCLUDE all `do-*` skills entirely** — they are internal workflow skills and must NOT appear anywhere in the output artifact. Only evaluate technology/library skills (e.g., `claude-api`, `find-skills`).
+1. Identify project skills available to your AI tool (use the tool's native skill discovery - do not assume a fixed directory). **EXCLUDE all `do-*` skills entirely** - they are internal workflow skills and must NOT appear anywhere in the output artifact. Only evaluate technology/library skills (e.g., `claude-api`, `find-skills`).
 2. Highlight deviations with justification and compliant alternatives.
 
 **Step 7: Generate Tech Spec (Mandatory)**
@@ -91,12 +91,12 @@ Store findings as `discovered_visual_patterns`. They become the authoritative so
 7. Do NOT deviate from the template structure.
 8. Prefer existing libraries over custom development.
 9. **Visual Implementation section (conditional)**: If `project_surface = visual`, the Tech Spec MUST include an "Implementação Visual" section. Source of content:
-   - **PRD declares visual identity explicitly** → derive from the PRD's "Identidade Visual" section.
-   - **PRD is silent (typical for mature projects)** → derive from `discovered_visual_patterns` (Step 3.5), confirmed by the user at Step 5. Open the section with this note: *"Padrões existentes do projeto a seguir — PRD silencioso sobre identidade, esta feature adota o sistema vigente descoberto via análise do codebase."*
+   - **PRD declares visual identity explicitly** -> derive from the PRD's "Identidade Visual" section.
+   - **PRD is silent (typical for mature projects)** -> derive from `discovered_visual_patterns` (Step 3.5), confirmed by the user at Step 5. Open the section with this note: *"Padrões existentes do projeto a seguir - PRD silencioso sobre identidade, esta feature adota o sistema vigente descoberto via análise do codebase."*
 
    The section MUST cover:
-   - **Styling methodology** (BEM + CSS variables, utility-first/Tailwind, CSS Modules, CSS-in-JS, StyleSheet nativo, Flutter ThemeData, etc.) — declare what the project uses; do not prescribe.
-   - **Design token mapping** — **list the exact token names available** (CSS variable names like `--bg-primary`, theme object keys like `theme.colors.accent`, or platform equivalents). These names are consumed by the "Validação de Identidade Visual / CSS" task that `do-create-tasks` appends automatically when `project_surface = visual`.
+   - **Styling methodology** (BEM + CSS variables, utility-first/Tailwind, CSS Modules, CSS-in-JS, StyleSheet nativo, Flutter ThemeData, etc.) - declare what the project uses; do not prescribe.
+   - **Design token mapping** - **list the exact token names available** (CSS variable names like `--bg-primary`, theme object keys like `theme.colors.accent`, or platform equivalents). These names are consumed by the "Validação de Identidade Visual / CSS" task that `do-create-tasks` appends automatically when `project_surface = visual`.
    - **Theme system architecture** (how themes are applied at runtime).
    - **Responsive / adaptive strategy** (web: breakpoint values; mobile: screen-size adaptation, orientation).
    - **Style file organization** (global vs component-scoped; per platform when applicable).
@@ -137,7 +137,7 @@ Todos os artefatos gerados (documento Tech Spec) devem ser escritos em Portuguê
 
 ## Error Handling
 - If the PRD does not exist at the expected path, halt and ask the user to create it first via the `do-create-prd` skill.
-- If the template file is missing within this skill, report the error and halt — do not generate a Tech Spec without the template.
+- If the template file is missing within this skill, report the error and halt - do not generate a Tech Spec without the template.
 - If Context7 MCP is unavailable, fall back to Web Search for technical documentation.
 - If the output file already exists, confirm with the user before overwriting.
 
