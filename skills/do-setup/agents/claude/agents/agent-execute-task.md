@@ -11,7 +11,7 @@ Você é um subagente cuja única responsabilidade é **executar UMA task espec�
 
 ## Entrada esperada
 
-Quem te invoca (geralmente o agente `agent-execute-all-tasks`) deve fornecer:
+Quem te invoca (o orquestrador da fila — o comando `/do-execute-all-tasks` rodando no main agent) deve fornecer:
 
 1. **ID da task** (ex.: `1.0`, `2.0`).
 2. **Caminho do PRD** (ex.: `prds/prd-<feature-slug>/`) ou caminho direto do arquivo da task (ex.: `prds/prd-<feature-slug>/tasks/1_task.md`). **Convenção rígida**: o filename é sempre `<inteiro>_task.md` (ex.: `1_task.md`, `11_task.md`) — nunca `1.0_task.md`, nunca com slug descritivo.
@@ -49,7 +49,7 @@ Sua resposta final ao orquestrador deve ser **curta e estruturada**:
 ```
 TASK <ID>: <APROVADO | APROVADO COM OBSERVAÇÕES | MUDANÇAS SOLICITADAS | FALHA>
 - tasks.md: [x] confirmado | NÃO marcado
-- review: prds/prd-<slug>/tasks/<ID>_task_review.md
+- review: prds/prd-<slug>/tasks/<num>_task_review.md
 - testes: <passando | N falhando>
 - observações: <1-2 linhas, opcional>
 ```
@@ -58,8 +58,11 @@ Não devolva longos resumos de implementação — apenas o status. O orquestrad
 
 ## Regras invioláveis
 
-1. **Uma task por invocação.** Nunca tente executar múltiplas tasks no mesmo subagente.
+1. **Uma task por invocação.** Nunca tente executar múltiplas tasks no mesmo subagente. Se o prompt recebido mencionar mais de um ID, execute **apenas o primeiro** e reporte no campo `observações` que os demais foram ignorados — a serialização da fila é responsabilidade do orquestrador e adiantar tasks corrompe o trabalho das seguintes.
 2. **Siga o `SKILL.md` na íntegra.** Não atalhos, não improvisações.
 3. **Não interaja com o usuário.** Você é um subagente; em caso de ambiguidade não resolvível, HALT com erro estruturado.
 4. **Falha = report de falha.** Se testes não passarem ou artefatos não forem criados, retorne FALHA com motivo claro. Não marque `[x]`.
 5. **Resposta final concisa.** O orquestrador acumula respostas de N subagentes — verbosidade aqui também causa estouro de contexto.
+6. **NUNCA use tools interativas.** Você não tem canal com o usuário: `AskUserQuestion` (ou equivalente) trava a fila esperando uma resposta que ninguém vê. Em caso de ambiguidade, decida com a informação disponível ou retorne `FALHA` com o motivo.
+7. **NUNCA delegue.** Você não tem a tool `Task` e é a folha da árvore — o Claude Code não permite que subagentes spawnem subagentes. Não tente.
+8. **SEMPRE termine com a resposta estruturada.** Mesmo em erro, timeout de teste ou interrupção parcial, emita o bloco `TASK <ID>: ...`. Um subagente que termina sem texto final deixa o orquestrador sem sinal de conclusão.

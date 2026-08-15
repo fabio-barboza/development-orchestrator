@@ -21,14 +21,14 @@ Itera sequencialmente sobre tasks de um PRD executando `do-execute-task` em suba
 > **REGRA 2 — Subagente em foreground SEMPRE.**
 > Toda invocação `#tool:agent/runSubagent` **DEVE** rodar em foreground. **NUNCA** passe parâmetros que coloquem o subagente em background. Subagentes em background quebram a fila sequencial e fazem o orquestrador prosseguir antes da verificação dos artefatos.
 >
-> **REGRA 3 — Subagente alvo é LITERALMENTE `Agent Execute Task`.**
-> Use **EXATAMENTE** o subagente `Agent Execute Task` (definido em `.github/agents/agent-execute-task.agent.md`). **JAMAIS** delegue a um subagente genérico ou diferente. Se o subagente não for resolvido (erro de configuração), **PARE** e reporte — não faça fallback.
+> **REGRA 3 — Subagente alvo é LITERALMENTE `agent-execute-task`.**
+> Use **EXATAMENTE** o subagente `agent-execute-task` (definido em `.github/agents/agent-execute-task.agent.md`). **JAMAIS** delegue a um subagente genérico ou diferente. Se o subagente não for resolvido (erro de configuração), **PARE** e reporte — não faça fallback.
 >
 > ---
 >
 > ⛔ **TOOLS QUE VOCÊ DEVE USAR NESTE PROMPT: APENAS `read/readFile`, `search/listDirectory` e `agent/runSubagent`.**
 >
-> Mesmo que outras tools estejam disponíveis no contexto, **NÃO as use neste prompt**. Você **NÃO** deve `edit/editFiles`, `edit/createFile` ou `execute/runInTerminal`. Toda implementação, edição de arquivos, execução de testes e criação de reviews acontece **OBRIGATORIAMENTE** dentro do subagente `Agent Execute Task` invocado via `#tool:agent/runSubagent`.
+> Mesmo que outras tools estejam disponíveis no contexto, **NÃO as use neste prompt**. Você **NÃO** deve `edit/editFiles`, `edit/createFile` ou `execute/runInTerminal`. Toda implementação, edição de arquivos, execução de testes e criação de reviews acontece **OBRIGATORIAMENTE** dentro do subagente `agent-execute-task` invocado via `#tool:agent/runSubagent`.
 
 ## Entrada do usuário
 
@@ -70,7 +70,7 @@ Para **cada** task na fila:
 
 #### 2.2. Delegação em subagente isolado via #tool:agent/runSubagent
 
-Invoque o tool **`#tool:agent/runSubagent`** delegando ao subagente `Agent Execute Task` (definido em `.github/agents/agent-execute-task.agent.md`) com prompt autocontido contendo:
+Invoque o tool **`#tool:agent/runSubagent`** delegando ao subagente `agent-execute-task` (definido em `.github/agents/agent-execute-task.agent.md`) com prompt autocontido contendo:
 
 - ID da task corrente
 - Caminho do PRD (ex.: `prds/prd-<nome>/`)
@@ -89,13 +89,13 @@ Exemplo de prompt para o subagente:
 
 #### 2.3. Verificação de conclusão (apenas pelo return do subagente)
 
-Após o retorno do subagente, **NÃO releia `tasks.md` nem chame `search/listDirectory` aqui** — isso acumularia tool results no contexto do main agent a cada iteração e estouraria a janela em filas longas. O subagente `Agent Execute Task` já fez o gate final (Step 8 do `do-execute-task`) verificando que `tasks.md` está marcado `[x]` e que o `<num>_task_review.md` existe. Confie no return estruturado.
+Após o retorno do subagente, **NÃO releia `tasks.md` nem chame `search/listDirectory` aqui** — isso acumularia tool results no contexto do main agent a cada iteração e estouraria a janela em filas longas. O subagente `agent-execute-task` já fez o gate final (Step 8 do `do-execute-task`) verificando que `tasks.md` está marcado `[x]` e que o `<num>_task_review.md` existe. Confie no return estruturado.
 
 Parse o return do subagente:
 ```
 TASK <ID>: <APROVADO | APROVADO COM OBSERVAÇÕES | MUDANÇAS SOLICITADAS | FALHA>
 - tasks.md: [x] confirmado | NÃO marcado
-- review: prds/prd-<slug>/tasks/<ID>_task_review.md
+- review: prds/prd-<slug>/tasks/<num>_task_review.md
 - testes: <passando | N falhando>
 - observações: <opcional>
 ```
@@ -136,10 +136,23 @@ Quando a fila estiver vazia (todas as tasks concluídas com sucesso):
    ```
 2. Sugira próximos passos (ex.: rodar `do-execute-review` ou `do-execute-qa`).
 
+## 🔒 CHECKPOINT OBRIGATÓRIO ANTES DE CADA DELEGAÇÃO
+
+Antes de emitir **qualquer** chamada de `#tool:agent/runSubagent`, verifique as quatro condições abaixo. Se **uma** delas falhar, **NÃO** emita a chamada.
+
+1. **É a ÚNICA chamada de delegação desta response?** Se você está prestes a emitir duas ou mais no mesmo bloco de tool calls — **PARE**. Remova todas menos a da task corrente.
+2. **A task anterior já RETORNOU?** Delegação só acontece depois que o subagente da task anterior devolveu o bloco `TASK <ID>: ...`. Nunca antecipe.
+3. **O retorno anterior já foi VERIFICADO?** Status `APROVADO`/`APROVADO COM OBSERVAÇÕES` **e** `tasks.md: [x] confirmado`. Qualquer outra coisa = parada da fila.
+4. **Está em foreground?** Nada de qualquer parâmetro de background. Delegação em background quebra a serialização e faz a fila avançar antes da verificação.
+
+⛔ **Execução paralela é PROIBIDA — sem exceções.** Não importa se as tasks "parecem independentes", se o usuário pediu "mais rápido", ou se a ferramenta sugere agrupar chamadas independentes. Tasks de um PRD compartilham a mesma árvore de arquivos e têm dependências sequenciais (a task N+1 lê e edita o código produzido pela task N). Duas delegações simultâneas gravam nos mesmos arquivos e no mesmo `tasks.md` → conflito de escrita, `[x]` perdido, código sobrescrito, review inconsistente. **Uma task por vez, sempre, mesmo que isso seja mais lento.**
+
+Se o usuário pedir explicitamente paralelismo: **recuse**, explique em uma linha que a fila é serial por dependência de arquivos, e siga sequencial.
+
 ## Regras invioláveis
 
 1. **UMA task por vez, em ordem numérica crescente — UM `#tool:agent/runSubagent` call por response.** Nunca emita dois ou mais `#tool:agent/runSubagent` no mesmo bloco. Nunca dispare a próxima task antes do retorno + verificação da anterior. Nunca execute em background.
-2. **Sempre delegue a `Agent Execute Task` (literal).** Nunca use outro subagente. Se não resolver, PARE e reporte. Nunca execute a skill inline.
+2. **Sempre delegue a `agent-execute-task` (literal).** Nunca use outro subagente. Se não resolver, PARE e reporte. Nunca execute a skill inline.
 3. **Ordem numérica estrita** (1, 2, 3, 4...). Não pule tasks salvo se o usuário pediu uma lista parcial específica.
 4. **Falha = parada.** Em qualquer falha do subagente, pare o loop e reporte. Não tente "ajustar" tasks futuras.
 5. **Nunca** edite `tasks.md` diretamente — quem marca `[x]` é a skill `do-execute-task` dentro do subagente.

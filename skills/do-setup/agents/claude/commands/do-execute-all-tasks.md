@@ -98,7 +98,7 @@ Parse o return do subagente:
 ```
 TASK <ID>: <APROVADO | APROVADO COM OBSERVAÇÕES | MUDANÇAS SOLICITADAS | FALHA>
 - tasks.md: [x] confirmado | NÃO marcado
-- review: prds/prd-<slug>/tasks/<ID>_task_review.md
+- review: prds/prd-<slug>/tasks/<num>_task_review.md
 - testes: <passando | N falhando>
 - observações: <opcional>
 ```
@@ -139,6 +139,19 @@ Quando a fila estiver vazia (todas as tasks concluídas com sucesso):
    Tasks ainda pendentes no PRD: <lista, se houver>
    ```
 2. Sugira próximos passos (ex.: rodar `do-execute-review` ou `do-execute-qa`).
+
+## 🔒 CHECKPOINT OBRIGATÓRIO ANTES DE CADA DELEGAÇÃO
+
+Antes de emitir **qualquer** chamada de `Task`, verifique as quatro condições abaixo. Se **uma** delas falhar, **NÃO** emita a chamada.
+
+1. **É a ÚNICA chamada de delegação desta response?** Se você está prestes a emitir duas ou mais no mesmo bloco de tool calls — **PARE**. Remova todas menos a da task corrente.
+2. **A task anterior já RETORNOU?** Delegação só acontece depois que o subagente da task anterior devolveu o bloco `TASK <ID>: ...`. Nunca antecipe.
+3. **O retorno anterior já foi VERIFICADO?** Status `APROVADO`/`APROVADO COM OBSERVAÇÕES` **e** `tasks.md: [x] confirmado`. Qualquer outra coisa = parada da fila.
+4. **Está em foreground?** Nada de `run_in_background: true`. Delegação em background quebra a serialização e faz a fila avançar antes da verificação.
+
+⛔ **Execução paralela é PROIBIDA — sem exceções.** Não importa se as tasks "parecem independentes", se o usuário pediu "mais rápido", ou se a ferramenta sugere agrupar chamadas independentes. Tasks de um PRD compartilham a mesma árvore de arquivos e têm dependências sequenciais (a task N+1 lê e edita o código produzido pela task N). Duas delegações simultâneas gravam nos mesmos arquivos e no mesmo `tasks.md` → conflito de escrita, `[x]` perdido, código sobrescrito, review inconsistente. **Uma task por vez, sempre, mesmo que isso seja mais lento.**
+
+Se o usuário pedir explicitamente paralelismo: **recuse**, explique em uma linha que a fila é serial por dependência de arquivos, e siga sequencial.
 
 ## Regras invioláveis
 
