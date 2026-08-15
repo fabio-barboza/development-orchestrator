@@ -166,8 +166,10 @@ Exemplo: para trabalhar com [primeira-tecnologia], leia o arquivo `[caminho-da-p
 **Step 5: Install Orchestration Agents & Commands**
 Based on the AI tool selected by the user in Step 0, install the `agent-execute-task` worker subagent and the slash command for orchestration. The orchestration logic of the queue lives in different places depending on the AI tool's subagent nesting policy:
 
-- **Claude Code, Cursor, GitHub Copilot**: subagents **cannot** spawn other subagents by default ([Claude Code docs](https://code.claude.com/docs/en/sub-agents); Copilot requires `chat.subagents.allowInvocationsFromSubagents=true`, which is off by default). The orchestration loop lives **inside the slash command/prompt itself** (runs on the main agent), and only `agent-execute-task` is installed as a subagent. Each task is delegated via the platform's task tool (one nesting level — allowed).
-- **Opencode**: subagent nesting is allowed natively. Both `agent-execute-all-tasks` (orchestrator) and `agent-execute-task` (worker) are installed as subagents.
+**In every supported AI tool the orchestration loop lives inside the slash command/prompt itself** (running on the main/primary agent), and only `agent-execute-task` is installed as a subagent. Each task is delegated via the platform's task tool — exactly **one** nesting level, which every tool allows.
+
+- **Claude Code, Cursor, GitHub Copilot**: subagents **cannot** spawn other subagents by default ([Claude Code docs](https://code.claude.com/docs/en/sub-agents); Copilot requires `chat.subagents.allowInvocationsFromSubagents=true`, off by default; Cursor allows one nesting level since 2.5, but a grandchild cannot launch further subagents).
+- **Opencode**: nesting is capped by `subagent_depth` (**default `1`**), and a subagent only receives the `task` tool if it declares `permission.task`. Even with `subagent_depth: 2`, permission prompts raised inside a grandchild session may never render in the TUI — the queue then waits forever. So no `agent-execute-all-tasks` orchestrator is installed here either.
 
 > Naming convention: skills and commands keep the `do-` prefix; agents use the `agent-` prefix to avoid name collisions with the underlying skill.
 
@@ -197,9 +199,10 @@ Based on the AI tool selected by the user in Step 0, install the `agent-execute-
 
    **Opencode** (if the user selected option 4):
    - Run `mkdir -p .opencode/agents .opencode/commands`
-   - Copy `<skill-dir>/agents/opencode/agents/agent-execute-all-tasks.md` → `.opencode/agents/agent-execute-all-tasks.md`
    - Copy `<skill-dir>/agents/opencode/agents/agent-execute-task.md` → `.opencode/agents/agent-execute-task.md`
    - Copy all `<skill-dir>/agents/opencode/commands/*.md` → `.opencode/commands/`
+   - **Do NOT** copy any `agent-execute-all-tasks.md` — orchestration is embedded in the `/do-execute-all-tasks` command and must run in the **primary** session. Um command com `subtask: true` delegando a um orquestrador subagente cria dois níveis de aninhamento: falha com `Subagent depth limit reached` no default (`subagent_depth: 1`) e, mesmo com `subagent_depth: 2`, prompts de permissão do neto podem não aparecer na TUI e a fila trava indefinidamente.
+   - If a previous install left a stale `.opencode/agents/agent-execute-all-tasks.md`, delete it (`rm -f .opencode/agents/agent-execute-all-tasks.md`).
 
 3. Confirm to the user which files were installed and for which tool.
 

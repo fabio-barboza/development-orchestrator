@@ -175,7 +175,7 @@ Execute cada task em ordem:
 
 ### Opção B — Em lote (agent autônomo)
 
-Use o slash command `/do-execute-all-tasks` (que aciona o agent `agent-execute-all-tasks`) para executar um conjunto de tasks sequencialmente sem intervenção:
+Use o slash command `/do-execute-all-tasks` (a orquestração roda no agente primário da sessão e delega cada task ao subagente `agent-execute-task`) para executar um conjunto de tasks sequencialmente sem intervenção:
 
 ```
 /do-execute-all-tasks prds/prd-login-google/tasks/tasks.md all
@@ -188,7 +188,9 @@ Você também pode executar um range ou uma lista específica:
 /do-execute-all-tasks prds/prd-login-google/tasks/tasks.md 1.0,3.0,5.0
 ```
 
-> O agent executa uma task por vez, delegando cada execução a um subagente isolado (`agent-execute-task`) via Task tool — isso evita estouro da janela de contexto em filas longas. Para automaticamente em caso de falha. Disponível no Claude Code, Cursor, GitHub Copilot e Opencode após o `do-setup`.
+> Executa **uma task por vez, estritamente sequencial** (nunca em paralelo — tasks do mesmo PRD editam os mesmos arquivos e o mesmo `tasks.md`), delegando cada execução a um subagente isolado (`agent-execute-task`) — isso evita estouro da janela de contexto em filas longas. Para automaticamente em caso de falha. Disponível no Claude Code, Cursor, GitHub Copilot e Opencode após o `do-setup`.
+>
+> ⚠️ Rode o command **na sessão primária**, não dentro de um subagente. Nenhuma ferramenta suportada garante subagente-de-subagente: o Claude Code proíbe, o Copilot desabilita por default, e no opencode a fila trava esperando prompts de permissão que nunca aparecem na TUI.
 
 A skill (e o agent) implementam o código, rodam os testes e geram um review file por task. Para acompanhar o progresso a qualquer momento:
 

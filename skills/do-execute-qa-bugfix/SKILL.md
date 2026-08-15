@@ -69,7 +69,7 @@ Skill assets/references are loaded via your AI tool's native skill resolver — 
 1. Execute the MCP discovery procedure at `do-shared/references/do-mcp-discovery-instructions.md`.
 2. For bugs affecting the **UI** (and `browser-testing` MCP available): run `mkdir -p ./prds/prd-[feature-slug]/qa-screenshots` via Bash, then navigate, reproduce the fix flow, and capture screenshot evidence using `filename: prds/prd-[feature-slug]/qa-screenshots/fix-[BUG-XX]-[slug].png`.
 3. For bugs affecting **backend** (and backend-capable MCP available): validate end-to-end via MCP tools.
-4. If no relevant MCP available: document the validation gap in the fix report, rely on unit/integration tests only.
+4. If no relevant MCP available: document the validation gap in the bug file's `## Resolução` section (Step 7), rely on unit/integration tests only.
 
 **Step 6: Final Test Execution (Mandatory Gate)**
 1. Run ALL project tests using the detected package manager (e.g., `npm test`).

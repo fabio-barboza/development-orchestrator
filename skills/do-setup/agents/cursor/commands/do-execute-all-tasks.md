@@ -1,6 +1,6 @@
 # /do-execute-all-tasks
 
-Itera sequencialmente sobre tasks de um PRD executando `do-execute-task` em subagentes isolados, com contexto limpo entre tasks. **A orquestração da fila roda no main agent** (este command) — não há orquestrador intermediário, porque o Cursor não garante que subagentes possam invocar outros subagentes.
+Itera sequencialmente sobre tasks de um PRD executando `do-execute-task` em subagentes isolados, com contexto limpo entre tasks. **A orquestração da fila roda no main agent** (este command) — não há orquestrador intermediário. Desde o Cursor 2.5 um subagente pode lançar subagentes filhos, mas um neto **não** pode lançar mais nenhum; orquestrar a partir do main agent mantém a fila dentro do único nível garantido em qualquer versão.
 
 > ⛔ **TRÊS REGRAS DURAS — LEIA ATÉ O FIM ANTES DE QUALQUER COISA.**
 >
@@ -74,6 +74,8 @@ Exemplo de prompt para o subagente:
 
 **Aguarde o retorno do subagente** antes de prosseguir. Cada invocação roda em sessão fresca (clean context), sem herdar histórico nem tool results da task anterior — isto é o isolamento real.
 
+> **Fallback documentado do Cursor**: há relatos de a tool `Task` não enxergar agentes definidos em `.cursor/agents/*.md`. Se `subagent_type: "agent-execute-task"` não resolver, use a forma de invocação explícita documentada pelo Cursor — `Use the /agent-execute-task subagent para executar a task <ID> ...` com o mesmo prompt autocontido. Ela também cria um subagente em contexto isolado. Continua valendo: **uma** delegação por response, sequencial. Se nem essa forma resolver o agente, **PARE** e reporte.
+
 > Se a tool `Task` estiver indisponível ou o subagent_type não resolver, **PARE** e reporte ao usuário. Não tente executar a skill inline — isso reproduz o bug que esta arquitetura corrige.
 
 #### 2.3. Verificação de conclusão (apenas pelo return do subagente)
@@ -84,7 +86,7 @@ Parse o return do subagente:
 ```
 TASK <ID>: <APROVADO | APROVADO COM OBSERVAÇÕES | MUDANÇAS SOLICITADAS | FALHA>
 - tasks.md: [x] confirmado | NÃO marcado
-- review: prds/prd-<slug>/tasks/<ID>_task_review.md
+- review: prds/prd-<slug>/tasks/<num>_task_review.md
 - testes: <passando | N falhando>
 - observações: <opcional>
 ```
@@ -124,6 +126,19 @@ Quando a fila estiver vazia (todas as tasks concluídas com sucesso):
    Tasks ainda pendentes no PRD: <lista, se houver>
    ```
 2. Sugira próximos passos (ex.: rodar `do-execute-review` ou `do-execute-qa`).
+
+## 🔒 CHECKPOINT OBRIGATÓRIO ANTES DE CADA DELEGAÇÃO
+
+Antes de emitir **qualquer** chamada de `Task`, verifique as quatro condições abaixo. Se **uma** delas falhar, **NÃO** emita a chamada.
+
+1. **É a ÚNICA chamada de delegação desta response?** Se você está prestes a emitir duas ou mais no mesmo bloco de tool calls — **PARE**. Remova todas menos a da task corrente.
+2. **A task anterior já RETORNOU?** Delegação só acontece depois que o subagente da task anterior devolveu o bloco `TASK <ID>: ...`. Nunca antecipe.
+3. **O retorno anterior já foi VERIFICADO?** Status `APROVADO`/`APROVADO COM OBSERVAÇÕES` **e** `tasks.md: [x] confirmado`. Qualquer outra coisa = parada da fila.
+4. **Está em foreground?** Nada de qualquer parâmetro de background. Delegação em background quebra a serialização e faz a fila avançar antes da verificação.
+
+⛔ **Execução paralela é PROIBIDA — sem exceções.** Não importa se as tasks "parecem independentes", se o usuário pediu "mais rápido", ou se a ferramenta sugere agrupar chamadas independentes. Tasks de um PRD compartilham a mesma árvore de arquivos e têm dependências sequenciais (a task N+1 lê e edita o código produzido pela task N). Duas delegações simultâneas gravam nos mesmos arquivos e no mesmo `tasks.md` → conflito de escrita, `[x]` perdido, código sobrescrito, review inconsistente. **Uma task por vez, sempre, mesmo que isso seja mais lento.**
+
+Se o usuário pedir explicitamente paralelismo: **recuse**, explique em uma linha que a fila é serial por dependência de arquivos, e siga sequencial.
 
 ## Regras invioláveis
 
