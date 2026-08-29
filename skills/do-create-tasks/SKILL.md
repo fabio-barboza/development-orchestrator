@@ -49,7 +49,8 @@ Skill assets/references are loaded via your AI tool's native skill resolver — 
 3. Order tasks logically: dependencies before dependents (e.g., backend before frontend, both before E2E tests).
 4. Each task MUST be a functional, incremental deliverable.
 5. Each task MUST have its own set of unit and integration tests.
-6. Limit to a maximum of 15 tasks (group as needed).
+6. **No task-count limit**: create as many tasks as the PRD and Tech Spec actually require. Never merge unrelated work or drop scope just to reduce the count.
+   - **Count advisory (never a constraint)**: if the list exceeds 20 tasks, tell the user the total and ask whether they want tasks grouped into fewer, larger ones. Present the full list either way and only regroup if the user explicitly asks.
 7. **Scope guideline**: each task should represent approximately 100–200 lines of production code change. Tasks estimated to exceed this should be split — this prevents context overflow during `do-execute-task`.
 8. Wait for user approval before proceeding to Step 4.
 

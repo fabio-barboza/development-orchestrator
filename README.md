@@ -62,7 +62,7 @@ Este comando irá:
                     │                                             │
                    ◀│◀   do-execute-task [num]                    │
 tasks.md            │   - Implementação + tests                   │
-[15 tasks] ────────▶│   - E2E via MCP se aplicável                │
+[N tasks]  ────────▶│   - E2E via MCP se aplicável                │
 (sequencial)        │   - Gera [num]_task_review.md               │
                     │   - Marca task como [x] em tasks.md         │
                     └─────────────────────────────────────────────┘

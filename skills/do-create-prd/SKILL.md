@@ -61,8 +61,9 @@ Skill assets/references are loaded via your AI tool's native skill resolver — 
 1. Read the template at `do-create-prd/assets/prd-template.md`.
 2. Focus on WHAT and WHY, never on HOW (implementation belongs in Tech Spec).
 3. Include numbered functional requirements.
-4. Keep the document under 2,000 words.
-5. Do NOT deviate from the template structure.
+4. **No size limit**: write the PRD at whatever length the feature actually requires — completeness always wins over brevity. Never truncate, omit, or summarize required content to hit a size target.
+5. **Size advisory (never a constraint)**: if the finished PRD exceeds roughly 2,000 words, tell the user its approximate size and ask whether they want a more compact version. Save the full PRD first and only rewrite it if the user explicitly asks. Never compact on your own initiative.
+6. Do NOT deviate from the template structure.
 
 **Step 5: Save the PRD (Mandatory)**
 1. **PATH VERIFICATION**: Before writing, confirm the target path is exactly `./prds/prd-[feature-slug]/prd.md`. Verify the directory name starts with `prd-`. If the `./prds/` directory does not exist, create it first.
@@ -95,6 +96,7 @@ Todos os artefatos gerados (documento PRD, resumos) devem ser escritos em Portug
 - [ ] Numbered functional requirements included.
 - [ ] File saved to `./prds/prd-[feature-slug]/prd.md`.
 - [ ] Final path provided.
+- [ ] If the PRD is large (>~2,000 words), the user was informed and asked about compacting — never compacted without consent.
 
 ## Error Handling
 - If the user provides insufficient context, ask follow-up clarification questions before proceeding.

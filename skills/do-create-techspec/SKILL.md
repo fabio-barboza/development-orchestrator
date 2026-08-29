@@ -73,9 +73,10 @@ Skill assets/references are loaded via your AI tool's native skill resolver - do
 3. Focus on HOW, not WHAT (the PRD owns what/why).
 4. Avoid repeating functional requirements from the PRD.
 5. The spec is about specification, NOT detailed implementation code.
-6. Keep under ~2,000 words.
-7. Do NOT deviate from the template structure.
-8. Prefer existing libraries over custom development.
+6. **No size limit**: write the spec at whatever length the design actually requires. Never drop sections or detail to hit a size target.
+7. **Size advisory (never a constraint)**: if the finished spec exceeds roughly 2,000 words, report its approximate size and ask the user whether they want a more compact version. Save the full spec first; only rewrite it on explicit request.
+8. Do NOT deviate from the template structure.
+9. Prefer existing libraries over custom development.
 
 **Step 8: Save Tech Spec (Mandatory)**
 1. **PATH VERIFICATION**: Before writing, confirm the target path is exactly `./prds/prd-[feature-slug]/techspec.md`. Verify the directory name starts with `prd-`. Verify the PRD directory exists (it must, since the PRD was read in Step 2).
@@ -107,6 +108,7 @@ Todos os artefatos gerados (documento Tech Spec) devem ser escritos em Portuguê
 - [ ] Project skills verified for compliance.
 - [ ] File written to `./prds/prd-[feature-slug]/techspec.md`.
 - [ ] Final output path provided and confirmed.
+- [ ] If the spec is large (>~2,000 words), the user was informed and asked about compacting — never compacted without consent.
 
 ## Error Handling
 - If the PRD does not exist at the expected path, halt and ask the user to create it first via the `do-create-prd` skill.
