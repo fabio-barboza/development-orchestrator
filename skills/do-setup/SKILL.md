@@ -173,7 +173,10 @@ Based on the AI tool selected by the user in Step 0, install the `agent-execute-
 
 > Naming convention: skills and commands keep the `do-` prefix; agents use the `agent-` prefix to avoid name collisions with the underlying skill.
 
-1. Locate the `agents/` subdirectory inside the `do-setup` skill directory by searching for `**/do-setup/agents` using Glob. This directory was copied alongside the `SKILL.md` when the user ran `npx skills add`.
+1. Resolve `<skill-dir>` **inside the current project only**. The templates were copied alongside the `SKILL.md` when the user ran `npx skills add`.
+   - Check these paths, in order, relative to the project root, and use the first that exists: `.agents/skills/do-setup`, `.claude/skills/do-setup`. If neither exists, use the `do-setup` directory that `npx skills add` created **inside the project root**.
+   - **NEVER** use a `do-setup` copy outside the project root (parent directories such as `~/projects/.agents/`, global/home skill directories, other projects). Those copies can be stale and install an obsolete orchestrator. Do not run a recursive Glob from a parent directory to find it.
+   - Sanity check: `<skill-dir>/agents/<tool>/agents/` must contain `agent-execute-task.md` (`agent-execute-task.agent.md` for GitHub Copilot) and must **not** contain any `*execute-all-tasks*` file. If the check fails, the copy is stale: **STOP** and tell the user to run `npx skills add fabio-barboza/development-orchestrator` again in this project.
 2. Execute **only** the installation block that matches the AI tool selected by the user in Step 0. Do not install assets for other tools.
 
    **Claude Code** (if the user selected option 1):
@@ -181,32 +184,36 @@ Based on the AI tool selected by the user in Step 0, install the `agent-execute-
    - Copy `<skill-dir>/agents/claude/agents/agent-execute-task.md` → `.claude/agents/agent-execute-task.md`
    - Copy `<skill-dir>/agents/claude/commands/do-execute-all-tasks.md` → `.claude/commands/do-execute-all-tasks.md`
    - **Do NOT** copy any `agent-execute-all-tasks.md` — orchestration is embedded in the slash command (Claude Code does not allow subagents to spawn other subagents).
-   - If a previous install left a stale `.claude/agents/agent-execute-all-tasks.md` in the project, delete it (`rm -f .claude/agents/agent-execute-all-tasks.md`).
+   - Delete any orchestrator agent left by previous installs (all legacy names): `rm -f .claude/agents/agent-execute-all-tasks.md .claude/agents/do-execute-all-tasks.md .claude/agents/execute-all-tasks.md`.
 
    **Cursor AI** (if the user selected option 3):
    - Run `mkdir -p .cursor/agents .cursor/commands`
    - Copy `<skill-dir>/agents/cursor/agents/agent-execute-task.md` → `.cursor/agents/agent-execute-task.md`
    - Copy `<skill-dir>/agents/cursor/commands/do-execute-all-tasks.md` → `.cursor/commands/do-execute-all-tasks.md`
    - **Do NOT** copy any `agent-execute-all-tasks.md` — orchestration is embedded in the slash command.
-   - If a previous install left a stale `.cursor/agents/agent-execute-all-tasks.md`, delete it (`rm -f .cursor/agents/agent-execute-all-tasks.md`).
+   - Delete any orchestrator agent left by previous installs (all legacy names): `rm -f .cursor/agents/agent-execute-all-tasks.md .cursor/agents/do-execute-all-tasks.md .cursor/agents/execute-all-tasks.md`.
 
    **GitHub Copilot** (if the user selected option 2):
    - Run `mkdir -p .github/agents .github/prompts`
    - Copy `<skill-dir>/agents/github/agents/agent-execute-task.agent.md` → `.github/agents/agent-execute-task.agent.md`
    - Copy `<skill-dir>/agents/github/prompts/do-execute-all-tasks.prompt.md` → `.github/prompts/do-execute-all-tasks.prompt.md`
    - **Do NOT** copy any `agent-execute-all-tasks.agent.md` — orchestration is embedded in the prompt.
-   - If a previous install left a stale `.github/agents/agent-execute-all-tasks.agent.md`, delete it (`rm -f .github/agents/agent-execute-all-tasks.agent.md`).
+   - Delete any orchestrator agent left by previous installs (all legacy names): `rm -f .github/agents/agent-execute-all-tasks.agent.md .github/agents/do-execute-all-tasks.agent.md .github/agents/execute-all-tasks.agent.md`.
 
    **Opencode** (if the user selected option 4):
    - Run `mkdir -p .opencode/agents .opencode/commands`
    - Copy `<skill-dir>/agents/opencode/agents/agent-execute-task.md` → `.opencode/agents/agent-execute-task.md`
    - Copy all `<skill-dir>/agents/opencode/commands/*.md` → `.opencode/commands/`
    - **Do NOT** copy any `agent-execute-all-tasks.md` — orchestration is embedded in the `/do-execute-all-tasks` command and must run in the **primary** session. Um command com `subtask: true` delegando a um orquestrador subagente cria dois níveis de aninhamento: falha com `Subagent depth limit reached` no default (`subagent_depth: 1`) e, mesmo com `subagent_depth: 2`, prompts de permissão do neto podem não aparecer na TUI e a fila trava indefinidamente.
-   - If a previous install left a stale `.opencode/agents/agent-execute-all-tasks.md`, delete it (`rm -f .opencode/agents/agent-execute-all-tasks.md`).
+   - Delete any orchestrator agent left by previous installs (all legacy names): `rm -f .opencode/agents/agent-execute-all-tasks.md .opencode/agents/do-execute-all-tasks.md .opencode/agents/execute-all-tasks.md`.
 
-3. Confirm to the user which files were installed and for which tool.
+3. Verify the installation before reporting:
+   - The agents directory of the selected tool contains `agent-execute-task` and **no** file matching `*execute-all-tasks*`.
+   - The installed `do-execute-all-tasks` command/prompt is byte-identical to the template in `<skill-dir>` (compare with `cmp`). For Opencode, it must **not** contain `subtask: true` nor an `agent:` field in the frontmatter — that would route the queue to a subagent orchestrator.
+   - If any check fails, fix it (re-copy / delete) and verify again. Never report success with a legacy orchestrator installed.
+4. Confirm to the user which files were installed, for which tool, and the `<skill-dir>` used as source.
 
-> Use Bash to run `cp` commands. `<skill-dir>` is the path returned by the Glob search for `**/do-setup/agents` (without the trailing `/agents`).
+> Use Bash to run `cp` commands. `<skill-dir>` is the project-local `do-setup` directory resolved in item 1 (e.g. `.agents/skills/do-setup`).
 
 **Step 6: Report Results & Sync Progress (Mandatory)**
 1. **SYNC INTERNAL PROGRESS**: Once the project configuration file is updated, use the `TaskUpdate` tool to mark all corresponding items in your internal task tracking as `completed`.
