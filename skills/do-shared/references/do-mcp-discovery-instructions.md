@@ -8,7 +8,9 @@ Procedimento padrao referenciado pelas skills de execucao (do-execute-task, do-e
    - **Claude Code:** `.mcp.json` na raiz do projeto
    - **GitHub Copilot:** `.vscode/mcp.json`
    - **Cursor:** `.cursor/mcp.json`
+   - **Opencode:** `opencode.json` na raiz do projeto (chave `mcp`); se ausente, o global `~/.config/opencode/opencode.json`
    Ler o arquivo encontrado para listar os MCP servers configurados.
+   **Fallback pela lista de tools:** se nenhum arquivo listar MCP servers, verifique as tools disponíveis na sua sessão. Uma tool cujo nome contém o nome de um server do registry (ex.: `playwright` + `browser_`) indica que a capacidade existe, mesmo sem arquivo de configuração no projeto (MCP configurado globalmente). Trate esse server como configurado.
 2. Ler o registry de capacidades MCP em `do-shared/references/do-mcp-capabilities.md` para mapear cada server as suas capacidades e tools.
 3. Construir mapa interno de capacidades. Exemplo:
    ```
@@ -20,8 +22,8 @@ Procedimento padrao referenciado pelas skills de execucao (do-execute-task, do-e
    c. **Se existe**: usar os tools conforme descrito na entrada do registry. Respeitar as regras de "Requer app rodando" e "Se indisponivel".
    d. **Se nao existe**: documentar o gap no relatorio ("MCP com capacidade [X] nao configurado — validacao [Y] nao executada") e continuar com testes unitarios/integracao.
 5. Para MCPs que requerem app rodando: verificar se o servico esta acessivel antes de invocar tools. Se nao estiver, tentar iniciar (dev server para browser-testing, verificar broker para message-queue, etc.).
-6. Se MCP configurado mas indisponivel em runtime (erro de conexao, tools nao respondem): seguir o handling de indisponibilidade descrito na entrada do registry.
-7. Se um MCP no arquivo de configuração NAO esta listado no registry: tentar usar tools com prefixo `mcp__<server-name>__` e documentar no relatorio que o MCP nao esta registrado em `do-shared/references/do-mcp-capabilities.md`.
+6. Se MCP configurado mas indisponivel em runtime (erro de conexao, tools nao respondem): seguir o handling de indisponibilidade descrito na entrada do registry. **Atencao:** erro de conexao do *servico alvo* (ex.: `connection refused` ao navegar para a aplicacao) NAO e indisponibilidade do MCP — o servico caiu. Restabeleca-o pelo procedimento de `do-shared/references/do-service-readiness.md` e repita a chamada. Nunca troque o metodo de validacao: nao substitua o MCP por scripts que usam a biblioteca de automacao diretamente nem por CLI.
+7. Se um MCP no arquivo de configuração NAO esta listado no registry: tentar usar tools com prefixo `mcp__<server-name>__` (Claude Code, Cursor, GitHub Copilot) ou `<server-name>_` (Opencode) e documentar no relatorio que o MCP nao esta registrado em `do-shared/references/do-mcp-capabilities.md`.
 
 ## Guard de Capacidade (substitui o frontend guard binario)
 

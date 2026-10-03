@@ -81,7 +81,7 @@ Para **cada** task na fila:
 task(
   subagent_type: "agent-execute-task",   ← LITERAL, nunca outro nome
   description: "Executar task <ID>",
-  prompt: "Execute a task <ID> do PRD localizado em prds/prd-<nome>/. Task file: prds/prd-<nome>/tasks/<num>_task.md. Siga RIGOROSAMENTE o SKILL.md da skill do-execute-task na íntegra (Step 0 a Step 8): leitura de PRD/TechSpec, análise, implementação, gate de testes, marcação [x] em tasks.md, code review, criação do arquivo <num>_task_review.md e gate final de artefatos. Não pule etapas. Não pare para pedir confirmação — você não tem canal com o usuário. Se faltar informação, retorne FALHA. Retorne resposta curta no formato definido pelo agente."
+  prompt: "Execute a task <ID> do PRD localizado em prds/prd-<nome>/. Task file: prds/prd-<nome>/tasks/<num>_task.md. Siga RIGOROSAMENTE o SKILL.md da skill do-execute-task na íntegra (Step 0 a Step 8): leitura de PRD/TechSpec, análise, implementação, gate de testes, marcação [x] em tasks.md, code review, criação do arquivo <num>_task_review.md e gate final de artefatos. Não pule etapas. Não pare para pedir confirmação — você não tem canal com o usuário. Se faltar informação, retorne FALHA. Regras de ambiente: trabalhe somente dentro da raiz do projeto (exceto caminhos que a task indicar explicitamente); rascunhos apenas em .do-tmp/task-<num>/ — não leia rascunhos de outras tasks e apague a pasta ao final; para testes de browser/E2E use as tools do MCP disponíveis na sessão, nunca scripts com a biblioteca de automação nem CLI; se um serviço necessário estiver fora do ar, restabeleça-o em vez de trocar o método de teste; evidências (screenshots) em prds/prd-<nome>/task-screenshots/. Retorne resposta curta no formato definido pelo agente."
 )
 ```
 
