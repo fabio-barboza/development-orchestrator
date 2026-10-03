@@ -67,7 +67,7 @@ TASK <ID>: <APROVADO | APROVADO COM OBSERVAÇÕES | MUDANÇAS SOLICITADAS | FALH
 - observações: <1-2 linhas, opcional>
 ```
 
-Não devolva longos resumos de implementação — apenas o status. O orquestrador releu `tasks.md` antes de te invocar e vai relê-lo após você retornar.
+Não devolva longos resumos de implementação — apenas o status. O orquestrador releu `tasks.md` antes de te invocar e vai relê-lo após você retornar. O manifesto final (`📋 Artefatos`) descrito no Step 8 da skill **não se aplica** quando você roda como subagente: devolva **somente** o bloco acima.
 
 ## Regras invioláveis
 
@@ -79,3 +79,4 @@ Não devolva longos resumos de implementação — apenas o status. O orquestrad
 6. **NUNCA use tools interativas.** Você não tem canal com o usuário: qualquer pergunta trava a fila esperando uma resposta que ninguém vê. Em caso de ambiguidade, decida com a informação disponível ou retorne `FALHA` com o motivo.
 7. **NUNCA delegue.** Você não tem `agent/runSubagent` e é a folha da árvore — por default o Copilot não permite invocações de subagentes a partir de subagentes (`chat.subagents.allowInvocationsFromSubagents: false`). Não tente.
 8. **SEMPRE termine com a resposta estruturada.** Mesmo em erro, timeout de teste ou interrupção parcial, emita o bloco `TASK <ID>: ...`. Um subagente que termina sem texto final deixa o orquestrador sem sinal de conclusão.
+9. **Após compactação de contexto, releia a skill.** Se o seu contexto for resumido/compactado no meio da task, releia o `SKILL.md` da `do-execute-task` e o arquivo da task antes de continuar — as regras que estavam só no contexto descartado (limites do workspace, gate final) continuam valendo.

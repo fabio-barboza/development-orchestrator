@@ -80,7 +80,9 @@ MCPs habilitam testes E2E automáticos. O mais comum é o Playwright (para brows
 }
 ```
 
-Para outras ferramentas (Cursor, Copilot), veja a tabela no [README.md](README.md#como-configurar-mcps-no-seu-projeto).
+Para outras ferramentas (Cursor, Copilot, Opencode), veja a tabela no [README.md](README.md#como-configurar-mcps-no-seu-projeto).
+
+> Prefira configurar os MCPs **por projeto**, não globalmente: cada MCP entra no prompt de toda sessão, mesmo em projetos que não o usam, e as skills descobrem os MCPs lendo o arquivo de configuração do projeto.
 
 ---
 
@@ -198,6 +200,10 @@ A skill (e o agent) implementam o código, rodam os testes e geram um review fil
 /do-status
 ```
 
+### Se a fila parar sem erro
+
+Se a execução ficar parada sem mensagem de erro, verifique se há um **pedido de permissão pendente na conversa do subagente** — por exemplo, acesso a um diretório fora do projeto. O pedido bloqueia a task e o orquestrador fica esperando indefinidamente. Responda ao pedido na conversa do subagente; se a task tiver sido interrompida, rode de novo o `/do-execute-all-tasks` a partir da task pendente (ex.: `13.0-15.0`).
+
 ---
 
 ## Passo 7 — Code Review (loop até APPROVED)
@@ -235,6 +241,28 @@ Se bugs forem encontrados, corrija e revalide:
 ```
 
 Repita até não restar nenhum bug de severidade HIGH. Feature pronta!
+
+---
+
+## Modelos com janela de contexto pequena
+
+O framework não assume um tamanho de contexto. Com modelos de janela grande, as tasks no tamanho padrão cabem com folga. Com modelos de janela pequena (por exemplo, modelos locais de ~128k tokens), cabe a você pedir tasks menores na hora de criá-las.
+
+Medições de referência — modelo local de 128k, 15 tasks, todas no mesmo arquivo de ~3.800 linhas:
+
+- O agente compactou o contexto ao chegar a ~100k tokens. Descontando ~20k do prompt-base e ~20k das leituras obrigatórias (PRD, TechSpec, especificação), sobraram **~60k tokens de trabalho por task**.
+- Tasks comuns gastaram de 10k a 70k tokens de raciocínio e compactaram no máximo uma vez.
+- Tasks com dados exatos escritos à mão, muitas restrições simultâneas ou algoritmos a conferir gastaram de 80k a 130k só de raciocínio e compactaram de 2 a 4 vezes.
+- Depois de uma compactação, o modelo tende a esquecer regras da skill. Por isso a `do-execute-task` manda reler o `SKILL.md` ao retomar.
+
+Para pedir tasks menores, acrescente a instrução ao comando:
+
+```
+/do-create-tasks <techspec>
+Divida as tasks para que cada uma caiba em ~60k tokens de trabalho (o modelo executor tem 128k de contexto). Uma única entrega por task. Trate como pesado: dados exatos escritos à mão (grades, mapas, tabelas), artefatos com muitas restrições simultâneas e algoritmos que precisam ser conferidos caso a caso. Quando houver dados exatos, crie antes a task do validador e use-o para conferir cada um.
+```
+
+Ajuste o número ao seu modelo: o orçamento é o ponto em que a ferramenta compacta, menos o prompt-base e as leituras obrigatórias.
 
 ---
 

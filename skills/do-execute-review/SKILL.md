@@ -17,7 +17,7 @@ You are a senior code reviewer focused on quality, standards compliance, and pro
 ## Workspace Boundary — ABSOLUTE RULE
 All files you create, read or execute MUST live **inside the project root**. Files outside it may be stale or belong to another project/run.
 
-1. **NEVER** write, read or execute files in `/tmp`, `/var/tmp`, the home directory, other projects, or any path outside the project root (exceptions: your AI tool's skill files and installed dependencies).
+1. **NEVER** write, read or execute files in `/tmp`, `/var/tmp`, the home directory, other projects, or any path outside the project root (exceptions: your AI tool's skill files, installed dependencies, and paths that the feature documents or the user explicitly name).
 2. Scratch files (ad-hoc scripts, intermediate outputs) go ONLY in `./.do-tmp/review/`. Create it with `mkdir -p` when needed; if the project is a git repository and `.gitignore` does not list `.do-tmp/`, append it.
 3. Never reuse scratch files from other runs or from other `./.do-tmp/` folders.
 4. Tests that must persist go in the project's test location, not in `./.do-tmp/`.

@@ -37,11 +37,15 @@ When an `Edit` tool call fails, follow this escalation ladder:
 ## Workspace Boundary — ABSOLUTE RULE
 All files you create, read or execute for the task MUST live **inside the project root**. Anything outside it may be stale or belong to another project/run, and reusing it silently corrupts the work.
 
-1. **NEVER** write, read or execute files in `/tmp`, `/var/tmp`, the home directory, other projects, or any path outside the project root. The only exceptions are your AI tool's skill files and installed dependencies (e.g. `node_modules`, global CLIs).
+1. **NEVER** write, read or execute files in `/tmp`, `/var/tmp`, the home directory, other projects, or any path outside the project root. Exceptions: your AI tool's skill files, installed dependencies (e.g. `node_modules`, global CLIs), and paths that the task file, the PRD/TechSpec or the user explicitly name (e.g. another project to analyze, a shared library).
 2. **Scratch files** (exploratory scripts, generators, ad-hoc checks, intermediate outputs) go ONLY in `./.do-tmp/task-[num]/` (e.g. `./.do-tmp/task-3/`). Create it with `mkdir -p` when first needed. If the project is a git repository and `.gitignore` does not list `.do-tmp/`, append `.do-tmp/` to `.gitignore`.
 3. **Do not reuse scratch files from other tasks or previous runs.** Never list, read or execute anything in `./.do-tmp/` outside the current `task-[num]` folder. If you need a helper again, recreate it.
 4. **Tests that validate the task are NOT scratch** — write them in the project's test location defined by the TechSpec / project conventions, so they persist and run in the full suite (Step 4B).
 5. Before finishing (Step 8), delete `./.do-tmp/task-[num]/`.
+6. **Evidence that must persist** (screenshots or logs cited in the review) goes in `./prds/prd-[feature-slug]/task-screenshots/`: run `mkdir -p` on it first and ALWAYS pass the full relative path in the screenshot tool's `filename` parameter (e.g. `prds/prd-[feature-slug]/task-screenshots/task-[num]-<description>.png`). Never leave screenshots or other evidence files in the project root; throwaway captures go in the scratch folder.
+
+## Context Compaction
+If your context is compacted or summarized in the middle of the task (you can no longer see the text of this SKILL.md in your context), **re-read this SKILL.md and the task file before continuing**. Rules that were only in the discarded context still apply — in particular the Workspace Boundary rule and the Step 8 final gate.
 
 ## Procedures
 
@@ -93,7 +97,7 @@ Skill assets/references are loaded via your AI tool's native skill resolver — 
       - Task type + no relevant MCP → skip E2E, continue with unit/integration tests, document gap in review.
 8. **HOW TO RUN E2E tests**: MUST be executed via the appropriate MCP tools as listed in the capability registry — **NEVER via CLI**. Use the tools described in each MCP's registry entry.
 9. **Service readiness — MANDATORY before invoking any MCP/E2E that depends on a running service**: Follow the procedure at `do-shared/references/do-service-readiness.md`. The rule is **check first, reuse if running, start only when needed, never kill running services**. For MCPs whose registry entry has `Requer app rodando: Sim`, run a port/health probe before invoking tools; if the service is not running, start only safe dev servers (`npm run dev`, `npm start`, `bun dev`, `pnpm dev`); for brokers or external services, document the gap instead of attempting to start them automatically.
-10. **If an MCP is unavailable** (connection error, tools not responding): Follow the "Se indisponivel" handling from the MCP's registry entry. Continue with unit/integration tests and document the E2E gap in the review.
+10. **If an MCP is unavailable** (connection error, tools not responding): Follow the "Se indisponivel" handling from the MCP's registry entry. Continue with unit/integration tests and document the E2E gap in the review. A `connection refused` (or similar) from the *target service* is NOT MCP unavailability — the service went down: bring it back with the service-readiness procedure (item 9) and retry. Never switch the validation method — do not replace the MCP with scripts that drive the automation library directly or with a CLI.
 
 **Step 4B: ALL TESTS MUST PASS — NON-NEGOTIABLE GATE**
 
@@ -125,7 +129,7 @@ Skill assets/references are loaded via your AI tool's native skill resolver — 
 2. After successful implementation and ALL tests passing, you MUST update `tasks.md` to mark the task as complete.
 3. Change the task status from `[ ]` (or equivalent) to `[x]` (or equivalent "Concluída"/"Done") in `tasks.md`.
 4. **IMMEDIATE VERIFICATION (MANDATORY)**: Right after the edit tool call, you MUST call `read_file` on `tasks.md` in the SAME response to verify the `[x]` is actually present in the file content. If the `[x]` is NOT visible in the read output, the edit FAILED — redo it.
-5. Mark all subtasks (X.1, X.2, etc.) as `[x]` in the `[num]_task.md` file. Then call `read_file` on `[num]_task.md` to verify.
+5. Mark all subtasks (X.1, X.2, etc.) as `[x]` in the `[num]_task.md` file, and also the checkboxes of the task's test checklist (e.g. the "Testes da Tarefa" section) for every test that was actually executed and passed. Then call `read_file` on `[num]_task.md` to verify.
 6. **SYNC INTERNAL PROGRESS**: If `TaskUpdate` is available (Claude Code only; skip in Copilot and Cursor), use it to mark all corresponding items in your internal task tracking as `completed`. Otherwise, skip this step.
 
 **TASKS.MD PROTECTION RULE — ABSOLUTE, NON-NEGOTIABLE:**
@@ -193,13 +197,13 @@ Perform ALL checks below. If ANY fails, fix it first.
    - (a) The current task is marked as `[x]`. If not → **STOP. Edit it NOW.**
    - (b) **ALL other tasks that were previously in the file are STILL PRESENT.** No lines were deleted, no entries were removed. If any previously existing task entry is missing → **STOP. This is a critical error — you destroyed data. Restore the missing entries using git or by re-adding them manually, then re-read to confirm.**
 
-4. **CHECK 4 — Subtasks are marked**: Call `read_file` on `./prds/prd-[feature-slug]/tasks/[num]_task.md`. Scan ALL subtask checkboxes (X.1, X.2, etc.). Every single one MUST show `[x]`. If any shows `[ ]` → **STOP. Edit the file NOW. Then call `read_file` again to confirm.**
+4. **CHECK 4 — Subtasks are marked**: Call `read_file` on `./prds/prd-[feature-slug]/tasks/[num]_task.md`. Scan ALL checkboxes in the file — the subtasks (X.1, X.2, etc.) AND the test checklist (e.g. the "Testes da Tarefa" section). Every single one MUST show `[x]`; a test item may only be marked after that test was actually executed and passed. If any shows `[ ]` → **STOP. Edit the file NOW. Then call `read_file` again to confirm.**
 
 5. **CHECK 5 — Requirements cross-check**: List all requirements from the task file and confirm each is implemented and tested.
 
 6. **CHECK 6 — Critical tags**: Verify all `<critical>` tags from the task file were satisfied.
 
-7. **CHECK 7 — Workspace boundary**: Confirm no file was created outside the project root during this task (Workspace Boundary rule). Remove `./.do-tmp/task-[num]/` (`rm -rf ./.do-tmp/task-[num]`) and confirm it no longer exists. If any task artifact ended up outside the project, move what must persist (e.g. tests) into the project and delete the rest.
+7. **CHECK 7 — Workspace boundary**: Confirm no file was created outside the project root during this task (Workspace Boundary rule). Remove `./.do-tmp/task-[num]/` (`rm -rf ./.do-tmp/task-[num]`) and confirm it no longer exists. If any task artifact ended up outside the project, move what must persist (e.g. tests) into the project and delete the rest. Also confirm that no screenshot or evidence file was left in the project root — move the ones that must persist to `./prds/prd-[feature-slug]/task-screenshots/` and delete the rest.
 
 **BLOCKING RULE: If Check 1, 2, 3, 4, or 7 fails, you are PROHIBITED from sending a final response. Fix the issue and re-run the checks. A task with failing tests is NEVER complete.**
 
@@ -215,6 +219,7 @@ Perform ALL checks below. If ANY fails, fix it first.
    - .do-tmp/task-[num]: ✅ Removido (nada criado fora do projeto)
    ```
    If any artifact shows ❌ instead of ✅, you have violated this skill's rules. Do NOT send the response — fix the artifact first.
+   **Subagent exception:** when you were invoked by an orchestrator as a subagent (e.g. `agent-execute-task`), do NOT include this manifest — your final response is ONLY the short `TASK <ID>: ...` block defined by the agent.
 
 ## Error Handling
 - If the task file does not exist, halt and report to the user.

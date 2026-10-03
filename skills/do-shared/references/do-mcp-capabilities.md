@@ -15,12 +15,14 @@ Fonte de verdade sobre as capacidades de cada MCP server configurado no projeto.
 
 ## Servidores Conhecidos
 
+> **Prefixo de tools por ferramenta de IA:** os prefixos abaixo usam a convencao `mcp__<server>__<tool>` (Claude Code, Cursor, GitHub Copilot). No **Opencode** a mesma tool e exposta como `<server>_<tool>` (ex.: `playwright_browser_navigate`). Use sempre o nome que aparece na lista de tools da sua sessao.
+
 ### playwright
 - **Capacidades:** browser-testing
 - **Prefixo de tools:** `mcp__playwright__browser_*`
 - **Quando usar:** E2E de features frontend, validacao visual, verificacao de acessibilidade, captura de screenshots como evidencia
 - **Requer app rodando:** Sim (iniciar dev server antes de usar)
-- **Se indisponivel:** Reportar erro, NAO usar CLI (`npx playwright test`), documentar gap no relatorio
+- **Se indisponivel:** Reportar erro, NAO usar CLI (`npx playwright test`) nem scripts que usam a biblioteca de automacao de browser diretamente (Playwright, Puppeteer, Selenium), documentar gap no relatorio. `connection refused` ao navegar significa que a aplicacao caiu, nao o MCP: restabelecer o servico (`do-service-readiness.md`) e repetir a chamada
 - **Tools principais:**
   | Tool | Uso |
   |------|-----|
