@@ -34,6 +34,15 @@ When an `Edit` tool call fails, follow this escalation ladder:
 ## Directory Convention
 **MANDATORY:** PRD directories ALWAYS follow the pattern `./prds/prd-[feature-slug]/` where `prd-` is a required prefix. Example: feature `user-auth` → directory `./prds/prd-user-auth/`. **NEVER** reference a path like `./prds/user-auth/`. When scanning `./prds/` to auto-select a PRD, look for folders matching the `prd-*` pattern.
 
+## Workspace Boundary — ABSOLUTE RULE
+All files you create, read or execute for the task MUST live **inside the project root**. Anything outside it may be stale or belong to another project/run, and reusing it silently corrupts the work.
+
+1. **NEVER** write, read or execute files in `/tmp`, `/var/tmp`, the home directory, other projects, or any path outside the project root. The only exceptions are your AI tool's skill files and installed dependencies (e.g. `node_modules`, global CLIs).
+2. **Scratch files** (exploratory scripts, generators, ad-hoc checks, intermediate outputs) go ONLY in `./.do-tmp/task-[num]/` (e.g. `./.do-tmp/task-3/`). Create it with `mkdir -p` when first needed. If the project is a git repository and `.gitignore` does not list `.do-tmp/`, append `.do-tmp/` to `.gitignore`.
+3. **Do not reuse scratch files from other tasks or previous runs.** Never list, read or execute anything in `./.do-tmp/` outside the current `task-[num]` folder. If you need a helper again, recreate it.
+4. **Tests that validate the task are NOT scratch** — write them in the project's test location defined by the TechSpec / project conventions, so they persist and run in the full suite (Step 4B).
+5. Before finishing (Step 8), delete `./.do-tmp/task-[num]/`.
+
 ## Procedures
 
 **Step 0: Detect AI Tool Environment (execute silently)**
@@ -190,17 +199,20 @@ Perform ALL checks below. If ANY fails, fix it first.
 
 6. **CHECK 6 — Critical tags**: Verify all `<critical>` tags from the task file were satisfied.
 
-**BLOCKING RULE: If Check 1, 2, 3, or 4 fails, you are PROHIBITED from sending a final response. Fix the issue and re-run the checks. A task with failing tests is NEVER complete.**
+7. **CHECK 7 — Workspace boundary**: Confirm no file was created outside the project root during this task (Workspace Boundary rule). Remove `./.do-tmp/task-[num]/` (`rm -rf ./.do-tmp/task-[num]`) and confirm it no longer exists. If any task artifact ended up outside the project, move what must persist (e.g. tests) into the project and delete the rest.
+
+**BLOCKING RULE: If Check 1, 2, 3, 4, or 7 fails, you are PROHIBITED from sending a final response. Fix the issue and re-run the checks. A task with failing tests is NEVER complete.**
 
 **ANTI-HALLUCINATION ENFORCEMENT**: If your final response includes ✅ for an artifact but the corresponding `read_file` tool call in Step 7 was never made or returned an error, you are LYING to the user. This is the worst possible outcome. When in doubt, re-read the file.
 
-7. **FINAL OUTPUT MANIFEST** (include in your final response to the user):
+8. **FINAL OUTPUT MANIFEST** (include in your final response to the user):
    ```
    📋 Artefatos:
    - Testes: ✅ Todos passando
    - [num]_task_review.md: ✅ Criado ([STATUS])
    - tasks.md: ✅ Atualizado (task [num] marcada como concluída)
    - [num]_task.md: ✅ Subtasks marcadas como concluídas
+   - .do-tmp/task-[num]: ✅ Removido (nada criado fora do projeto)
    ```
    If any artifact shows ❌ instead of ✅, you have violated this skill's rules. Do NOT send the response — fix the artifact first.
 

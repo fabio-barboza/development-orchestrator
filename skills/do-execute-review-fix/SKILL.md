@@ -27,6 +27,15 @@ When an `Edit` tool call fails, follow this escalation ladder:
 ## Directory Convention
 **MANDATORY:** PRD directories ALWAYS follow the pattern `./prds/prd-[feature-slug]/` where `prd-` is a required prefix. Example: feature `user-auth` → directory `./prds/prd-user-auth/`. **NEVER** reference a path like `./prds/user-auth/`.
 
+## Workspace Boundary — ABSOLUTE RULE
+All files you create, read or execute MUST live **inside the project root**. Files outside it may be stale or belong to another project/run.
+
+1. **NEVER** write, read or execute files in `/tmp`, `/var/tmp`, the home directory, other projects, or any path outside the project root (exceptions: your AI tool's skill files and installed dependencies).
+2. Scratch files (ad-hoc scripts, intermediate outputs) go ONLY in `./.do-tmp/review-fix/`. Create it with `mkdir -p` when needed; if the project is a git repository and `.gitignore` does not list `.do-tmp/`, append it.
+3. Never reuse scratch files from other runs or from other `./.do-tmp/` folders.
+4. Tests that must persist go in the project's test location, not in `./.do-tmp/`.
+5. Delete `./.do-tmp/review-fix/` before your final response.
+
 ## Invocation
 This skill fixes **one finding at a time**. The user must provide the path to the specific fix task file:
 ```
