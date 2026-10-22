@@ -46,7 +46,16 @@ For each service marked `not-running`:
    - `npm run dev` or `npm start` (default fallback)
    - For monorepos, prefer the workspace-scoped command (e.g., `bun --filter <package> dev`).
 
-   Start the process in the background, then re-run Step B until the service responds or a 60-second timeout elapses. If the service fails to start (compile error, port already taken by an unrelated process, missing env var), do NOT modify code or configuration to work around it — report the failure (each consumer skill defines how: bug file, review finding, or HALT).
+   Start the process in the background so the tool call returns immediately — a dev server never exits, so a foreground call blocks the session. Use your AI tool's native background mechanism when available:
+   - **Opencode**: `shell` tool with `background: true`
+   - **Claude Code**: `Bash` tool with `run_in_background: true`
+   - **GitHub Copilot**: `run_in_terminal` with `isBackground: true`
+   - **Cursor**: `run_terminal_cmd` with `is_background: true`
+   - **Otherwise**: `nohup <command> > <log> 2>&1 &`
+
+   If you redirect output to a log file, write it inside your skill's scratch folder (e.g. `./.do-tmp/task-[num]/<service>.log`; if your skill defines none, `./.do-tmp/<skill-name>/`) — never in `/tmp` or any path outside the project root.
+
+   Then re-run Step B until the service responds or a 60-second timeout elapses. If the service fails to start (compile error, port already taken by an unrelated process, missing env var), do NOT modify code or configuration to work around it — report the failure (each consumer skill defines how: bug file, review finding, or HALT).
 
 2. **If type is `external`** (broker, database, cache, third-party API) — do NOT attempt to start. Document the gap in the consumer skill's report (review report, QA report, or task review) using the wording from the MCP registry's `Se indisponivel` field. Continue with whichever tests do not require that service.
 
