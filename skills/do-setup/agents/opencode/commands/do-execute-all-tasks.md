@@ -9,30 +9,30 @@ Itera sequencialmente sobre tasks de um PRD executando `do-execute-task` em suba
 > ⛔ **TRÊS REGRAS DURAS — LEIA ATÉ O FIM ANTES DE QUALQUER COISA.**
 >
 > **REGRA 1 — SEQUENCIAL ESTRITO, ZERO PARALELISMO.**
-> Você **DEVE** fazer **UMA ÚNICA chamada da tool `task` por response**. Você **JAMAIS** pode emitir 2 ou mais `task` no mesmo bloco de tool calls. Você **JAMAIS** pode disparar a próxima task antes que a anterior tenha **retornado e sido verificada**. Tasks de PRD têm dependências sequenciais (task 2 depende do código produzido pela task 1, etc.) e violar a ordem destrói o trabalho.
+> Você **DEVE** fazer **UMA ÚNICA chamada da tool `subagent` por response**. Você **JAMAIS** pode emitir 2 ou mais `subagent` no mesmo bloco de tool calls. Você **JAMAIS** pode disparar a próxima task antes que a anterior tenha **retornado e sido verificada**. Tasks de PRD têm dependências sequenciais (task 2 depende do código produzido pela task 1, etc.) e violar a ordem destrói o trabalho.
 >
 > **REGRA 2 — NUNCA `background: true`.**
-> Toda invocação da tool `task` **DEVE** rodar em foreground. **NUNCA** passe `background: true` (na dúvida, omita o parâmetro). Subagentes em background quebram a fila sequencial e fazem o orquestrador prosseguir antes da verificação dos artefatos.
+> Toda invocação da tool `subagent` **DEVE** rodar em foreground. **NUNCA** passe `background: true` (na dúvida, omita o parâmetro). Subagentes em background quebram a fila sequencial e fazem o orquestrador prosseguir antes da verificação dos artefatos.
 >
-> **REGRA 3 — `subagent_type` é LITERALMENTE `"agent-execute-task"`.**
-> Use **EXATAMENTE** a string `"agent-execute-task"` no parâmetro `subagent_type`. **JAMAIS** use `"general"`, `"build"`, `"plan"` ou qualquer outro nome. Se o subagent type não for resolvido (erro de configuração), **PARE** e reporte — não faça fallback.
+> **REGRA 3 — `agent` é LITERALMENTE `"agent-execute-task"`.**
+> Use **EXATAMENTE** a string `"agent-execute-task"` no parâmetro `agent`. **JAMAIS** use `"general"`, `"build"`, `"plan"` ou qualquer outro nome. Se `agent-execute-task` não constar em "Available subagents" da tool `subagent`, ou a chamada retornar `Unknown agent`, **PARE** e reporte — não faça fallback. (Causa comum: `hidden: true` no frontmatter do agente oculta-o da lista a partir do opencode 2.1.)
 >
 > ---
 >
-> ⛔ **TOOLS QUE VOCÊ DEVE USAR NESTE COMMAND: APENAS `task`, `read` e `glob`.**
+> ⛔ **TOOLS QUE VOCÊ DEVE USAR NESTE COMMAND: APENAS `subagent`, `read` e `glob`.**
 >
-> Mesmo que outras tools estejam disponíveis, **NÃO as use neste command**. Você **NÃO** deve `write`, `edit`, executar `bash` (testes/scripts) ou rodar a skill `do-execute-task` inline. Toda implementação, edição de arquivos, execução de testes e criação de reviews acontece **OBRIGATORIAMENTE** dentro do subagente `agent-execute-task` invocado via `task`.
+> Mesmo que outras tools estejam disponíveis, **NÃO as use neste command**. Você **NÃO** deve `write`, `edit`, executar `bash` (testes/scripts) ou rodar a skill `do-execute-task` inline. Toda implementação, edição de arquivos, execução de testes e criação de reviews acontece **OBRIGATORIAMENTE** dentro do subagente `agent-execute-task` invocado via `subagent`.
 >
 > Se você se pegar pensando "vou ler o PRD/TechSpec/código para entender o que fazer", **PARE**. Você não precisa entender a task — quem precisa é o subagente.
 
 ## Por que a orquestração roda no agente primário (e não em um subagente)
 
-No opencode, cada chamada da tool `task` cria uma **child session** com contexto próprio. A profundidade de aninhamento é limitada por `subagent_depth` (**default: 1**) e um subagente só recebe a tool `task` se o próprio agente declarar `permission.task`. Se a orquestração rodasse dentro de um subagente (ex.: command com `subtask: true` apontando para um agente `agent-execute-all-tasks`), cada delegação seria um segundo nível de aninhamento:
+No opencode, cada chamada da tool `subagent` cria uma **child session** com contexto próprio. A profundidade de aninhamento é limitada por `subagent_depth` (**default: 1**) e um subagente só recebe a tool `subagent` se o próprio agente declarar `permission.task` (permissão `subagent`). Se a orquestração rodasse dentro de um subagente (ex.: command com `subtask: true` apontando para um agente `agent-execute-all-tasks`), cada delegação seria um segundo nível de aninhamento:
 
 - com `subagent_depth` no default (1), a chamada falha com `Subagent depth limit reached`;
 - mesmo com `subagent_depth: 2`, prompts de permissão (`question`, `bash`, `edit`) disparados dentro do neto **podem não ser exibidos na TUI**, e a fila trava esperando indefinidamente uma resposta que ninguém vê.
 
-Por isso a fila é orquestrada aqui, na sessão primária: cada `task` é **um único nível** de aninhamento, funciona com a configuração default do opencode e todos os prompts aparecem normalmente.
+Por isso a fila é orquestrada aqui, na sessão primária: cada `subagent` é **um único nível** de aninhamento, funciona com a configuração default do opencode e todos os prompts aparecem normalmente.
 
 ## Argumentos recebidos
 
@@ -73,23 +73,23 @@ Para **cada** task na fila:
 === INICIANDO TASK <ID> (<n>/<total>) ===
 ```
 
-#### 2.2. Delegação em subagente isolado via tool `task`
+#### 2.2. Delegação em subagente isolado via tool `subagent`
 
 **Esta é a etapa que garante o isolamento de contexto.** Invoque:
 
 ```
-task(
-  subagent_type: "agent-execute-task",   ← LITERAL, nunca outro nome
+subagent(
+  agent: "agent-execute-task",   ← LITERAL, nunca outro nome
   description: "Executar task <ID>",
   prompt: "Execute a task <ID> do PRD localizado em prds/prd-<nome>/. Task file: prds/prd-<nome>/tasks/<num>_task.md. Siga RIGOROSAMENTE o SKILL.md da skill do-execute-task na íntegra (Step 0 a Step 8): leitura de PRD/TechSpec, análise, implementação, gate de testes, marcação [x] em tasks.md, code review, criação do arquivo <num>_task_review.md e gate final de artefatos. Não pule etapas. Não pare para pedir confirmação — você não tem canal com o usuário. Se faltar informação, retorne FALHA. Regras de ambiente: trabalhe somente dentro da raiz do projeto (exceto caminhos que a task indicar explicitamente); rascunhos apenas em .do-tmp/task-<num>/ — não leia rascunhos de outras tasks e apague a pasta ao final; para testes de browser/E2E use as tools do MCP disponíveis na sessão, nunca scripts com a biblioteca de automação nem CLI; se um serviço necessário estiver fora do ar, restabeleça-o em vez de trocar o método de teste; evidências (screenshots) em prds/prd-<nome>/task-screenshots/. Retorne resposta curta no formato definido pelo agente."
 )
 ```
 
-**Apenas UMA chamada `task` por response** e **sem `background: true`**.
+**Apenas UMA chamada `subagent` por response** e **sem `background: true`**.
 
 **Aguarde o retorno do subagente** antes de prosseguir. Cada invocação roda em child session isolada, sem herdar histórico nem tool results da task anterior — isto é o isolamento real.
 
-> Se a tool `task` estiver indisponível, o `subagent_type` não resolver, ou o retorno for erro de profundidade (`Subagent depth limit reached`), **PARE** o loop e reporte ao usuário. Não tente executar a skill inline — isso reproduz o bug que esta arquitetura corrige.
+> Se a tool `subagent` estiver indisponível, o `agent` não resolver, ou o retorno for erro de profundidade (`Subagent depth limit reached`), **PARE** o loop e reporte ao usuário. Não tente executar a skill inline — isso reproduz o bug que esta arquitetura corrige.
 >
 > **Diagnóstico de `Subagent depth limit reached`**: significa que este command está rodando dentro de um subagente (sessão filha). Rode `/do-execute-all-tasks` a partir da sessão primária (agente `build` ou equivalente), sem `subtask`.
 
@@ -136,7 +136,7 @@ Quando a fila estiver vazia:
 
 ## 🔒 CHECKPOINT OBRIGATÓRIO ANTES DE CADA DELEGAÇÃO
 
-Antes de emitir **qualquer** chamada de a tool `task`, verifique as quatro condições abaixo. Se **uma** delas falhar, **NÃO** emita a chamada.
+Antes de emitir **qualquer** chamada de a tool `subagent`, verifique as quatro condições abaixo. Se **uma** delas falhar, **NÃO** emita a chamada.
 
 1. **É a ÚNICA chamada de delegação desta response?** Se você está prestes a emitir duas ou mais no mesmo bloco de tool calls — **PARE**. Remova todas menos a da task corrente.
 2. **A task anterior já RETORNOU?** Delegação só acontece depois que o subagente da task anterior devolveu o bloco `TASK <ID>: ...`. Nunca antecipe.
@@ -149,8 +149,8 @@ Se o usuário pedir explicitamente paralelismo: **recuse**, explique em uma linh
 
 ## Regras invioláveis
 
-1. **UMA task por vez, em ordem numérica crescente — UMA chamada `task` por response.** Nunca duas no mesmo bloco. Nunca dispare a próxima antes do retorno + verificação da anterior. Nunca `background: true`.
-2. **Sempre `subagent_type: "agent-execute-task"` (literal).** Se não resolver, PARE e reporte. Nunca execute a skill inline.
+1. **UMA task por vez, em ordem numérica crescente — UMA chamada `subagent` por response.** Nunca duas no mesmo bloco. Nunca dispare a próxima antes do retorno + verificação da anterior. Nunca `background: true`.
+2. **Sempre `agent: "agent-execute-task"` (literal).** Se não resolver, PARE e reporte. Nunca execute a skill inline.
 3. **Ordem numérica estrita.** Não pule tasks salvo pedido explícito de lista parcial.
 4. **Falha = parada.** Inclui retorno vazio, malformado ou timeout do subagente.
 5. **Nunca** edite `tasks.md` diretamente — quem marca `[x]` é a skill `do-execute-task` dentro do subagente.
@@ -169,7 +169,7 @@ Fila de execução (4 tarefas):
 4.0 → <título da task 4.0>
 
 === INICIANDO TASK 1.0 (1/4) ===
-[tool task invocada com subagent_type="agent-execute-task" para 1.0 — UMA chamada nesta response]
+[tool subagent invocada com agent="agent-execute-task" para 1.0 — UMA chamada nesta response]
 [aguarda retorno]
 === TASK 1.0 CONCLUÍDA ===
 --- próxima task ---

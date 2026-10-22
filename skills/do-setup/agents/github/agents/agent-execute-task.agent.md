@@ -14,6 +14,10 @@ tools:
   - edit/editFiles
   - edit/createFile
   - edit/createDirectory
+  - web/fetch
+  - playwright/*
+  - context7/*
+  - rabbitmq/*
 user-invocable: false
 agents: []
 ---
@@ -35,7 +39,7 @@ Se faltar qualquer informação, **HALT** com erro claro — não pergunte ao us
 
 ### 1. Carregar a skill
 
-1. Localize o arquivo `SKILL.md` da skill `do-execute-task` em `.github/skills/do-execute-task/SKILL.md` (ou `.claude/skills/do-execute-task/SKILL.md`) com `search/fileSearch`.
+1. Localize o arquivo `SKILL.md` da skill `do-execute-task` em `.github/skills/do-execute-task/SKILL.md` (ou `.agents/skills/do-execute-task/SKILL.md` / `.claude/skills/do-execute-task/SKILL.md`) com `search/fileSearch`.
 2. Leia o arquivo na íntegra com `read/readFile`.
 
 ### 2. Executar a skill rigorosamente para a task indicada

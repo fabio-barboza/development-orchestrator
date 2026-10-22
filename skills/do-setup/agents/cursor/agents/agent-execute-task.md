@@ -23,7 +23,7 @@ Se faltar qualquer informação, **HALT** com erro claro — não pergunte ao us
 
 ### 1. Carregar a skill
 
-1. Localize o arquivo da skill `do-execute-task` (caminho típico: `.cursor/rules/do-execute-task/SKILL.md` ou `.cursor/skills/do-execute-task/SKILL.md`) com `file_search`.
+1. Localize o arquivo da skill `do-execute-task` (caminho típico: `.agents/skills/do-execute-task/SKILL.md`, `.cursor/skills/do-execute-task/SKILL.md` ou `.cursor/rules/do-execute-task/SKILL.md`) com `file_search`.
 2. Leia o arquivo na íntegra com `read_file`.
 
 ### 2. Executar a skill rigorosamente para a task indicada

@@ -357,7 +357,7 @@ Além das skills (invocadas explicitamente), o DO Framework inclui **agents** �
 
 Orquestra a execução sequencial de todas (ou um subconjunto de) tasks de um PRD. O slash command `/do-execute-all-tasks` roda **no agente primário da sessão** e delega cada task a um **subagente isolado** (`agent-execute-task`) — um subagente novo por task — para garantir contexto totalmente distinto entre execuções e evitar estouro da janela de contexto em filas longas.
 
-> ⚠️ **Não existe agente `agent-execute-all-tasks`.** A orquestração fica embutida no próprio command, em **todas** as ferramentas. Nenhum harness suportado garante que um subagente possa spawnar outro subagente: Claude Code proíbe; Copilot desabilita por default (`chat.subagents.allowInvocationsFromSubagents: false`); Cursor permite só um nível desde a 2.5 (um neto não lança mais nada); opencode limita via `subagent_depth` (default `1`) e, mesmo elevando o limite, prompts de permissão de sessões-neto podem não aparecer na TUI — a fila trava esperando indefinidamente. Se um install antigo deixou `agent-execute-all-tasks.md` em `.claude/agents/`, `.cursor/agents/`, `.github/agents/` ou `.opencode/agents/`, **apague o arquivo** e rode `/do-setup` novamente.
+> ⚠️ **Não existe agente `agent-execute-all-tasks`.** A orquestração fica embutida no próprio command, em **todas** as ferramentas. Nenhum harness suportado garante que um subagente possa spawnar outro subagente: Claude Code permite até 3 níveis desde a v2.1, mas prompts de permissão e o isolamento ficam mais simples com um nível só; Copilot desabilita por default (`chat.subagents.allowInvocationsFromSubagents: false`); Cursor permite só um nível desde a 2.5 (um neto não lança mais nada); opencode limita via `subagent_depth` (default `1`) e, mesmo elevando o limite, prompts de permissão de sessões-neto podem não aparecer na TUI — a fila trava esperando indefinidamente. Se um install antigo deixou `agent-execute-all-tasks.md` em `.claude/agents/`, `.cursor/agents/`, `.github/agents/` ou `.opencode/agents/`, **apague o arquivo** e rode `/do-setup` novamente.
 
 > Convenção de nomes: skills e commands usam o prefixo `do-`; agents usam o prefixo `agent-` para não colidir com a skill `do-execute-task` que é executada dentro do worker.
 
@@ -367,7 +367,7 @@ Orquestra a execução sequencial de todas (ou um subconjunto de) tasks de um PR
 - Uma task por vez — nunca executa em paralelo
 - Ordem numérica estrita
 - Para imediatamente em caso de falha e reporta o problema
-- **Isolamento real de contexto via subagente** (Task tool / `#runSubagent`) — não é apenas instrução textual ao modelo
+- **Isolamento real de contexto via subagente** (`Agent` no Claude Code, `Task` no Cursor, `subagent` no opencode, `#runSubagent` no Copilot) — não é apenas instrução textual ao modelo
 
 **Disponível nas ferramentas:**
 
@@ -785,7 +785,8 @@ O DO Framework é agnóstico à ferramenta de IA. Os conceitos, o fluxo de traba
 |-----------|--------------------|--------------------|------------|
 | **Claude Code** | `.claude/skills/` | `CLAUDE.md` | `.mcp.json` |
 | **GitHub Copilot** | `.github/` (instructions) | `.github/copilot-instructions.md` | `.vscode/mcp.json` |
-| **Cursor** | `.cursor/rules/` (`.mdc` files) | `.cursor/rules/project.mdc` ou `.cursorrules` | `.cursor/mcp.json` |
+| **Cursor** | `.agents/skills/` ou `.cursor/skills/` (regras em `.cursor/rules/`) | `.cursor/rules/project.mdc` ou `.cursorrules` | `.cursor/mcp.json` |
+| **Opencode** | `.agents/skills/` | `AGENTS.md` | `opencode.json` (chave `mcp`) |
 
 ---
 

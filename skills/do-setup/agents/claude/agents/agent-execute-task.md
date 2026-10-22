@@ -1,7 +1,8 @@
 ---
 name: agent-execute-task
 description: Subagente isolado que executa UMA única task de um PRD seguindo rigorosamente a skill `do-execute-task`. Use quando precisar implementar uma task específica em contexto separado do orquestrador. Não use para criar PRD/TechSpec/tasks, QA ou review.
-tools: Read, Write, Edit, Glob, Grep, Bash, SlashCommand
+disallowedTools: Agent, AskUserQuestion
+skills: do-execute-task
 model: inherit
 ---
 
@@ -64,6 +65,6 @@ Não devolva longos resumos de implementação — apenas o status. O orquestrad
 4. **Falha = report de falha.** Se testes não passarem ou artefatos não forem criados, retorne FALHA com motivo claro. Não marque `[x]`.
 5. **Resposta final concisa.** O orquestrador acumula respostas de N subagentes — verbosidade aqui também causa estouro de contexto.
 6. **NUNCA use tools interativas.** Você não tem canal com o usuário: `AskUserQuestion` (ou equivalente) trava a fila esperando uma resposta que ninguém vê. Em caso de ambiguidade, decida com a informação disponível ou retorne `FALHA` com o motivo.
-7. **NUNCA delegue.** Você não tem a tool `Task` e é a folha da árvore — o Claude Code não permite que subagentes spawnem subagentes. Não tente.
+7. **NUNCA delegue.** A tool `Agent` está bloqueada para você (`disallowedTools`) — você é a folha da árvore. Não tente spawnar outro subagente.
 8. **SEMPRE termine com a resposta estruturada.** Mesmo em erro, timeout de teste ou interrupção parcial, emita o bloco `TASK <ID>: ...`. Um subagente que termina sem texto final deixa o orquestrador sem sinal de conclusão.
 9. **Após compactação de contexto, releia a skill.** Se o seu contexto for resumido/compactado no meio da task, releia o `SKILL.md` da `do-execute-task` e o arquivo da task antes de continuar — as regras que estavam só no contexto descartado (limites do workspace, gate final) continuam valendo.

@@ -1,5 +1,5 @@
 ---
-mode: agent
+agent: agent
 description: Itera sequencialmente sobre tasks de um PRD executando do-execute-task em subagentes isolados, com contexto limpo entre tasks. Orquestração inline (Copilot não permite nesting de subagents por padrão).
 tools:
   - read/readFile

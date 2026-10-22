@@ -46,7 +46,7 @@ Present these four options to the user, exactly:
 >
 > 1. **Claude Code** — gera `CLAUDE.md`, usa `.claude/skills/`, instala agentes em `.claude/agents/` e comandos em `.claude/commands/`.
 > 2. **GitHub Copilot** — gera `.github/copilot-instructions.md`, usa `.github/` para instruções, instala agentes em `.github/agents/` e prompts em `.github/prompts/`.
-> 3. **Cursor AI** — gera `.cursor/rules/project.mdc` (ou `.cursorrules` legado), usa `.cursor/rules/`, instala agentes em `.cursor/agents/` e comandos em `.cursor/commands/`.
+> 3. **Cursor AI** — gera `.cursor/rules/project.mdc` (ou `.cursorrules` legado), usa `.agents/skills/` e `.cursor/skills/` (além das regras em `.cursor/rules/`), instala agentes em `.cursor/agents/` e comandos em `.cursor/commands/`.
 > 4. **Opencode** — gera `AGENTS.md`, usa `.agents/skills/`, instala agentes em `.opencode/agents/` e comandos em `.opencode/commands/`.
 
 ### How to ask
@@ -71,7 +71,7 @@ Once the user answers, store these values internally for use in every subsequent
 |--------|---------|-------------|------------------|------------------|--------------------|
 | 1 | Claude Code | `CLAUDE.md` | `.claude/skills/` | `.claude/agents/` | `.claude/commands/` |
 | 2 | GitHub Copilot | `.github/copilot-instructions.md` | `.github/` | `.github/agents/` | `.github/prompts/` |
-| 3 | Cursor AI | `.cursor/rules/project.mdc` (or `.cursorrules` if the user explicitly asks for the legacy format) | `.cursor/rules/` | `.cursor/agents/` | `.cursor/commands/` |
+| 3 | Cursor AI | `.cursor/rules/project.mdc` (or `.cursorrules` if the user explicitly asks for the legacy format) | `.agents/skills/`, `.cursor/skills/` | `.cursor/agents/` | `.cursor/commands/` |
 | 4 | Opencode | `AGENTS.md` | `.agents/skills/` | `.opencode/agents/` | `.opencode/commands/` |
 
 Only after the user has explicitly selected one option, continue to Step 1 using the selected tool's paths and conventions consistently.
@@ -121,10 +121,10 @@ For all tools: if the config file already exists, proceed to Step 2 without over
    - **Claude Code**: `.claude/skills/`
    - **Opencode**: `.agents/skills/`
    - **GitHub Copilot**: `.github/` (look for instruction files)
-   - **Cursor AI**: `.cursor/rules/` (scan all `.mdc` files)
+   - **Cursor AI**: `.agents/skills/` and `.cursor/skills/` (each skill has a `SKILL.md`), plus `.cursor/rules/` (scan all `.mdc` files)
    List every skill/rule file found and read its content.
 2. **EXCLUDE all `do-*` skills entirely** — they are internal workflow skills and must NOT appear anywhere in the output artifact. Only evaluate technology/library skills (e.g., `claude-api`, `find-skills`).
-3. For each remaining (non-`do-*`) skill, read its descriptor file (`SKILL.md` for Claude Code, the `.mdc` content for Cursor AI).
+3. For each remaining (non-`do-*`) skill, read its descriptor file (`SKILL.md` for skills, the `.mdc` content for Cursor rules).
 4. Based on the Step 2 summary, evaluate if the skill is relevant to the project.
 5. A skill is relevant if it covers at least one of:
    - The project's primary language or framework
@@ -168,8 +168,9 @@ Based on the AI tool selected by the user in Step 0, install the `agent-execute-
 
 **In every supported AI tool the orchestration loop lives inside the slash command/prompt itself** (running on the main/primary agent), and only `agent-execute-task` is installed as a subagent. Each task is delegated via the platform's task tool — exactly **one** nesting level, which every tool allows.
 
-- **Claude Code, Cursor, GitHub Copilot**: subagents **cannot** spawn other subagents by default ([Claude Code docs](https://code.claude.com/docs/en/sub-agents); Copilot requires `chat.subagents.allowInvocationsFromSubagents=true`, off by default; Cursor allows one nesting level since 2.5, but a grandchild cannot launch further subagents).
-- **Opencode**: nesting is capped by `subagent_depth` (**default `1`**), and a subagent only receives the `task` tool if it declares `permission.task`. Even with `subagent_depth: 2`, permission prompts raised inside a grandchild session may never render in the TUI — the queue then waits forever. So no `agent-execute-all-tasks` orchestrator is installed here either.
+- **Claude Code**: since v2.1 subagents can spawn subagents (up to three levels, `CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH`; [docs](https://code.claude.com/docs/en/sub-agents)), but the queue still runs on the main agent so each task stays one level deep and permission prompts surface in the main session. The delegation tool is `Agent` (renamed from `Task` in v2.1.63; `Task` remains an alias). `run_in_background` is offered only in some modes (present in `claude -p`, absent in interactive sessions with fork mode on): subagents may start in the background and report back through a completion notification, so the orchestrator must wait for it before the next task. `agent-execute-task` blocks delegation with `disallowedTools: Agent` instead of a `tools` allowlist, so it keeps MCP tools (needed for browser/E2E tests) and preloads the `do-execute-task` skill via `skills`.
+- **Cursor, GitHub Copilot**: subagents **cannot** spawn other subagents by default (Copilot requires `chat.subagents.allowInvocationsFromSubagents=true`, off by default; Cursor allows one nesting level since 2.5, but a grandchild cannot launch further subagents).
+- **Opencode**: nesting is capped by `subagent_depth` (**default `1`**), and a subagent only receives the `subagent` tool (named `task` in older releases) if it declares `permission.task`. Do not mark `agent-execute-task` as `hidden: true`: since opencode 2.1, hidden agents are omitted from the `subagent` tool's "Available subagents" list, so the orchestrator cannot see the worker. Even with `subagent_depth: 2`, permission prompts raised inside a grandchild session may never render in the TUI — the queue then waits forever. So no `agent-execute-all-tasks` orchestrator is installed here either.
 
 > Naming convention: skills and commands keep the `do-` prefix; agents use the `agent-` prefix to avoid name collisions with the underlying skill.
 
@@ -183,7 +184,7 @@ Based on the AI tool selected by the user in Step 0, install the `agent-execute-
    - Run `mkdir -p .claude/agents .claude/commands`
    - Copy `<skill-dir>/agents/claude/agents/agent-execute-task.md` → `.claude/agents/agent-execute-task.md`
    - Copy `<skill-dir>/agents/claude/commands/do-execute-all-tasks.md` → `.claude/commands/do-execute-all-tasks.md`
-   - **Do NOT** copy any `agent-execute-all-tasks.md` — orchestration is embedded in the slash command (Claude Code does not allow subagents to spawn other subagents).
+   - **Do NOT** copy any `agent-execute-all-tasks.md` — orchestration is embedded in the slash command, so each task stays one subagent level deep.
    - Delete any orchestrator agent left by previous installs (all legacy names): `rm -f .claude/agents/agent-execute-all-tasks.md .claude/agents/do-execute-all-tasks.md .claude/agents/execute-all-tasks.md`.
 
    **Cursor AI** (if the user selected option 3):
@@ -212,13 +213,14 @@ Based on the AI tool selected by the user in Step 0, install the `agent-execute-
    - The installed `do-execute-all-tasks` command/prompt is byte-identical to the template in `<skill-dir>` (compare with `cmp`). For Opencode, it must **not** contain `subtask: true` nor an `agent:` field in the frontmatter — that would route the queue to a subagent orchestrator.
    - If any check fails, fix it (re-copy / delete) and verify again. Never report success with a legacy orchestrator installed.
 4. Confirm to the user which files were installed, for which tool, and the `<skill-dir>` used as source.
+5. **Tell the user to restart the AI tool before running `/do-execute-all-tasks`** (or any newly installed command). Claude Code only watches agent directories that existed when the session started, so a `.claude/agents/` created during this setup is invisible until restart; other tools may also cache their agent and command lists. Include this restart notice in the final report of Step 6.
 
 > Use Bash to run `cp` commands. `<skill-dir>` is the project-local `do-setup` directory resolved in item 1 (e.g. `.agents/skills/do-setup`).
 
 **Step 6: Report Results & Sync Progress (Mandatory)**
 1. **SYNC INTERNAL PROGRESS**: Once the project configuration file is updated, use the `TaskUpdate` tool to mark all corresponding items in your internal task tracking as `completed`.
 2. **ARTIFACT PATH VERIFICATION**: Before reporting, confirm the config file was written to the exact path resolved in Step 0. Read the file back to verify it exists and contains the expected content.
-3. Provide a summary of the setup performed.
+3. Provide a summary of the setup performed, ending with the restart notice from Step 5 item 5 (restart the AI tool before running `/do-execute-all-tasks`).
 4. **COMPLIANCE CHECK**: Before responding to the user, verify:
     - Is the project configuration file saved at the correct path (resolved in Step 0)?
     - Did you accurately identify the project stack and skills?
@@ -240,4 +242,4 @@ Todos os artefatos gerados (seções do arquivo de configuração do projeto, re
   - Claude Code: `.claude/skills/` (each skill has a `SKILL.md`)
   - Opencode: `.agents/skills/` (each skill has a `SKILL.md`)
   - GitHub Copilot: `.github/` (instruction files)
-  - Cursor AI: `.cursor/rules/` (`.mdc` files with frontmatter)
+  - Cursor AI: `.agents/skills/` and `.cursor/skills/` (each skill has a `SKILL.md`); rules in `.cursor/rules/` (`.mdc` files with frontmatter)

@@ -48,7 +48,7 @@ If no file path is provided, list all `pendente` fix task files in `review-fixes
 **Step 0: Detect AI Tool Environment**
 Before anything else, determine the execution environment:
 1. Check for `.claude/` directory in the project root → **Claude Code**
-2. Check for `.github/copilot-instructions.md` or `.github/` directory → **GitHub Copilot**
+2. Check for `.github/copilot-instructions.md`, `.github/agents/` or `.github/prompts/` (a bare `.github/` with only workflows does NOT indicate Copilot) → **GitHub Copilot**
 3. Check for `.cursor/rules/` or `.cursor/mcp.json` → **Cursor AI**
 4. Check for `opencode.json`, `.opencode/` directory, or `AGENTS.md` → **Opencode**
 5. Resolve available tools based on environment:
