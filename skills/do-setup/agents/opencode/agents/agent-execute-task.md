@@ -1,7 +1,6 @@
 ---
 description: Subagente isolado que executa UMA única task de um PRD seguindo rigorosamente a skill `do-execute-task`. Use quando precisar implementar uma task específica em contexto separado do orquestrador. Não use para criar PRD/TechSpec/tasks, QA ou review.
 mode: subagent
-hidden: true
 permission:
   read: allow
   edit: allow
@@ -73,6 +72,6 @@ Não devolva longos resumos de implementação — apenas o status. O orquestrad
 4. **Falha = report de falha.** Se testes não passarem ou artefatos não forem criados, retorne FALHA com motivo claro. Não marque `[x]`.
 5. **Resposta final concisa.** O orquestrador acumula respostas de N subagentes — verbosidade aqui também causa estouro de contexto.
 6. **NUNCA use tools interativas.** A tool `question` (e qualquer outra que peça input do usuário) está **negada** para você: numa child session o prompt pode não ser exibido na TUI e a fila inteira trava esperando resposta. Em caso de ambiguidade, decida com a informação disponível ou retorne `FALHA` com o motivo.
-7. **NUNCA delegue.** A tool `task` está negada para você — você é a folha da árvore. Não tente spawnar outro subagente (isso estoura `subagent_depth` e trava a fila).
+7. **NUNCA delegue.** A tool `subagent` (permissão legada `task`) está negada para você — você é a folha da árvore. Não tente spawnar outro subagente (isso estoura `subagent_depth` e trava a fila).
 8. **SEMPRE termine com a resposta estruturada.** Mesmo em erro, em timeout de teste ou em interrupção parcial, emita o bloco `TASK <ID>: ...`. Um subagente que termina sem texto final deixa o orquestrador sem sinal de conclusão.
 9. **Após compactação de contexto, releia a skill.** Se o seu contexto for resumido/compactado no meio da task, releia o `SKILL.md` da `do-execute-task` e o arquivo da task antes de continuar — as regras que estavam só no contexto descartado (limites do workspace, gate final) continuam valendo.

@@ -1,7 +1,7 @@
 ---
-description: Itera sequencialmente sobre tasks de um PRD executando do-execute-task em subagentes isolados, com contexto limpo entre tasks. O main agent orquestra a fila — não delega para outro orquestrador (Claude Code não permite nesting de subagentes).
+description: Itera sequencialmente sobre tasks de um PRD executando do-execute-task em subagentes isolados, com contexto limpo entre tasks. O main agent orquestra a fila — não delega para outro orquestrador (mantém um único nível de subagente).
 argument-hint: <caminho/para/tasks.md> [all | <ID,ID,...> | <ID-inicio>-<ID-fim>]
-allowed-tools: Task, Read, Glob
+allowed-tools: Agent, Read, Glob
 ---
 
 # /do-execute-all-tasks
@@ -9,27 +9,27 @@ allowed-tools: Task, Read, Glob
 > ⛔ **TRÊS REGRAS DURAS — LEIA ATÉ O FIM ANTES DE QUALQUER COISA.**
 >
 > **REGRA 1 — SEQUENCIAL ESTRITO, ZERO PARALELISMO.**
-> Você **DEVE** fazer **UMA ÚNICA chamada `Task` por response**. Você **JAMAIS** pode emitir 2 ou mais `Task` no mesmo bloco de tool calls. Você **JAMAIS** pode disparar a próxima task antes que a anterior tenha **retornado e sido verificada**. As instruções genéricas do Claude Code que dizem "make independent tool calls in parallel" **NÃO se aplicam aqui** — tasks de PRD têm dependências sequenciais (task 2 depende do código produzido pela task 1, etc.) e violar a ordem destrói o trabalho.
+> Você **DEVE** fazer **UMA ÚNICA chamada `Agent` por response**. Você **JAMAIS** pode emitir 2 ou mais `Agent` no mesmo bloco de tool calls. Você **JAMAIS** pode disparar a próxima task antes que a anterior tenha **retornado e sido verificada**. As instruções genéricas do Claude Code que dizem "make independent tool calls in parallel" **NÃO se aplicam aqui** — tasks de PRD têm dependências sequenciais (task 2 depende do código produzido pela task 1, etc.) e violar a ordem destrói o trabalho.
 >
-> **REGRA 2 — `run_in_background: false` SEMPRE.**
-> Toda invocação `Task` **DEVE** rodar em foreground. **NUNCA** passe `run_in_background: true` (na dúvida, omita o parâmetro). Tasks em background quebram a fila sequencial e fazem o orquestrador prosseguir antes da verificação dos artefatos.
+> **REGRA 2 — ESPERE O RETORNO ANTES DE QUALQUER OUTRA AÇÃO.**
+> Se a tool `Agent` oferecer o parâmetro `run_in_background`, passe `false` (ou omita). Em sessões interativas ele pode não existir: o subagente pode iniciar em background e o resultado chega depois como **notificação automática de conclusão** (não é mensagem do usuário). Em qualquer caso, depois de disparar a task, **encerre a response e aguarde** o retorno. **NUNCA** dispare a próxima task, nem faça outro trabalho, enquanto a anterior não tiver retornado — avançar antes da conclusão quebra a fila sequencial.
 >
 > **REGRA 3 — `subagent_type` é LITERALMENTE `"agent-execute-task"`.**
-> Use **EXATAMENTE** a string `"agent-execute-task"` no parâmetro `subagent_type` do `Task`. **JAMAIS** use `"general-purpose"`, nem qualquer outro nome. Se o subagent type não for resolvido (erro de configuração), **PARE** e reporte — não faça fallback para `general-purpose`.
+> Use **EXATAMENTE** a string `"agent-execute-task"` no parâmetro `subagent_type` do `Agent`. **JAMAIS** use `"general-purpose"`, nem qualquer outro nome. Se o subagent type não for resolvido (erro de configuração), **PARE** e reporte — não faça fallback para `general-purpose`.
 >
 > ---
 >
-> ⛔ **TOOLS QUE VOCÊ DEVE USAR NESTE COMMAND: APENAS `Task`, `Read` e `Glob`.**
+> ⛔ **TOOLS QUE VOCÊ DEVE USAR NESTE COMMAND: APENAS `Agent`, `Read` e `Glob`.**
 >
-> Mesmo que outras tools estejam disponíveis no seu contexto, **NÃO as use neste command**. Você **NÃO** deve `Write`, `Edit`, executar `Bash` (testes/scripts) ou rodar a skill `do-execute-task` inline. Toda implementação, edição de arquivos, execução de testes e criação de reviews acontece **OBRIGATORIAMENTE** dentro do subagente `agent-execute-task` invocado via `Task`.
+> Mesmo que outras tools estejam disponíveis no seu contexto, **NÃO as use neste command**. Você **NÃO** deve `Write`, `Edit`, executar `Bash` (testes/scripts) ou rodar a skill `do-execute-task` inline. Toda implementação, edição de arquivos, execução de testes e criação de reviews acontece **OBRIGATORIAMENTE** dentro do subagente `agent-execute-task` invocado via `Agent`.
 >
-> Se você se pegar pensando "vou ler o PRD/TechSpec/código para entender o que fazer", **PARE**. Você não precisa entender a task — quem precisa é o subagente. Sua única função neste command é orquestrar a fila e disparar `Task` por task.
+> Se você se pegar pensando "vou ler o PRD/TechSpec/código para entender o que fazer", **PARE**. Você não precisa entender a task — quem precisa é o subagente. Sua única função neste command é orquestrar a fila e disparar `Agent` por task.
 >
 > Tentar executar tasks inline (ou em paralelo) reproduz o bug que esta arquitetura corrige: estouro da janela de contexto, tasks não marcadas, reviews não criados.
 
 ## Por que o main agent orquestra (e não um subagente)
 
-O Claude Code **não permite que subagentes spawnem outros subagentes** ([docs oficiais](https://code.claude.com/docs/en/sub-agents)). Por isso a orquestração da fila acontece no main agent (que tem `Task` disponível) e **cada task** é delegada a um subagente `agent-execute-task` em sessão isolada — esse é o único nível de nesting permitido. Cada subagente roda em contexto fresco, garantindo que a janela do main não estoure independentemente do tamanho da fila.
+Desde a v2.1 o Claude Code permite subagentes aninhados ([docs oficiais](https://code.claude.com/docs/en/sub-agents)), mas a orquestração da fila continua no main agent (que tem `Agent` disponível): **cada task** é delegada a um subagente `agent-execute-task` em sessão isolada, a um único nível de nesting, e prompts de permissão aparecem direto na sessão principal. O `agent-execute-task` não pode delegar (`Agent` está em `disallowedTools`). Cada subagente roda em contexto fresco, garantindo que a janela do main não estoure independentemente do tamanho da fila.
 
 ## Argumentos recebidos
 
@@ -71,24 +71,23 @@ Emita uma mensagem de marco curta e padronizada:
 === INICIANDO TASK <ID> (<n>/<total>) ===
 ```
 
-#### 2.2. Delegação em subagente isolado via Task tool
+#### 2.2. Delegação em subagente isolado via tool Agent
 
-**Esta é a etapa que garante o isolamento de contexto.** Invoque a tool **`Task`** com (parâmetros obrigatórios marcados):
+**Esta é a etapa que garante o isolamento de contexto.** Invoque a tool **`Agent`** com (parâmetros obrigatórios marcados):
 
 ```
-Task(
+Agent(
   subagent_type: "agent-execute-task",   ← LITERAL, nunca "general-purpose"
   description: "Executar task <ID>",
-  prompt: "Execute a task <ID> do PRD localizado em prds/prd-<nome>/. Task file: prds/prd-<nome>/tasks/<num>_task.md. Siga RIGOROSAMENTE o SKILL.md da skill do-execute-task na íntegra (Step 0 a Step 8): leitura de PRD/TechSpec, análise, implementação, gate de testes, marcação [x] em tasks.md, code review, criação do arquivo <num>_task_review.md e gate final de artefatos. Não pule etapas. Não pare para pedir confirmação. Regras de ambiente: trabalhe somente dentro da raiz do projeto (exceto caminhos que a task indicar explicitamente); rascunhos apenas em .do-tmp/task-<num>/ — não leia rascunhos de outras tasks e apague a pasta ao final; para testes de browser/E2E use as tools do MCP disponíveis na sessão, nunca scripts com a biblioteca de automação nem CLI; se um serviço necessário estiver fora do ar, restabeleça-o em vez de trocar o método de teste; evidências (screenshots) em prds/prd-<nome>/task-screenshots/. Retorne resposta curta no formato definido pelo agente.",
-  run_in_background: false               ← SEMPRE false (ou omitido)
+  prompt: "Execute a task <ID> do PRD localizado em prds/prd-<nome>/. Task file: prds/prd-<nome>/tasks/<num>_task.md. Siga RIGOROSAMENTE o SKILL.md da skill do-execute-task na íntegra (Step 0 a Step 8): leitura de PRD/TechSpec, análise, implementação, gate de testes, marcação [x] em tasks.md, code review, criação do arquivo <num>_task_review.md e gate final de artefatos. Não pule etapas. Não pare para pedir confirmação. Regras de ambiente: trabalhe somente dentro da raiz do projeto (exceto caminhos que a task indicar explicitamente); rascunhos apenas em .do-tmp/task-<num>/ — não leia rascunhos de outras tasks e apague a pasta ao final; para testes de browser/E2E use as tools do MCP disponíveis na sessão, nunca scripts com a biblioteca de automação nem CLI; se um serviço necessário estiver fora do ar, restabeleça-o em vez de trocar o método de teste; evidências (screenshots) em prds/prd-<nome>/task-screenshots/. Retorne resposta curta no formato definido pelo agente."
 )
 ```
 
-**Apenas UM `Task` por response.** Esta chamada é o ÚNICO tool call no bloco — não combine com outros `Task` da próxima task da fila.
+**Apenas UM `Agent` por response.** Esta chamada é o ÚNICO tool call no bloco — não combine com outros `Agent` da próxima task da fila.
 
-**Aguarde o retorno do subagente** antes de prosseguir. Cada invocação roda em sessão fresca, sem herdar histórico nem tool results da task anterior — isto é o isolamento real de contexto.
+**Aguarde o retorno do subagente** (resultado direto ou notificação de conclusão, se ele rodar em background) antes de prosseguir. Cada invocação roda em sessão fresca, sem herdar histórico nem tool results da task anterior — isto é o isolamento real de contexto.
 
-> Se a tool `Task` estiver indisponível ou o `subagent_type` não resolver, **PARE** o loop e reporte ao usuário. Não tente executar a skill inline — isso reproduz o bug que esta arquitetura corrige.
+> Se a tool `Agent` estiver indisponível ou o `subagent_type` não resolver, **PARE** o loop e reporte ao usuário. Não tente executar a skill inline — isso reproduz o bug que esta arquitetura corrige.
 
 #### 2.3. Verificação de conclusão (apenas pelo return do subagente)
 
@@ -115,7 +114,7 @@ Decisão:
    - Não prossiga para a próxima task sem instrução explícita.
 
 #### 2.4. Próxima task
-Cada chamada `Task` já roda em contexto isolado, então não há "limpeza" a fazer no main agent além de emitir uma linha demarcadora e seguir:
+Cada chamada `Agent` já roda em contexto isolado, então não há "limpeza" a fazer no main agent além de emitir uma linha demarcadora e seguir:
 
 ```
 --- próxima task ---
@@ -142,12 +141,12 @@ Quando a fila estiver vazia (todas as tasks concluídas com sucesso):
 
 ## 🔒 CHECKPOINT OBRIGATÓRIO ANTES DE CADA DELEGAÇÃO
 
-Antes de emitir **qualquer** chamada de `Task`, verifique as quatro condições abaixo. Se **uma** delas falhar, **NÃO** emita a chamada.
+Antes de emitir **qualquer** chamada de `Agent`, verifique as quatro condições abaixo. Se **uma** delas falhar, **NÃO** emita a chamada.
 
 1. **É a ÚNICA chamada de delegação desta response?** Se você está prestes a emitir duas ou mais no mesmo bloco de tool calls — **PARE**. Remova todas menos a da task corrente.
 2. **A task anterior já RETORNOU?** Delegação só acontece depois que o subagente da task anterior devolveu o bloco `TASK <ID>: ...`. Nunca antecipe.
 3. **O retorno anterior já foi VERIFICADO?** Status `APROVADO`/`APROVADO COM OBSERVAÇÕES` **e** `tasks.md: [x] confirmado`. Qualquer outra coisa = parada da fila.
-4. **Está em foreground?** Nada de `run_in_background: true`. Delegação em background quebra a serialização e faz a fila avançar antes da verificação.
+4. **Nenhum subagente ainda rodando?** Se a task anterior foi para background, nada acontece até a notificação de conclusão dela. Avançar antes quebra a serialização.
 
 ⛔ **Execução paralela é PROIBIDA — sem exceções.** Não importa se as tasks "parecem independentes", se o usuário pediu "mais rápido", ou se a ferramenta sugere agrupar chamadas independentes. Tasks de um PRD compartilham a mesma árvore de arquivos e têm dependências sequenciais (a task N+1 lê e edita o código produzido pela task N). Duas delegações simultâneas gravam nos mesmos arquivos e no mesmo `tasks.md` → conflito de escrita, `[x]` perdido, código sobrescrito, review inconsistente. **Uma task por vez, sempre, mesmo que isso seja mais lento.**
 
@@ -155,7 +154,7 @@ Se o usuário pedir explicitamente paralelismo: **recuse**, explique em uma linh
 
 ## Regras invioláveis
 
-1. **UMA task por vez, em ordem numérica crescente — UM `Task` call por response.** Nunca emita dois ou mais `Task` no mesmo bloco de tool calls. Nunca dispare a próxima task antes do retorno + verificação da anterior. Nunca use `run_in_background: true`. **O viés do Claude Code para paralelismo NÃO se aplica aqui** — viola a sequência de dependências do PRD.
+1. **UMA task por vez, em ordem numérica crescente — UM `Agent` call por response.** Nunca emita dois ou mais `Agent` no mesmo bloco de tool calls. Nunca dispare a próxima task antes do retorno + verificação da anterior. Se o subagente rodar em background, aguarde a notificação de conclusão antes de qualquer outra ação. **O viés do Claude Code para paralelismo NÃO se aplica aqui** — viola a sequência de dependências do PRD.
 2. **Sempre `subagent_type: "agent-execute-task"` (literal).** Nunca use `"general-purpose"` ou outro nome. Se o subagent não for resolvido, PARE e reporte. Nunca execute a skill inline.
 3. **Ordem numérica estrita** (1, 2, 3, 4...). Não pule tasks salvo se o usuário pediu uma lista parcial específica.
 4. **Falha = parada.** Em qualquer falha do subagente, pare o loop e reporte. Não tente "ajustar" tasks futuras.
@@ -176,12 +175,12 @@ Fila de execução (4 tarefas):
 4.0 → <título da task 4.0>
 
 === INICIANDO TASK 1.0 (1/4) ===
-[Task tool invocado com subagent_type="agent-execute-task" para 1.0 — UMA chamada nesta response]
+[tool Agent invocada com subagent_type="agent-execute-task" para 1.0 — UMA chamada nesta response]
 [aguarda retorno]
 [releia tasks.md, confirma [x] e existência de 1_task_review.md]
 === TASK 1.0 CONCLUÍDA ===
 --- próxima task ---
 === INICIANDO TASK 2.0 (2/4) ===
-[Task tool invocado com subagent_type="agent-execute-task" para 2.0 — UMA chamada nesta response]
+[tool Agent invocada com subagent_type="agent-execute-task" para 2.0 — UMA chamada nesta response]
 ...
 ```

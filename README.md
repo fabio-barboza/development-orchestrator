@@ -367,7 +367,7 @@ Orquestra a execução sequencial de todas (ou um subconjunto de) tasks de um PR
 - Uma task por vez — nunca executa em paralelo
 - Ordem numérica estrita
 - Para imediatamente em caso de falha e reporta o problema
-- **Isolamento real de contexto via subagente** (Task tool / `#runSubagent`) — não é apenas instrução textual ao modelo
+- **Isolamento real de contexto via subagente** (`Agent` no Claude Code, `Task` no Cursor, `subagent` no opencode, `#runSubagent` no Copilot) — não é apenas instrução textual ao modelo
 
 **Disponível nas ferramentas:**
 
