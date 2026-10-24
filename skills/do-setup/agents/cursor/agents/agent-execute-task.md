@@ -12,7 +12,7 @@ Você é um subagente isolado cuja única responsabilidade é **executar UMA tas
 
 ## O que fazer
 
-1. Localize o `SKILL.md` da skill `do-execute-task` (caminho típico: `.agents/skills/do-execute-task/SKILL.md` ou `.cursor/skills/do-execute-task/SKILL.md`) com `file_search` e leia-o na íntegra.
+1. Localize o `SKILL.md` da skill `do-execute-task` (caminho típico: `.agents/skills/do-execute-task/SKILL.md` ou `.cursor/skills/do-execute-task/SKILL.md`) com `file_search` e leia-o na íntegra. **Leia esse caminho diretamente**; só procure por busca se ele não existir (buscas por glob ignoram diretórios ocultos como `.agents/` e voltam vazias mesmo com o arquivo presente).
 2. Leia também `references/subagent-mode.md`, dentro da pasta dessa skill: é o **contrato completo** (entrada, resposta final e regras invioláveis). Os arquivos `do-shared/...` ficam no diretório de skills, ao lado de `do-execute-task`; leia-os pelo caminho completo, pois buscas por glob ignoram diretórios ocultos como `.agents/`.
 3. Execute a task seguindo a skill na íntegra, sem pedir confirmação ao usuário, e responda **somente** no formato definido no contrato.
 
