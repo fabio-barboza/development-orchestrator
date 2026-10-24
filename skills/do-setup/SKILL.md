@@ -1,6 +1,6 @@
 ---
 name: do-setup
-description: Initializes the project: analyzes it, inventories installed skills and MCP servers (reporting gaps), and writes the project configuration file (CLAUDE.md, AGENTS.md, .github/copilot-instructions.md or .cursor rules) with summary, conventions, commands, skills and MCPs. Installs the orchestration agents and commands. Arguments: "agents" (install agents/commands only), "refresh" (re-detect skills/MCPs only). Use to initialize or configure the agent-assisted environment. Not for PRDs, implementation, review or QA.
+description: "Initializes the project: analyzes it, inventories installed skills and MCP servers (reporting gaps), and writes the project configuration file (CLAUDE.md, AGENTS.md, .github/copilot-instructions.md or .cursor rules) with summary, conventions, commands, skills and MCPs. Installs the orchestration agents and commands. Arguments: \"agents\" (install agents/commands only), \"refresh\" (re-detect skills/MCPs only). Use to initialize or configure the agent-assisted environment. Not for PRDs, implementation, review or QA."
 ---
 
 # Project Setup

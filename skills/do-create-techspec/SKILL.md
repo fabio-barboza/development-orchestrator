@@ -1,6 +1,6 @@
 ---
 name: do-create-techspec
-description: Creates a Technical Specification from an existing PRD: deep project analysis, technical research (documentation MCP when available, otherwise Web Search), clarifying questions, then the architecture and implementation guidance. Use to create a tech spec or define architecture for a feature with a PRD. Not for PRDs, task breakdowns or code implementation.
+description: "Creates a Technical Specification from an existing PRD: deep project analysis, technical research (documentation MCP when available, otherwise Web Search), clarifying questions, then the architecture and implementation guidance. Use to create a tech spec or define architecture for a feature with a PRD. Not for PRDs, task breakdowns or code implementation."
 ---
 
 # Tech Spec Creation
