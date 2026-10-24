@@ -51,7 +51,7 @@ Além das skills do DO Framework, você pode instalar skills específicas para a
 > | Padrões de implementação | **execução** das tasks | basta `/do-setup refresh` |
 > | Revisão ou QA | **review e QA** | basta `/do-setup refresh` |
 >
-> As tasks já geradas continuam válidas (elas não citam skills; o executor escolhe a skill pelo "quando usar"). Já a TechSpec foi escrita sem consultar a skill nova: se ela alterar uma decisão, ajuste a TechSpec (à mão ou pedindo ao agente) antes de executar.
+> As tasks já geradas continuam válidas (elas não dependem de skills específicas, mesmo que citem alguma de passagem; o executor escolhe a skill pelo "quando usar"). Já a TechSpec foi escrita sem consultar a skill nova: se ela alterar uma decisão, ajuste a TechSpec (à mão ou pedindo ao agente) antes de executar.
 
 > Procure skills disponíveis em [skills.sh](https://skills.sh). Nenhuma skill além das `do-*` é obrigatória: o framework funciona sem elas. Após instalar, o `do-setup` (ou `/do-setup refresh`) detecta quais são relevantes ao projeto e as registra no arquivo de configuração.
 
