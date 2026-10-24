@@ -11,6 +11,7 @@ O `do-setup` grava a seção `## Project Commands` no arquivo de configuração 
 | Instalar dependências | [comando] | [pré-requisitos] |
 | Rodar todos os testes | [comando] | [escopo: unitário, integração…] |
 | Rodar um teste isolado | [comando com placeholder] | [como filtrar por arquivo ou nome] |
+| Rodar testes com cobertura | [comando] | [só se o projeto declarar] |
 | Checagem estática | [comando(s)] | [tipos, lint, formatação — o que o projeto definir] |
 | Iniciar o serviço local | [comando] | [porta ou endpoint de saúde] |
 
@@ -26,4 +27,5 @@ Linhas sem equivalente no projeto ficam como `—`.
    - **Checagem estática:** pule e registre que o projeto não define uma.
    - **Iniciar o serviço local:** trate o serviço como `external` em `do-service-readiness.md` (documente a lacuna, não tente adivinhar).
 5. **Dependências ausentes:** se um comando (testes, checagem estática, iniciar o serviço) falhar porque as dependências do projeto não estão instaladas (módulos, pacotes ou bibliotecas não encontrados, ambiente de dependências inexistente), rode **uma única vez** o comando da linha `Instalar dependências` (ou o que o projeto declara para isso) e repita o comando que falhou. Instalar as dependências que o próprio projeto declara faz parte do trabalho e é permitido; não conte isso como "gambiarra". Se a instalação falhar, trate como falha do ambiente e reporte; não tente contornar.
-6. Nunca instale ferramentas globalmente, nem dependências que o projeto não declara, e nunca altere a configuração do projeto para fazer um comando funcionar.
+6. Variantes do comando declarado que só acrescentam opções (cobertura, filtro por arquivo ou nome, formato de saída) são permitidas; trocar de ferramenta, não.
+7. Nunca instale ferramentas globalmente, nem dependências que o projeto não declara, e nunca altere a configuração do projeto para fazer um comando funcionar.

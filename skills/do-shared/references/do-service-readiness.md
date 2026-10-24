@@ -64,7 +64,7 @@ For each service marked `not-running`:
 ## Step E: Cleanup Policy
 
 1. Services that were **already running** when Step B executed must remain running after the consumer skill finishes — they belong to the user.
-2. Services that were **started by Step C** may be left running for follow-up work; explicit shutdown is not required unless the consumer skill states otherwise.
+2. Services that were **started by Step C** belong to this run: stop them before the final response (kill the process you started, by the handle or PID you got when starting it; never kill processes you did not start). Leaving dev servers running keeps ports busy and corrupts the next run.
 3. **Never** issue `kill`, `pkill`, or `killall` against dev-server or external-service processes as part of routine readiness — that is destructive and out of scope for this procedure.
 
 ## Error Handling

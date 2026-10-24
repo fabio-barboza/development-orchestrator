@@ -116,7 +116,7 @@ For all tools: if the config file already exists, proceed to Step 2 without over
 6. Check test infrastructure:
    - Look for how the project declares its test command (see `do-shared/references/do-project-commands.md`).
    - Scan for test files and directories following the project's own naming conventions.
-7. Extract the project commands (install, run all tests, run one test, static checks, start the service locally and its port/health address) from what the project itself declares, following `do-shared/references/do-project-commands.md`. Record only commands that exist; use `—` for the rest. They are written to `## Project Commands` in Step 4.
+7. Extract the project commands (install, run all tests, run one test, run tests with coverage, static checks, start the service locally and its port/health address) from what the project itself declares, following `do-shared/references/do-project-commands.md`. Record only commands that exist; use `—` for the rest. They are written to `## Project Commands` in Step 4.
    - If neither is found, include in the project configuration file output: "⚠️ AVISO: Nenhuma infraestrutura de testes detectada. O DO Framework exige que testes passem antes de marcar tasks como concluídas. Configure um test runner antes de usar `do-execute-task`."
 
 **Step 3: Discover Installed Skills**
@@ -191,6 +191,7 @@ Exemplo: para trabalhar com [primeira-tecnologia], leia o arquivo `[caminho-do-S
 | Instalar dependências | [command or —] | [prerequisites] |
 | Rodar todos os testes | [command or —] | [scope] |
 | Rodar um teste isolado | [command with placeholder or —] | [how to filter] |
+| Rodar testes com cobertura | [command or —] | [only if the project declares one] |
 | Checagem estática | [command(s) or —] | [type checking, lint, formatting — whatever the project defines] |
 | Iniciar o serviço local | [command or —] | [port or health address] |
 ```

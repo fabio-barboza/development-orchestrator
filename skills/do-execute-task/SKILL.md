@@ -38,11 +38,12 @@ When an `Edit` tool call fails, follow this escalation ladder:
 All files you create, read or execute for the task MUST live **inside the project root**. Anything outside it may be stale or belong to another project/run, and reusing it silently corrupts the work.
 
 1. **NEVER** write, read or execute files in `/tmp`, `/var/tmp`, the home directory, other projects, or any path outside the project root. Exceptions: your AI tool's skill files, installed dependencies (the project's dependency directory, global CLIs), and paths that the task file, the PRD/TechSpec or the user explicitly name (e.g. another project to analyze, a shared library).
-2. **Scratch files** (exploratory scripts, generators, ad-hoc checks, intermediate outputs) go ONLY in `./.do-tmp/task-[num]/` (e.g. `./.do-tmp/task-3/`). Create it with `mkdir -p` when first needed. If the project is a git repository and `.gitignore` does not list `.do-tmp/`, append `.do-tmp/` to `.gitignore`.
+2. **Scratch files** (exploratory scripts, generators, ad-hoc checks, intermediate outputs) go ONLY in `./.do-tmp/task-[num]/` (e.g. `./.do-tmp/task-3/`). Create it with `mkdir -p` when first needed. If the project is a git repository and `.gitignore` does not already ignore `.do-tmp` (with or without the trailing slash), append `.do-tmp/` once; never add a second line for it.
 3. **Do not reuse scratch files from other tasks or previous runs.** Never list, read or execute anything in `./.do-tmp/` outside the current `task-[num]` folder. If you need a helper again, recreate it.
 4. **Tests that validate the task are NOT scratch** — write them in the project's test location defined by the TechSpec / project conventions, so they persist and run in the full suite (Step 4B).
 5. Before finishing (Step 8), delete `./.do-tmp/task-[num]/`.
-6. **Evidence that must persist** (screenshots or logs cited in the review) goes in `./prds/prd-[feature-slug]/task-screenshots/`: run `mkdir -p` on it first and ALWAYS pass the full relative path in the screenshot tool's `filename` parameter (e.g. `prds/prd-[feature-slug]/task-screenshots/task-[num]-<description>.png`). Never leave screenshots or other evidence files in the project root; throwaway captures go in the scratch folder.
+6. **Do not redirect command output to files.** Filter it in the pipe instead (`| tail`, `| grep`); if you really need a file, it goes in the scratch folder. A redirect to `/tmp` or any path outside the project root is a violation even if the file is deleted afterwards.
+7. **Evidence that must persist** (screenshots or logs cited in the review) goes in `./prds/prd-[feature-slug]/task-screenshots/`: run `mkdir -p` on it first and ALWAYS pass the full relative path in the screenshot tool's `filename` parameter (e.g. `prds/prd-[feature-slug]/task-screenshots/task-[num]-<description>.png`). Never leave screenshots or other evidence files in the project root; throwaway captures go in the scratch folder.
 
 ## Context Compaction
 If your context is compacted or summarized in the middle of the task (you can no longer see the text of this SKILL.md in your context), **re-read this SKILL.md and the task file before continuing**. Rules that were only in the discarded context still apply — in particular the Workspace Boundary rule and the Step 8 final gate.
@@ -72,7 +73,8 @@ Skill assets/references are loaded via your AI tool's native skill resolver — 
 1. Identify the technologies and the kind of work involved in the task (UI, API, database, tests, etc.).
 2. Follow `do-shared/references/do-project-context.md` (Skills procedure): read the `Available Skills` section of the project configuration file, complete it with the skills your AI tool exposes natively (ignoring `do-*`), pick the ones relevant to this task and read their `SKILL.md`. No specific skill is assumed to exist — if none is installed or relevant, continue without them.
 3. If a documentation MCP (capability `documentation`) was discovered, use it to check documentation of the involved frameworks/libraries; otherwise rely on the codebase, the TechSpec or Web Search.
-4. Keep the result (skills read / none applicable / none installed) for the review file (Step 7).
+4. Validation and end-to-end tasks follow the same rule: the skills for the technologies being validated are read too. "Consulted indirectly through the TechSpec" does NOT count as reading a skill.
+5. Keep the result (skills read / none applicable / none installed) for the review file (Step 7).
 
 **Step 3: Task Analysis (INTERNAL ONLY — do NOT output as standalone message)**
 1. Briefly analyze: main objectives, how the task fits the project, dependencies.
@@ -100,6 +102,9 @@ Skill assets/references are loaded via your AI tool's native skill resolver — 
 10. **If an MCP is unavailable** (connection error, tools not responding): Follow the "Se indisponível" handling of the capability in the catalog. Continue with unit/integration tests and document the E2E gap in the review. A connection-refused (or similar) error from the *target service* is NOT MCP unavailability — the service went down: bring it back with the service-readiness procedure (item 9) and retry. Never switch the validation method — do not replace the MCP with scripts that drive an automation library directly or with a CLI.
 
 **Step 4B: ALL TESTS MUST PASS — NON-NEGOTIABLE GATE**
+
+Run the tests with the commands from `Project Commands`. Re-run only after a code change or a diagnosed cause; use the single-test command to iterate on one failure and the full-suite command once to confirm. Do not repeat the same run hoping for a different result. Variants of the declared command that only add flags (coverage, filtering, reporters) are allowed.
+
 
 **A task with failing tests is NOT a completed task. This is an ABSOLUTE, NON-NEGOTIABLE rule.**
 
@@ -205,7 +210,7 @@ Perform ALL checks below. If ANY fails, fix it first.
 
 7. **CHECK 7 — Project skills and MCPs registered**: the review file read in CHECK 2 contains the `Skills e MCPs do Projeto` section filled in (skills read, or "nenhuma aplicável"/"nenhuma instalada"). This is a record of the Step 2 consultation, not an obligation to use a skill. If the section is missing → add it NOW and re-read the file.
 
-8. **CHECK 8 — Workspace boundary**: Confirm no file was created outside the project root during this task (Workspace Boundary rule). Remove `./.do-tmp/task-[num]/` (`rm -rf ./.do-tmp/task-[num]`) and confirm it no longer exists. If any task artifact ended up outside the project, move what must persist (e.g. tests) into the project and delete the rest. Also confirm that no screenshot or evidence file was left in the project root — move the ones that must persist to `./prds/prd-[feature-slug]/task-screenshots/` and delete the rest.
+8. **CHECK 8 — Workspace boundary**: Confirm no file was created outside the project root during this task (Workspace Boundary rule). Remove `./.do-tmp/task-[num]/` (`rm -rf ./.do-tmp/task-[num]`) and confirm it no longer exists. Review every command you ran in this task: any redirect, `tee`, `-o`/`--output` option or script that wrote outside the project root (for example `/tmp`) is a violation. Delete those files now (they are yours) and note the violation in the review. If any task artifact ended up outside the project, move what must persist (e.g. tests) into the project and delete the rest. Also confirm that no screenshot or evidence file was left in the project root — move the ones that must persist to `./prds/prd-[feature-slug]/task-screenshots/` and delete the rest.
 
 **BLOCKING RULE: If Check 1, 2, 3, 4, 7, or 8 fails, you are PROHIBITED from sending a final response. Fix the issue and re-run the checks. A task with failing tests is NEVER complete.**
 
