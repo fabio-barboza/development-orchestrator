@@ -31,6 +31,16 @@ Isso instala todas as skills do framework (`do-setup`, `do-create-prd`, `do-crea
 
 > **Instale o framework em um lugar só: no projeto ou global, não nos dois.** Se o mesmo nome de skill existir nos dois, a ferramenta decide qual carregar (no Claude Code a global vence a do projeto; nas outras a documentação não diz), e você pode rodar uma versão diferente da esperada. O `do-setup` avisa quando encontra cópias globais de skills `do-*`.
 
+### Atualizar o framework em um projeto que já o usa
+
+Um `npx skills add` repetido **não sobrescreve** as skills já instaladas. Para trazer uma versão nova:
+
+1. `npx skills update` (ou `npx skills remove` das skills `do-*` e `npx skills add` de novo; para testar uma branch, `npx skills add "fabio-barboza/development-orchestrator#<branch>"`).
+2. `/do-setup agents`: reescreve o worker (`agent-execute-task`) e, no Opencode, os comandos finos. Não mexe no arquivo de configuração do projeto, nem nas seções de skills e MCPs.
+3. Reinicie a ferramenta. O Opencode mantém agentes e comandos em cache num servidor persistente; sem reiniciar, o worker antigo continua valendo.
+
+PRDs, TechSpecs e tasks já gerados **não** se adaptam sozinhos: se mudou a regra de geração (por exemplo, tasks sem task de E2E), só um PRD novo reflete a mudança.
+
 > ⚠️ **Se as skills ou os comandos `/do-*` não aparecerem após o `npx skills add` ou o `do-setup`, recarregue a ferramenta.** O jeito depende dela:
 >
 > | Ferramenta | Como recarregar |
@@ -97,7 +107,7 @@ O `do-setup` também **inventaria o que está instalado** e informa no relatóri
 - **MCPs** configurados, com a capacidade de cada um (`ui-testing`, `documentation`, etc.);
 - **Lacunas**, por exemplo "sem MCP de interface: o E2E de interface será pulado".
 
-O `do-setup` também registra os **comandos do próprio projeto** (instalar dependências, rodar testes, checagem estática, iniciar o serviço local) na seção `Project Commands`, lidos do que o projeto já declara; as skills de execução usam esses comandos em vez de presumir uma linguagem ou ferramenta. O resultado do inventário fica nas seções `Available Skills` e `Available MCPs` do arquivo de configuração. Nenhuma skill além das `do-*` é presumida: se não houver nenhuma, é só um aviso, não um erro. Durante a execução, as skills do framework consultam essas seções (e a lista nativa da ferramenta), leem as skills relevantes à tarefa e registram no review quais usaram.
+O `do-setup` também registra os **comandos do próprio projeto** (instalar dependências, rodar testes, rodar testes com cobertura, checagem estática, iniciar o serviço local) na seção `Project Commands`, lidos do que o projeto já declara; as skills de execução usam esses comandos em vez de presumir uma linguagem ou ferramenta. O resultado do inventário fica nas seções `Available Skills` e `Available MCPs` do arquivo de configuração. Nenhuma skill além das `do-*` é presumida: se não houver nenhuma, é só um aviso, não um erro. Durante a execução, as skills do framework consultam essas seções (e a lista nativa da ferramenta), leem as skills relevantes à tarefa e registram no review quais usaram.
 
 > **Opencode (apenas na 1ª execução):** o opencode **não reconhece skills via `/<skill>`** — então a *primeira* invocação do `do-setup` precisa ser em linguagem natural:
 > ```
@@ -140,7 +150,7 @@ A skill vai fazer algumas perguntas para entender o problema, objetivos e flows.
 
 ## Passo 4 — Criar a TechSpec
 
-Com o PRD pronto, defina como implementar:
+Com o PRD pronto, defina como implementar. A TechSpec traz uma seção de **cenários de aceite**: os fluxos que o QA vai validar depois (eles não viram tasks):
 
 ```
 /do-create-techspec <prd>
@@ -162,7 +172,7 @@ Com o TechSpec pronto, quebre o trabalho em tasks executáveis:
 /do-create-tasks <techspec>
 ```
 
-A skill apresenta uma lista de tasks para você aprovar antes de detalhar. Ao final, gera:
+A skill apresenta uma lista de tasks para você aprovar antes de detalhar. Ela **não cria task de E2E ou de aceite**: cada task valida só o próprio entregável, e o E2E completo é feito pelo QA (Passo 8). Ao final, gera:
 
 ```
 ./prds/prd-autenticacao-usuarios/tasks/tasks.md
@@ -219,7 +229,7 @@ Se a execução ficar parada sem mensagem de erro, verifique se há um **pedido 
 
 ## Passo 7 — Code Review (loop até APROVADO)
 
-Com todas as tasks concluídas, rode o review geral:
+Com todas as tasks concluídas, rode o review geral. Ele é um review **de código**: confronta o código com PRD, TechSpec, tasks e as regras do projeto e roda a suíte de testes, sem subir serviços nem navegador. O que só se descobre rodando a funcionalidade fica como recomendação para o QA:
 
 ```
 /do-execute-review <techspec>
@@ -243,7 +253,7 @@ Repita até o status ser `APROVADO` (ou `APROVADO COM RESSALVAS` sem itens que v
 
 ## Passo 8 — QA (loop até zero bugs HIGH)
 
-Com o review aprovado, rode a validação final:
+Com o review aprovado, rode a validação final. O QA é o único passo que faz o E2E completo, a acessibilidade e a análise visual; as tasks fazem só um teste de fumaça e o review olha só o código:
 
 ```
 /do-execute-qa <prd>

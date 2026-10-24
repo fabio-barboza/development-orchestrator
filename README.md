@@ -16,8 +16,8 @@ O DO Framework elimina trabalho manual e garante qualidade consistente ao automa
 | **Arquitetura**       | TechSpecs profundas com pesquisa automática em documentação oficial       |
 | **Decomposição**      | Tasks atômicas e testáveis, ordenadas por dependência                     |
 | **Execução**          | Implementação com testes de unidade e integração (e fumaça via MCP), review automático |
-| **Review**            | Gate de qualidade com correção autônoma de findings antes do QA           |
-| **QA**                | Validação sistemática, screenshots como evidência, bugs documentados      |
+| **Review**            | Gate de qualidade só de código; findings corrigidos em lote por subagentes isolados, no lote que você escolher |
+| **QA**                | Único dono do E2E, acessibilidade e análise visual; screenshots como evidência, bugs documentados e corrigidos em lote |
 | **Bugfix**            | Correção com testes de regressão, priorizada por severidade               |
 | **Visibilidade**      | Status de progresso em tempo real, retomada de trabalho sem fricção       |
 
@@ -211,7 +211,7 @@ PLANEJAMENTO       EXECUÇÃO           REVIEW GERAL      VALIDAÇÃO
 2. Explora codebase para entender contexto técnico (chamadas, interfaces, persistence)
 3. **Research via MCP**: Usa um MCP de documentação (capacidade `documentation`), se disponível, para consultar documentação oficial; sem ele, usa busca na web
 4. **Clarifications (interativo)**: Perguntas técnicas focadas ao usuário
-5. Gera TechSpec com arquitetura, component design, data models, endpoints, test strategy, **suposições técnicas** e riscos conhecidos
+5. Gera TechSpec com arquitetura, component design, data models, endpoints, test strategy, **cenários de aceite** (os fluxos que o `do-execute-qa` valida depois; não viram tasks), **suposições técnicas** e riscos conhecidos
 
 **Output:** `./prds/prd-[slug]/techspec.md`
 
@@ -228,6 +228,8 @@ PLANEJAMENTO       EXECUÇÃO           REVIEW GERAL      VALIDAÇÃO
 2. Pesquisa de documentação (MCP `documentation`, se disponível) para estimar complexidade das libs envolvidas
 3. **High-level list (interativo)**: Apresenta lista de tasks para aprovação
 4. Gera files com tasks detalhadas e subtasks numeradas
+
+**Sem task de E2E:** o framework não cria task de validação de ponta a ponta (nem final, nem por área). Cada task valida só o seu entregável, com testes de unidade e integração e, se entrega interface ou serviço, um teste de fumaça. A validação completa fica no `do-execute-qa`.
 
 **Output:**
 - `./prds/prd-[slug]/tasks/tasks.md` (index)
@@ -263,7 +265,7 @@ PLANEJAMENTO       EXECUÇÃO           REVIEW GERAL      VALIDAÇÃO
 
 ### `do-execute-review` — Code Review Geral (Gate antes do QA)
 
-**Quando usar:** Todas tasks implementadas ([x] em tasks.md), obrigatório antes de ir para QA.
+**Quando usar:** Todas tasks implementadas ([x] em tasks.md), obrigatório antes de ir para QA. É um review **de código**: não sobe serviços nem navegador, e testes exploratórios, responsividade e acessibilidade ficam para o QA.
 
 **O que faz:**
 1. Le git diff ou lista manual de files modified durante as tasks
@@ -301,7 +303,7 @@ PLANEJAMENTO       EXECUÇÃO           REVIEW GERAL      VALIDAÇÃO
 
 ### `do-execute-qa` — Quality Assurance E2E
 
-**Quando usar:** Implementação completa, hora de validação final.
+**Quando usar:** Implementação completa e review aprovado, hora de validação final. É o **único** lugar do framework onde o E2E completo, a acessibilidade e a análise visual acontecem; tasks e review não os repetem.
 
 **O que faz:**
 1. Cria checklist baseado nos requisitos do PRD
@@ -364,6 +366,8 @@ Orquestra a execução sequencial de todas (ou um subconjunto de) tasks de um PR
 > ⚠️ **Não existe agente orquestrador.** Nenhum harness suportado garante que um subagente possa spawnar outro subagente: Claude Code permite até 3 níveis desde a v2.1, mas prompts de permissão e o isolamento ficam mais simples com um nível só; Copilot desabilita por default (`chat.subagents.allowInvocationsFromSubagents: false`); Cursor permite só um nível desde a 2.5 (um neto não lança mais nada); opencode limita via `subagent_depth` (default `1`) e, mesmo elevando o limite, prompts de permissão de sessões-neto podem não aparecer na TUI — a fila trava esperando indefinidamente. Se um install antigo deixou `agent-execute-all-tasks.md` em `.claude/agents/`, `.cursor/agents/`, `.github/agents/` ou `.opencode/agents/`, **apague o arquivo** e rode `/do-setup` novamente.
 
 > **Por que o laço é uma skill e não um comando:** a lógica fica em arquivo lido do disco na hora (a skill e o contrato do subagente), então uma cópia antiga em cache de comando ou de agente nunca impõe regras antigas. Os arquivos instalados pelo `do-setup` são só ponteiros finos.
+
+> **O mesmo worker corrige itens:** o `agent-execute-task` também executa um fix task (`do-execute-review-fix`) ou um bug (`do-execute-qa-bugfix`), conforme a skill indicada no prompt. É o que permite o modo fila dessas duas skills, sem instalar outro agente.
 
 > Convenção de nomes: skills e commands usam o prefixo `do-`; agents usam o prefixo `agent-` para não colidir com a skill `do-execute-task` que é executada dentro do worker.
 
@@ -509,6 +513,9 @@ O framework não exige nenhuma linguagem ou stack. O que você precisa:
 | **Testes devem passar** | Task NUNCA completa com failing tests |
 | **Execução autônoma** | Skills executam sem pausas para confirmação (exceto steps interativos explícitos) |
 | **Língua dos artifacts** | PT-BR para documentos, English para code/tech terms |
+| **Pastas de rodada** | Review e QA gravam em `review/review-N/` e `qa/qa-N/` dentro do PRD; nada sobrescreve uma rodada anterior |
+| **Raiz do projeto é o limite** | Rascunhos só em `.do-tmp/` (apagado ao fim); saída de comando é filtrada no pipe, nunca redirecionada para fora do projeto; serviços que a execução subiu são encerrados ao final |
+| **Fila de correções** | Com pasta ou vários arquivos, `review-fix` e `qa-bugfix` rodam um subagente por item; a falha de um item não derruba os outros |
 
 ## Quando Usar Cada Skill — Guia Rápido
 
@@ -564,7 +571,7 @@ O framework não exige nenhuma linguagem ou stack. O que você precisa:
 # ------------------------------------------------
 # 5. Review geral do PRD (OBRIGATÓRIO antes do QA)
 /do-execute-review projeto-exemplo
-> Status: REPROVADO / COM RESSALVAS? → /do-execute-review-fix projeto-exemplo → /do-execute-review projeto-exemplo
+> Status: REPROVADO / COM RESSALVAS? → /do-execute-review-fix prds/prd-projeto-exemplo/review/review-1/fixes/ --min=maior → /do-execute-review projeto-exemplo
 > Status: APROVADO? → prossegue para QA
 
 # FASE 4: VALIDAÇÃO E2E + BUGFIX (LOOP até zero bugs HIGH)
@@ -592,7 +599,12 @@ O framework não exige nenhuma linguagem ou stack. O que você precisa:
 | Arquivo | Propósito |
 |---------|-----------|
 | `do-shared/references/do-mcp-capabilities.md` | Registry central de MCPs e suas capacidades |
-| `do-shared/references/do-mcp-discovery-instructions.md` | Procedimento de descoberta dinâmica de MCPs |
+| `do-shared/references/do-mcp-discovery-instructions.md` | Procedimento de descoberta dinâmica de MCPs (nunca lê o arquivo de configuração inteiro) |
+| `do-shared/references/do-project-context.md` | Como usar as skills e MCPs instalados no projeto |
+| `do-shared/references/do-project-commands.md` | Como obter os comandos do próprio projeto (testes, cobertura, checagem estática, serviço) |
+| `do-shared/references/do-service-readiness.md` | Checar, reaproveitar, iniciar e encerrar os serviços necessários |
+| `do-shared/references/do-run-folders.md` | Pastas de rodada `review/review-N` e `qa/qa-N`, pendências da rodada anterior e layout legado |
+| `do-shared/references/do-fix-queue.md` | Modo fila de `review-fix` e `qa-bugfix` (um subagente por item) |
 | Arquivo de configuração MCP (`.mcp.json`, `.vscode/mcp.json`, etc.) | Configuração de MCP servers ativos no projeto — localização varia por ferramenta de IA |
 | Arquivo de configuração do projeto (`CLAUDE.md`, `.github/copilot-instructions.md`, etc.) | Contexto do projeto gerado por `do-setup` — nome varia por ferramenta de IA |
 
@@ -616,7 +628,7 @@ O DO Framework é agnóstico à ferramenta de IA. Os conceitos, o fluxo de traba
 ## Dicas Importantes
 
 1. **Não pule steps**: PRD → TechSpec → Tasks → Execute (ordem é importante)
-2. **MCPs são opcionais mas recomendados**: Sem MCP, perde-se E2E automatizado
+2. **MCPs são opcionais mas recomendados**: Sem MCP, perde-se o E2E automatizado do QA e os testes de fumaça das tasks
 3. **Review files são obrigatórios**: Sem `[num]_task_review.md`, a task NÃO está completa
 4. **Testes failing bloqueiam progresso**: Não prossiga até todos passarem
 5. **Bugs HIGH devem ser corrigidos antes de considerar feature done**
