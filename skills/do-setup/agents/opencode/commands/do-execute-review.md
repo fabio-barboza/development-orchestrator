@@ -4,7 +4,7 @@ description: Realiza revisão de código abrangente analisando git diff, verific
 
 # /do-execute-review
 
-Use a skill `do-execute-review` e execute o procedimento completo descrito nele na íntegra.
+Carregue a skill `do-execute-review` com a tool `skill` e execute o procedimento completo descrito nela na íntegra. **Recarregue a skill mesmo que já a tenha carregado antes nesta sessão** — o texto em contexto pode ser de uma versão anterior.
 
 ## Argumento esperado
 

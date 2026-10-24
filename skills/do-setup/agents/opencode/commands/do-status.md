@@ -4,7 +4,7 @@ description: Mostra o progresso atual de um PRD — tasks concluídas, próxima 
 
 # /do-status
 
-Use a skill `do-status` e execute o procedimento completo descrito nele na íntegra.
+Carregue a skill `do-status` com a tool `skill` e execute o procedimento completo descrito nela na íntegra. **Recarregue a skill mesmo que já a tenha carregado antes nesta sessão** — o texto em contexto pode ser de uma versão anterior.
 
 ## Argumento opcional
 

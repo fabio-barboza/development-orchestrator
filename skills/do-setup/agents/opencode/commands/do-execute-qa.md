@@ -4,7 +4,7 @@ description: Valida a implementação de uma feature contra PRD, Tech Spec e Tas
 
 # /do-execute-qa
 
-Use a skill `do-execute-qa` e execute o procedimento completo descrito nele na íntegra.
+Carregue a skill `do-execute-qa` com a tool `skill` e execute o procedimento completo descrito nela na íntegra. **Recarregue a skill mesmo que já a tenha carregado antes nesta sessão** — o texto em contexto pode ser de uma versão anterior.
 
 ## Argumento esperado
 

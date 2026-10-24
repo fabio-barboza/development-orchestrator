@@ -4,7 +4,7 @@ description: Implementa uma task específica lendo o contexto do PRD e TechSpec,
 
 # /do-execute-task
 
-Use a skill `do-execute-task` e execute o procedimento completo descrito nele na íntegra.
+Carregue a skill `do-execute-task` com a tool `skill` e execute o procedimento completo descrito nela na íntegra. **Recarregue a skill mesmo que já a tenha carregado antes nesta sessão** — o texto em contexto pode ser de uma versão anterior.
 
 ## Argumento esperado
 

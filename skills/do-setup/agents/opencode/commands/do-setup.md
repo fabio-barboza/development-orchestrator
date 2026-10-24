@@ -4,7 +4,7 @@ description: Inicializa o projeto, identifica skills relevantes e atualiza o arq
 
 # /do-setup
 
-Use a skill `do-setup` e execute o procedimento completo descrito nele na íntegra.
+Carregue a skill `do-setup` com a tool `skill` e execute o procedimento completo descrito nela na íntegra. **Recarregue a skill mesmo que já a tenha carregado antes nesta sessão** — o texto em contexto pode ser de uma versão anterior.
 
 ## Argumento opcional
 

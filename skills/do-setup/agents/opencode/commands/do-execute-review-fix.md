@@ -4,7 +4,7 @@ description: Recebe o caminho de um arquivo de fix task em review-<N>/fixes/, im
 
 # /do-execute-review-fix
 
-Use a skill `do-execute-review-fix` e execute o procedimento completo descrito nele na íntegra.
+Carregue a skill `do-execute-review-fix` com a tool `skill` e execute o procedimento completo descrito nela na íntegra. **Recarregue a skill mesmo que já a tenha carregado antes nesta sessão** — o texto em contexto pode ser de uma versão anterior.
 
 ## Argumento esperado
 

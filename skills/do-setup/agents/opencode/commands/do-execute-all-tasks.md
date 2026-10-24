@@ -4,7 +4,7 @@ description: Executa a fila de tasks de um PRD em sequência, uma task por subag
 
 # /do-execute-all-tasks
 
-Use a skill `do-execute-all-tasks` e execute o procedimento completo descrito nela na íntegra.
+Carregue a skill `do-execute-all-tasks` com a tool `skill` e execute o procedimento completo descrito nela na íntegra. **Recarregue a skill mesmo que já a tenha carregado antes nesta sessão** — o texto em contexto pode ser de uma versão anterior.
 
 ## Argumentos
 

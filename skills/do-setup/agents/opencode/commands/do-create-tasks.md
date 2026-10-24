@@ -4,7 +4,7 @@ description: Converte PRD e Tech Spec em uma lista detalhada e sequenciada de ta
 
 # /do-create-tasks
 
-Use a skill `do-create-tasks` e execute o procedimento completo descrito nele na íntegra.
+Carregue a skill `do-create-tasks` com a tool `skill` e execute o procedimento completo descrito nela na íntegra. **Recarregue a skill mesmo que já a tenha carregado antes nesta sessão** — o texto em contexto pode ser de uma versão anterior.
 
 ## Argumento esperado
 
