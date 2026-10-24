@@ -448,7 +448,7 @@ Estrutura mínima de uma entrada (os valores entre `<>` vêm da documentação d
 }
 ```
 
-> No **Opencode** a entrada usa `"type": "local"`, `"command": ["<comando>", "<argumentos>"]` e `"enabled": true`. Consulte a documentação da sua ferramenta para o formato exato.
+> No **Opencode** a entrada usa `"type": "local"`, `"command": ["<comando>", "<argumentos>"]` (ou `"type": "remote"` com `"url"`) e `"enabled": true`, e os servidores ficam sob a chave `mcp`: direto (`mcp → <nome>`) ou agrupados em `mcp → servers → <nome>`; o schema oficial aceita os dois. Consulte a documentação da sua ferramenta para o formato exato.
 
 ### Catálogo de Capacidades
 
