@@ -288,7 +288,7 @@ PLANEJAMENTO       EXECUÇÃO           REVIEW GERAL      VALIDAÇÃO
 **Quando usar:** Após `do-execute-review` retornar REPROVADO ou APROVADO COM RESSALVAS.
 
 **O que faz:**
-1. Recebe **um** fix task (`review/review-[N]/fixes/fix-R..md`) — invoque uma vez por arquivo, começando pelos críticos
+1. Recebe **um** fix task (`review/review-[N]/fixes/fix-R..md`), **vários** arquivos ou a **pasta** `fixes/` (com `--min=<critico|maior|menor>` para limitar). Com mais de um arquivo, cada fix roda em um subagente isolado, um por vez, dos críticos para os menores; se um falhar, os outros seguem (a fila só para se a suíte ficar vermelha). Você escolhe o lote: o framework não decide sozinho o que corrigir
 2. Lê o `review-report.md` da mesma rodada para contexto e implementa a correção
 3. Roda suite completa de testes — o fix nunca é concluído com testes failing
 4. Atualiza o fix task (`corrigido` / `não-resolvido`) e o finding correspondente no `review-report.md` da rodada

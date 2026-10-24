@@ -199,7 +199,7 @@ Exemplo: para trabalhar com [primeira-tecnologia], leia o arquivo `[caminho-do-S
 **Step 5: Install the Worker Agent (and, for Opencode, the command wrappers)**
 The logic of the queue lives in the skill `do-execute-all-tasks` and the contract of the worker lives in `do-execute-task/references/subagent-mode.md`; both are read from disk at run time. What this step installs is only thin, tool-specific glue, so a cached or outdated copy of it can never impose old rules:
 
-- **All tools:** the `agent-execute-task` worker subagent (permissions + a pointer to the skill and the contract).
+- **All tools:** the `agent-execute-task` worker subagent (permissions + a pointer to the skill and the contract). The same worker runs one task, one review fix or one QA bug, depending on the skill named in the prompt.
 - **Opencode only:** one-line command wrappers (`/do-create-prd`, `/do-execute-all-tasks`, …) in `.opencode/commands/`, because Opencode does not list skills under `/`.
 - **Claude Code, Cursor, GitHub Copilot:** **no command or prompt files.** These tools already expose each skill (including `do-execute-all-tasks`) for invocation, and a command with the same name would appear duplicated.
 

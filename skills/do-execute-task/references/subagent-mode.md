@@ -42,3 +42,21 @@ Não devolva longos resumos de implementação — apenas o status. O orquestrad
 7. **SEMPRE termine com a resposta estruturada**, mesmo em erro, timeout de teste ou interrupção parcial. Um subagente sem texto final deixa o orquestrador sem sinal de conclusão.
 8. **Após compactação de contexto, releia** o `SKILL.md` da `do-execute-task` e o arquivo da task antes de continuar: as regras que estavam só no contexto descartado (limites do workspace, gate final) continuam valendo.
 9. Os arquivos `do-shared/...` citados nas skills ficam no diretório de skills, ao lado de `do-execute-task`. Leia-os pelo caminho completo: buscas por glob ignoram diretórios ocultos como `.agents/`.
+
+## Itens de correção (`do-execute-review-fix` e `do-execute-qa-bugfix`)
+
+O mesmo subagente executa também **um** fix task de review ou **um** bug de QA, quando o orquestrador (`do-shared/references/do-fix-queue.md`) o invoca para isso. Nesse caso, no lugar de `do-execute-task`:
+
+1. A entrada é o **caminho do arquivo** do item e a skill a seguir (`do-execute-review-fix` ou `do-execute-qa-bugfix`). Leia essa skill na íntegra e siga-a em **modo de arquivo único**: nada de fila, e nunca delegue.
+2. Se o arquivo já estiver resolvido ou corrigido, não faça nada e responda `NÃO RESOLVIDO` com o motivo "já resolvido".
+3. Se a correção falhar ou não se aplicar mais (o problema deixou de existir), desfaça **as suas próprias edições** (você sabe o que mudou; não use `git checkout`, pois o projeto pode ter trabalho não commitado), registre o bloqueio no arquivo como a skill manda e rode a suíte para confirmar que ela voltou ao estado de antes. Informe o resultado em `suíte`.
+4. Resposta final, curta:
+
+```
+FIX <ID>: <RESOLVIDO | NÃO RESOLVIDO | FALHA>
+- arquivo: <caminho> (status: <novo status>)
+- suíte: <verde | vermelha>
+- observações: <1-2 linhas; bugs novos registrados, se houver>
+```
+
+`RESOLVIDO` = corrigido, testes passando e arquivo atualizado. `NÃO RESOLVIDO` = bloqueio ou não se aplica, com a suíte intacta. `FALHA` = erro de execução (a skill não pôde ser concluída). Nunca termine sem este bloco.

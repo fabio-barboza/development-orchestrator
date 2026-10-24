@@ -228,9 +228,12 @@ Com todas as tasks concluídas, rode o review geral:
 Se o resultado for `REPROVADO` ou `APROVADO COM RESSALVAS` com itens pendentes, corrija os findings e repita:
 
 ```
-/do-execute-review-fix <tasks>
+/do-execute-review-fix prds/prd-<slug>/review/review-1/fixes/fix-R-01-....md
+/do-execute-review-fix prds/prd-<slug>/review/review-1/fixes/ --min=maior
 /do-execute-review <tasks>
 ```
+
+Com uma pasta ou vários arquivos, cada fix roda em um subagente isolado, um por vez, dos críticos para os menores. Se um fix falhar, os outros continuam; a fila só para se a suíte ficar vermelha. Você escolhe o lote (pasta inteira, filtro `--min` ou uma lista de arquivos): achados podem ser falsos positivos ou de baixa prioridade, e o framework não decide por você.
 
 Repita até o status ser `APROVADO` (ou `APROVADO COM RESSALVAS` sem itens que você queira corrigir).
 
@@ -249,9 +252,12 @@ Com o review aprovado, rode a validação final:
 Se bugs forem encontrados, corrija e revalide:
 
 ```
-/do-execute-qa-bugfix <bugfix>
+/do-execute-qa-bugfix prds/prd-<slug>/qa/qa-1/bugs/bug-01-....md
+/do-execute-qa-bugfix prds/prd-<slug>/qa/qa-1/bugs/ --min=media
 /do-execute-qa <prd>
 ```
+
+O modo fila funciona como no review: pasta ou vários arquivos, um subagente por bug, falha isolada.
 
 Repita até não restar nenhum bug de severidade HIGH. Feature pronta!
 

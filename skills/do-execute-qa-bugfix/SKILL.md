@@ -25,10 +25,13 @@ All files you create, read or execute MUST live **inside the project root**. Fil
 6. Do not redirect command output to files: filter it in the pipe (`| tail`, `| grep`). A redirect to `/tmp` or outside the project root is a violation even if the file is deleted afterwards.
 
 ## Invocation
-This skill fixes **one bug at a time**. The user must provide the path to the specific bug file to fix:
+This skill fixes bugs from a QA round. The user provides:
 ```
 do-execute-qa-bugfix ./prds/prd-[feature-slug]/qa/qa-[N]/bugs/bug-[XX]-[severidade]-[slug].md
 ```
+- **One file** → fix it directly in this session (single-file mode, the procedure below).
+- **A folder** (`.../bugs/`), **two or more files**, or a folder with `--min=<alta|media|baixa>` → **queue mode**: do NOT fix anything inline. Follow `do-shared/references/do-fix-queue.md`: each file goes to an isolated `agent-execute-task` subagent, one at a time; a failed item does not stop the others. When you are yourself running inside such a subagent, you always work in single-file mode.
+
 If no file path is provided, list all `aberto` bug files of the most recent QA round (and of the legacy `qa-bugs/`, if any) as described in `do-shared/references/do-run-folders.md` and ask the user which one to fix.
 
 ## Procedures

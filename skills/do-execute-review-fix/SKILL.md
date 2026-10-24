@@ -38,10 +38,13 @@ All files you create, read or execute MUST live **inside the project root**. Fil
 6. Do not redirect command output to files: filter it in the pipe (`| tail`, `| grep`). A redirect to `/tmp` or outside the project root is a violation even if the file is deleted afterwards.
 
 ## Invocation
-This skill fixes **one finding at a time**. The user must provide the path to the specific fix task file:
+This skill fixes findings from a review round. The user provides:
 ```
 do-execute-review-fix ./prds/prd-[feature-slug]/review/review-[N]/fixes/fix-[R-XX]-[severidade]-[slug].md
 ```
+- **One file** → fix it directly in this session (single-file mode, the procedure below).
+- **A folder** (`.../fixes/`), **two or more files**, or a folder with `--min=<critico|maior|menor>` → **queue mode**: do NOT fix anything inline. Follow `do-shared/references/do-fix-queue.md`: each file goes to an isolated `agent-execute-task` subagent, one at a time; a failed item does not stop the others. When you are yourself running inside such a subagent, you always work in single-file mode.
+
 If no file path is provided, list all `pendente` fix task files of the most recent review round (and of the legacy `review-fixes/`, if any) as described in `do-shared/references/do-run-folders.md` and ask the user which one to fix.
 
 ## Procedures
