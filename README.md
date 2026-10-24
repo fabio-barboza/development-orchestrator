@@ -338,21 +338,18 @@ PLANEJAMENTO       EXECUÇÃO           REVIEW GERAL      VALIDAÇÃO
 
 ### `do-execute-qa-bugfix` — Correção de Bugs
 
-**Quando usar:** Bugs documentados em `bugs.md` precisam ser corrigidos.
+**Quando usar:** Após `do-execute-qa` registrar bugs em `qa/qa-[N]/bugs/`.
 
 **O que faz:**
-1. Le todos bugs de `bugs.md`
-2. Analisa causa raiz de cada um
-3. Implementa correções por severidade (HIGH → MEDIUM → LOW)
-4. Cria testes de regressão para cada bug
-5. **E2E via MCP**: Valida correção no fluxo completo
-6. Atualiza `bugs.md` com status "Fixed" e descrição do fix
-7. Gera report final
+1. Recebe **um** bug (`qa/qa-[N]/bugs/bug-XX-....md`), **vários** arquivos ou a **pasta** `bugs/` (com `--min=<alta|media|baixa>` para limitar). Com mais de um arquivo, cada bug roda em um subagente isolado, um por vez, dos mais graves para os menos graves; se um falhar, os outros seguem (a fila só para se a suíte ficar vermelha)
+2. Analisa a causa raiz e implementa a correção
+3. Cria testes de regressão e roda a suíte completa
+4. **E2E via MCP**: valida a correção no fluxo, quando há MCP de interface ou serviço
+5. Atualiza o arquivo do bug (`corrigido` / `não-resolvido`) na mesma rodada
 
 **Output:**
 - Correções no codebase
-- `bugs.md` atualizado
-- `./prds/prd-[slug]/bugfix-report.md`
+- Arquivos de bug da rodada atualizados, screenshots em `qa/qa-[N]/screenshots/`
 
 ---
 
