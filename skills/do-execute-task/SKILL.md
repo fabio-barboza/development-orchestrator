@@ -106,7 +106,7 @@ Skill assets/references are loaded via your AI tool's native skill resolver — 
 1. After implementation, run the FULL test suite (unit, integration, and the project's static checks if it defines any), using the commands resolved in Step 4 item 6.
 2. If ALL tests pass → proceed to Step 5.
 3. If ANY test fails → **YOU ARE PROHIBITED FROM PROCEEDING TO STEP 5.** You MUST:
-   a. Read the failing test output carefully.
+   a. Read the failing test output carefully. If the failure is that the project's dependencies are not installed, run the project's dependency install command once (see `do-shared/references/do-project-commands.md`, item 5) and re-run the suite instead of treating it as a code failure.
    b. Diagnose the root cause.
    c. Fix the code (NOT the test, unless the test itself is wrong due to your changes).
    d. Re-run the FULL test suite.

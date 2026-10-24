@@ -25,4 +25,5 @@ Linhas sem equivalente no projeto ficam como `—`.
    - **Testes:** registre "nenhuma infraestrutura de testes detectada" e siga a regra da skill (as skills que exigem testes passando não podem concluir o trabalho sem um comando de testes).
    - **Checagem estática:** pule e registre que o projeto não define uma.
    - **Iniciar o serviço local:** trate o serviço como `external` em `do-service-readiness.md` (documente a lacuna, não tente adivinhar).
-5. Nunca instale ferramentas globalmente nem altere a configuração do projeto para fazer um comando funcionar.
+5. **Dependências ausentes:** se um comando (testes, checagem estática, iniciar o serviço) falhar porque as dependências do projeto não estão instaladas (módulos, pacotes ou bibliotecas não encontrados, ambiente de dependências inexistente), rode **uma única vez** o comando da linha `Instalar dependências` (ou o que o projeto declara para isso) e repita o comando que falhou. Instalar as dependências que o próprio projeto declara faz parte do trabalho e é permitido; não conte isso como "gambiarra". Se a instalação falhar, trate como falha do ambiente e reporte; não tente contornar.
+6. Nunca instale ferramentas globalmente, nem dependências que o projeto não declara, e nunca altere a configuração do projeto para fazer um comando funcionar.
