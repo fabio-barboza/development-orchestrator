@@ -221,7 +221,7 @@ Perform ALL checks below. If ANY fails, fix it first.
    - .do-tmp/task-[num]: ✅ Removido (nada criado fora do projeto)
    ```
    If any artifact shows ❌ instead of ✅, you have violated this skill's rules. Do NOT send the response — fix the artifact first.
-   **Subagent exception:** when you were invoked by an orchestrator as a subagent (e.g. `agent-execute-task`), do NOT include this manifest — your final response is ONLY the short `TASK <ID>: ...` block defined by the agent.
+   **Subagent exception:** when you were invoked by an orchestrator as a subagent (e.g. `agent-execute-task`), do NOT include this manifest — your final response is ONLY the short `TASK <ID>: ...` block defined in `do-execute-task/references/subagent-mode.md`.
 
 ## Error Handling
 - If the task file does not exist, halt and report to the user.

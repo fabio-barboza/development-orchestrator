@@ -11,7 +11,7 @@ Use a skill `do-execute-task` e execute o procedimento completo descrito nele na
 O usuário deve fornecer o caminho do arquivo da task a implementar.
 
 ```
-/do-execute-task prds/prd-<feature-slug>/tasks/task-<id>.md
+/do-execute-task prds/prd-<feature-slug>/tasks/<num>_task.md
 ```
 
 Se não for fornecido, **pergunte uma única vez** antes de prosseguir.
@@ -19,5 +19,5 @@ Se não for fornecido, **pergunte uma única vez** antes de prosseguir.
 ## Exemplo
 
 ```
-/do-execute-task prds/prd-user-auth/tasks/task-1.0.md
+/do-execute-task prds/prd-user-auth/tasks/1_task.md
 ```

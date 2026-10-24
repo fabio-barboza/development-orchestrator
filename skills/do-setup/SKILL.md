@@ -194,58 +194,56 @@ Exemplo: para trabalhar com [primeira-tecnologia], leia o arquivo `[caminho-da-p
 | Iniciar o serviço local | [command or —] | [port or health address] |
 ```
 
-**Step 5: Install Orchestration Agents & Commands**
-Based on the AI tool selected by the user in Step 0, install the `agent-execute-task` worker subagent and the slash command for orchestration. The orchestration logic of the queue lives in different places depending on the AI tool's subagent nesting policy:
+**Step 5: Install the Worker Agent (and, for Opencode, the command wrappers)**
+The logic of the queue lives in the skill `do-execute-all-tasks` and the contract of the worker lives in `do-execute-task/references/subagent-mode.md`; both are read from disk at run time. What this step installs is only thin, tool-specific glue, so a cached or outdated copy of it can never impose old rules:
 
-**In every supported AI tool the orchestration loop lives inside the slash command/prompt itself** (running on the main/primary agent), and only `agent-execute-task` is installed as a subagent. Each task is delegated via the platform's task tool — exactly **one** nesting level, which every tool allows.
+- **All tools:** the `agent-execute-task` worker subagent (permissions + a pointer to the skill and the contract).
+- **Opencode only:** one-line command wrappers (`/do-create-prd`, `/do-execute-all-tasks`, …) in `.opencode/commands/`, because Opencode does not list skills under `/`.
+- **Claude Code, Cursor, GitHub Copilot:** **no command or prompt files.** These tools already expose each skill (including `do-execute-all-tasks`) for invocation, and a command with the same name would appear duplicated.
 
-- **Claude Code**: since v2.1 subagents can spawn subagents (up to three levels, `CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH`; [docs](https://code.claude.com/docs/en/sub-agents)), but the queue still runs on the main agent so each task stays one level deep and permission prompts surface in the main session. The delegation tool is `Agent` (renamed from `Task` in v2.1.63; `Task` remains an alias). `run_in_background` is offered only in some modes (present in `claude -p`, absent in interactive sessions with fork mode on): subagents may start in the background and report back through a completion notification, so the orchestrator must wait for it before the next task. `agent-execute-task` blocks delegation with `disallowedTools: Agent` instead of a `tools` allowlist, so it keeps MCP tools (needed for E2E tests) and preloads the `do-execute-task` skill via `skills`.
+The orchestration runs on the primary agent and each task is delegated through the platform's delegation tool — exactly **one** nesting level, which every tool allows:
+
+- **Claude Code**: since v2.1 subagents can spawn subagents (up to three levels, `CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH`; [docs](https://code.claude.com/docs/en/sub-agents)), but the queue still runs on the main agent so each task stays one level deep and permission prompts surface in the main session. `agent-execute-task` blocks delegation with `disallowedTools: Agent` instead of a `tools` allowlist, so it keeps MCP tools (needed for E2E tests) and preloads the `do-execute-task` skill via `skills`.
 - **Cursor, GitHub Copilot**: subagents **cannot** spawn other subagents by default (Copilot requires `chat.subagents.allowInvocationsFromSubagents=true`, off by default; Cursor allows one nesting level since 2.5, but a grandchild cannot launch further subagents).
-- **Opencode**: nesting is capped by `subagent_depth` (**default `1`**), and a subagent only receives the `subagent` tool (named `task` in older releases) if it declares `permission.task`. Do not mark `agent-execute-task` as `hidden: true`: since opencode 2.1, hidden agents are omitted from the `subagent` tool's "Available subagents" list, so the orchestrator cannot see the worker. Even with `subagent_depth: 2`, permission prompts raised inside a grandchild session may never render in the TUI — the queue then waits forever. So no `agent-execute-all-tasks` orchestrator is installed here either.
+- **Opencode**: nesting is capped by `subagent_depth` (**default `1`**), and a subagent only receives the delegation tool if it declares `permission.task`. Do not mark `agent-execute-task` as `hidden: true`: since opencode 2.1, hidden agents are omitted from the "Available subagents" list, so the orchestrator cannot see the worker. Even with `subagent_depth: 2`, permission prompts raised inside a grandchild session may never render in the TUI — the queue then waits forever. So no orchestrator subagent is installed.
 
 > Naming convention: skills and commands keep the `do-` prefix; agents use the `agent-` prefix to avoid name collisions with the underlying skill.
 
 1. Resolve `<skill-dir>` **inside the current project only**. The templates were copied alongside the `SKILL.md` when the DO Framework skills were installed in this project.
    - Check these paths, in order, relative to the project root, and use the first that exists: `.agents/skills/do-setup`, `.claude/skills/do-setup`. If neither exists, use the `do-setup` directory that the installation created **inside the project root**.
-   - **NEVER** use a `do-setup` copy outside the project root (parent directories such as `~/projects/.agents/`, global/home skill directories, other projects). Those copies can be stale and install an obsolete orchestrator. Do not run a recursive Glob from a parent directory to find it.
-   - Sanity check: `<skill-dir>/agents/<tool>/agents/` must contain `agent-execute-task.md` (`agent-execute-task.agent.md` for GitHub Copilot) and must **not** contain any `*execute-all-tasks*` file. If the check fails, the copy is stale: **STOP** and tell the user to reinstall the DO Framework skills in this project (see the installation instructions in the README).
+   - **NEVER** use a `do-setup` copy outside the project root (parent directories such as `~/projects/.agents/`, global/home skill directories, other projects). Those copies can be stale. Do not run a recursive Glob from a parent directory to find it.
+   - Sanity check: `<skill-dir>/agents/<tool>/agents/` must contain `agent-execute-task.md` (`agent-execute-task.agent.md` for GitHub Copilot) and must **not** contain any `*execute-all-tasks*` file; the skill `do-execute-all-tasks` must exist next to `do-setup`. If a check fails, the copy is stale: **STOP** and tell the user to reinstall the DO Framework skills in this project (see the installation instructions in the README).
 2. Execute **only** the installation block that matches the AI tool selected by the user in Step 0. Do not install assets for other tools.
 
    **Claude Code** (if the user selected option 1):
-   - Run `mkdir -p .claude/agents .claude/commands`
+   - Run `mkdir -p .claude/agents`
    - Copy `<skill-dir>/agents/claude/agents/agent-execute-task.md` → `.claude/agents/agent-execute-task.md`
-   - Copy `<skill-dir>/agents/claude/commands/do-execute-all-tasks.md` → `.claude/commands/do-execute-all-tasks.md`
-   - **Do NOT** copy any `agent-execute-all-tasks.md` — orchestration is embedded in the slash command, so each task stays one subagent level deep.
-   - Delete any orchestrator agent left by previous installs (all legacy names): `rm -f .claude/agents/agent-execute-all-tasks.md .claude/agents/do-execute-all-tasks.md .claude/agents/execute-all-tasks.md`.
+   - Delete leftovers of previous installs (legacy orchestrator agents and the old loop command, which would now duplicate the skill): `rm -f .claude/agents/agent-execute-all-tasks.md .claude/agents/do-execute-all-tasks.md .claude/agents/execute-all-tasks.md .claude/commands/do-execute-all-tasks.md`.
 
    **Cursor AI** (if the user selected option 3):
-   - Run `mkdir -p .cursor/agents .cursor/commands`
+   - Run `mkdir -p .cursor/agents`
    - Copy `<skill-dir>/agents/cursor/agents/agent-execute-task.md` → `.cursor/agents/agent-execute-task.md`
-   - Copy `<skill-dir>/agents/cursor/commands/do-execute-all-tasks.md` → `.cursor/commands/do-execute-all-tasks.md`
-   - **Do NOT** copy any `agent-execute-all-tasks.md` — orchestration is embedded in the slash command.
-   - Delete any orchestrator agent left by previous installs (all legacy names): `rm -f .cursor/agents/agent-execute-all-tasks.md .cursor/agents/do-execute-all-tasks.md .cursor/agents/execute-all-tasks.md`.
+   - Delete leftovers of previous installs: `rm -f .cursor/agents/agent-execute-all-tasks.md .cursor/agents/do-execute-all-tasks.md .cursor/agents/execute-all-tasks.md .cursor/commands/do-execute-all-tasks.md`.
 
    **GitHub Copilot** (if the user selected option 2):
-   - Run `mkdir -p .github/agents .github/prompts`
+   - Run `mkdir -p .github/agents`
    - Copy `<skill-dir>/agents/github/agents/agent-execute-task.agent.md` → `.github/agents/agent-execute-task.agent.md`
-   - Copy `<skill-dir>/agents/github/prompts/do-execute-all-tasks.prompt.md` → `.github/prompts/do-execute-all-tasks.prompt.md`
    - **MCP tools for the worker:** the template's `tools:` list has no MCP entries (GitHub Copilot only exposes to a custom agent the tools it lists). After copying, append one `  - <server-name>/*` line to the `tools:` list of `.github/agents/agent-execute-task.agent.md` for **every MCP server** found by the Step 3B discovery (in `agents-only` mode run just the read-only discovery of Step 3B, item 1, for this purpose), using the server names as written in `.vscode/mcp.json`. If no MCP server is found, append nothing. This keeps Copilot equivalent to the other tools, where the worker sees whatever MCPs the project has.
-   - **Do NOT** copy any `agent-execute-all-tasks.agent.md` — orchestration is embedded in the prompt.
-   - Delete any orchestrator agent left by previous installs (all legacy names): `rm -f .github/agents/agent-execute-all-tasks.agent.md .github/agents/do-execute-all-tasks.agent.md .github/agents/execute-all-tasks.agent.md`.
+   - Delete leftovers of previous installs: `rm -f .github/agents/agent-execute-all-tasks.agent.md .github/agents/do-execute-all-tasks.agent.md .github/agents/execute-all-tasks.agent.md .github/prompts/do-execute-all-tasks.prompt.md`.
 
    **Opencode** (if the user selected option 4):
    - Run `mkdir -p .opencode/agents .opencode/commands`
    - Copy `<skill-dir>/agents/opencode/agents/agent-execute-task.md` → `.opencode/agents/agent-execute-task.md`
    - Copy all `<skill-dir>/agents/opencode/commands/*.md` → `.opencode/commands/`
-   - **Do NOT** copy any `agent-execute-all-tasks.md` — orchestration is embedded in the `/do-execute-all-tasks` command and must run in the **primary** session. Um command com `subtask: true` delegando a um orquestrador subagente cria dois níveis de aninhamento: falha com `Subagent depth limit reached` no default (`subagent_depth: 1`) e, mesmo com `subagent_depth: 2`, prompts de permissão do neto podem não aparecer na TUI e a fila trava indefinidamente.
+   - **Do NOT** copy any orchestrator agent — the queue runs in the **primary** session via the skill. A command with `subtask: true` delegating to an orchestrator subagent creates two nesting levels: it fails with `Subagent depth limit reached` at the default (`subagent_depth: 1`) and, even with `subagent_depth: 2`, grandchild permission prompts may not show in the TUI and the queue hangs.
    - Delete any orchestrator agent left by previous installs (all legacy names): `rm -f .opencode/agents/agent-execute-all-tasks.md .opencode/agents/do-execute-all-tasks.md .opencode/agents/execute-all-tasks.md`.
 
 3. Verify the installation before reporting:
    - The agents directory of the selected tool contains `agent-execute-task` and **no** file matching `*execute-all-tasks*`.
-   - The installed `do-execute-all-tasks` command/prompt is byte-identical to the template in `<skill-dir>` (compare with `cmp`). For Opencode, it must **not** contain `subtask: true` nor an `agent:` field in the frontmatter — that would route the queue to a subagent orchestrator.
-   - If any check fails, fix it (re-copy / delete) and verify again. Never report success with a legacy orchestrator installed.
+   - For Opencode: the installed `.opencode/commands/do-execute-all-tasks.md` is byte-identical to the template in `<skill-dir>` (compare with `cmp`) and contains neither `subtask: true` nor an `agent:` field in the frontmatter. For the other tools: no `do-execute-all-tasks` command or prompt file exists (the skill is the only entry point).
+   - If any check fails, fix it (re-copy / delete) and verify again. Never report success with a legacy orchestrator or a duplicate loop command installed.
 4. Confirm to the user which files were installed, for which tool, and the `<skill-dir>` used as source.
-5. **Tell the user how to load what was just installed, by tool, before running `/do-execute-all-tasks`** (or any newly installed command): **Opencode** — run `/reload` (if commands look outdated, e.g. a project re-cloned at the same path, `opencode service restart`); **Claude Code** — skills are picked up live (use `/reload-skills` only if `.claude/skills/` was just created), but a `.claude/agents/` directory created during this setup is only detected after restarting the session; **Cursor** and **GitHub Copilot** — the documentation does not say, so tell the user to reload the IDE window or open a new chat session if the commands/agents do not appear. Include this notice in the final report of Step 6.
+5. **Tell the user how to load what was just installed, by tool** (this applies to the worker agent and, on Opencode, the command wrappers): **Opencode** — run `/reload`; **Claude Code** — skills are picked up live (use `/reload-skills` only if `.claude/skills/` was just created), but a `.claude/agents/` directory created during this setup is only detected after restarting the session; **Cursor** and **GitHub Copilot** — the documentation does not say, so tell the user to reload the IDE window or open a new chat session if the agent does not appear. Include this notice in the final report of Step 6.
 
 > Use Bash to run `cp` commands. `<skill-dir>` is the project-local `do-setup` directory resolved in item 1 (e.g. `.agents/skills/do-setup`).
 

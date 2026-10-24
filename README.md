@@ -42,7 +42,7 @@ Este comando irá:
 >
 > | Ferramenta | Como recarregar |
 > |-----------|-----------------|
-> | **Opencode** | `/reload`. Se os `/do-*` aparecerem **desatualizados** (por exemplo, ao reclonar o projeto no mesmo caminho), reinicie o servidor em segundo plano: `opencode service restart` |
+> | **Opencode** | `/reload` |
 > | **Claude Code** | Skills novas entram sozinhas; se a pasta `.claude/skills/` foi criada agora, rode `/reload-skills`. A pasta `.claude/agents/` criada pelo `do-setup` só é detectada **ao reiniciar a sessão** |
 > | **Cursor** e **GitHub Copilot** | A documentação não especifica. Se não aparecerem, recarregue a janela do IDE ou abra uma nova sessão de chat |
 
@@ -362,13 +362,15 @@ Além das skills (invocadas explicitamente), o DO Framework inclui **agents** �
 
 ### `do-execute-all-tasks` — Executar Tasks em Sequência
 
-Orquestra a execução sequencial de todas (ou um subconjunto de) tasks de um PRD. O slash command `/do-execute-all-tasks` roda **no agente primário da sessão** e delega cada task a um **subagente isolado** (`agent-execute-task`) — um subagente novo por task — para garantir contexto totalmente distinto entre execuções e evitar estouro da janela de contexto em filas longas.
+Orquestra a execução sequencial de todas (ou um subconjunto de) tasks de um PRD. A skill `do-execute-all-tasks` roda **no agente primário da sessão** e delega cada task a um **subagente isolado** (`agent-execute-task`) — um subagente novo por task — para garantir contexto totalmente distinto entre execuções e evitar estouro da janela de contexto em filas longas.
 
-> ⚠️ **Não existe agente `agent-execute-all-tasks`.** A orquestração fica embutida no próprio command, em **todas** as ferramentas. Nenhum harness suportado garante que um subagente possa spawnar outro subagente: Claude Code permite até 3 níveis desde a v2.1, mas prompts de permissão e o isolamento ficam mais simples com um nível só; Copilot desabilita por default (`chat.subagents.allowInvocationsFromSubagents: false`); Cursor permite só um nível desde a 2.5 (um neto não lança mais nada); opencode limita via `subagent_depth` (default `1`) e, mesmo elevando o limite, prompts de permissão de sessões-neto podem não aparecer na TUI — a fila trava esperando indefinidamente. Se um install antigo deixou `agent-execute-all-tasks.md` em `.claude/agents/`, `.cursor/agents/`, `.github/agents/` ou `.opencode/agents/`, **apague o arquivo** e rode `/do-setup` novamente.
+> ⚠️ **Não existe agente orquestrador.** Nenhum harness suportado garante que um subagente possa spawnar outro subagente: Claude Code permite até 3 níveis desde a v2.1, mas prompts de permissão e o isolamento ficam mais simples com um nível só; Copilot desabilita por default (`chat.subagents.allowInvocationsFromSubagents: false`); Cursor permite só um nível desde a 2.5 (um neto não lança mais nada); opencode limita via `subagent_depth` (default `1`) e, mesmo elevando o limite, prompts de permissão de sessões-neto podem não aparecer na TUI — a fila trava esperando indefinidamente. Se um install antigo deixou `agent-execute-all-tasks.md` em `.claude/agents/`, `.cursor/agents/`, `.github/agents/` ou `.opencode/agents/`, **apague o arquivo** e rode `/do-setup` novamente.
+
+> **Por que o laço é uma skill e não um comando:** a lógica fica em arquivo lido do disco na hora (a skill e o contrato do subagente), então uma cópia antiga em cache de comando ou de agente nunca impõe regras antigas. Os arquivos instalados pelo `do-setup` são só ponteiros finos.
 
 > Convenção de nomes: skills e commands usam o prefixo `do-`; agents usam o prefixo `agent-` para não colidir com a skill `do-execute-task` que é executada dentro do worker.
 
-**Quando usar:** Ao invés de rodar `/do-execute-task` manualmente task por task, use este agent para executar um lote de forma autônoma.
+**Quando usar:** Ao invés de rodar `/do-execute-task` manualmente task por task, use esta skill para executar um lote de forma autônoma.
 
 **Regras de execução:**
 - Uma task por vez — nunca executa em paralelo
@@ -378,12 +380,12 @@ Orquestra a execução sequencial de todas (ou um subconjunto de) tasks de um PR
 
 **Disponível nas ferramentas:**
 
-| Ferramenta | Artefato | Invocação |
+| Ferramenta | O que o `do-setup` instala | Invocação |
 |---|---|---|
-| **Claude Code** | Agent (`.claude/agents/agent-execute-task.md`) + Command (`.claude/commands/do-execute-all-tasks.md`) | `/do-execute-all-tasks <tasks.md> [filtro]` |
-| **Cursor AI** | Agent (`.cursor/agents/agent-execute-task.md`) + Command (`.cursor/commands/do-execute-all-tasks.md`) | `/do-execute-all-tasks <tasks.md> [filtro]` |
-| **GitHub Copilot** | Agent (`.github/agents/agent-execute-task.agent.md`) + Prompt (`.github/prompts/do-execute-all-tasks.prompt.md`) | `/do-execute-all-tasks <tasks.md> [filtro]` |
-| **Opencode** | Agent (`.opencode/agents/agent-execute-task.md`) + Command (`.opencode/commands/do-execute-all-tasks.md`) | `/do-execute-all-tasks <tasks.md> [filtro]` |
+| **Claude Code** | Agent (`.claude/agents/agent-execute-task.md`). A skill já é invocável; não há arquivo de comando | `/do-execute-all-tasks <tasks.md> [filtro]` |
+| **Cursor AI** | Agent (`.cursor/agents/agent-execute-task.md`). Sem arquivo de comando | invocar a skill `do-execute-all-tasks` com `<tasks.md> [filtro]` |
+| **GitHub Copilot** | Agent (`.github/agents/agent-execute-task.agent.md`). Sem arquivo de prompt | invocar a skill `do-execute-all-tasks` com `<tasks.md> [filtro]` |
+| **Opencode** | Agent (`.opencode/agents/agent-execute-task.md`) + comandos finos em `.opencode/commands/` | `/do-execute-all-tasks <tasks.md> [filtro]` |
 
 **Filtros suportados:**
 

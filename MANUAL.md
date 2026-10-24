@@ -33,7 +33,7 @@ Isso instala todas as skills do framework (`do-setup`, `do-create-prd`, `do-crea
 >
 > | Ferramenta | Como recarregar |
 > |-----------|-----------------|
-> | **Opencode** | `/reload`. Se os `/do-*` aparecerem **desatualizados** (por exemplo, ao reclonar o projeto no mesmo caminho), reinicie o servidor em segundo plano: `opencode service restart` |
+> | **Opencode** | `/reload` |
 > | **Claude Code** | Skills novas entram sozinhas; se a pasta `.claude/skills/` foi criada agora, rode `/reload-skills`. A pasta `.claude/agents/` criada pelo `do-setup` só é detectada **ao reiniciar a sessão** |
 > | **Cursor** e **GitHub Copilot** | A documentação não especifica. Se não aparecerem, recarregue a janela do IDE ou abra uma nova sessão de chat |
 
@@ -176,7 +176,7 @@ Execute cada task em ordem:
 
 ### Opção B — Em lote (agent autônomo)
 
-Use o slash command `/do-execute-all-tasks` (a orquestração roda no agente primário da sessão e delega cada task ao subagente `agent-execute-task`) para executar um conjunto de tasks sequencialmente sem intervenção:
+Use `/do-execute-all-tasks` (a skill orquestra no agente primário da sessão e delega cada task ao subagente `agent-execute-task`) para executar um conjunto de tasks sequencialmente sem intervenção:
 
 ```
 /do-execute-all-tasks prds/prd-autenticacao-usuarios/tasks/tasks.md all
