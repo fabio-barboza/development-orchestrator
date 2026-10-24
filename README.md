@@ -38,7 +38,13 @@ Este comando irá:
 2. Configurar no seu ambiente de agente
 3. Fazer disponível para uso imediato nos seus projetos
 
-> ⚠️ **Reinicie a ferramenta após o `npx skills add`.** A maioria das ferramentas de IA (Claude Code, Cursor, GitHub Copilot, opencode) **não recarrega automaticamente** a lista de skills/comandos quando arquivos novos aparecem no disco. Se você abrir o autocomplete e os comandos `/do-*` não estiverem listados, **feche e reabra a ferramenta** (ou recarregue a janela do IDE / reinicie a sessão de chat). Isso vale tanto após o `npx skills add` quanto após o `do-setup` (que adiciona os slash commands em `.claude/commands/`, `.cursor/commands/`, `.github/prompts/` ou `.opencode/commands/`).
+> ⚠️ **Se as skills ou os comandos `/do-*` não aparecerem após o `npx skills add` ou o `do-setup`, recarregue a ferramenta.** O jeito depende dela:
+>
+> | Ferramenta | Como recarregar |
+> |-----------|-----------------|
+> | **Opencode** | `/reload`. Se os `/do-*` aparecerem **desatualizados** (por exemplo, ao reclonar o projeto no mesmo caminho), reinicie o servidor em segundo plano: `opencode service restart` |
+> | **Claude Code** | Skills novas entram sozinhas; se a pasta `.claude/skills/` foi criada agora, rode `/reload-skills`. A pasta `.claude/agents/` criada pelo `do-setup` só é detectada **ao reiniciar a sessão** |
+> | **Cursor** e **GitHub Copilot** | A documentação não especifica. Se não aparecerem, recarregue a janela do IDE ou abra uma nova sessão de chat |
 
 
 ## Fluxo do Framework — Pipeline Completa

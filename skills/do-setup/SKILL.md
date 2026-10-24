@@ -245,7 +245,7 @@ Based on the AI tool selected by the user in Step 0, install the `agent-execute-
    - The installed `do-execute-all-tasks` command/prompt is byte-identical to the template in `<skill-dir>` (compare with `cmp`). For Opencode, it must **not** contain `subtask: true` nor an `agent:` field in the frontmatter — that would route the queue to a subagent orchestrator.
    - If any check fails, fix it (re-copy / delete) and verify again. Never report success with a legacy orchestrator installed.
 4. Confirm to the user which files were installed, for which tool, and the `<skill-dir>` used as source.
-5. **Tell the user to restart the AI tool before running `/do-execute-all-tasks`** (or any newly installed command). Claude Code only watches agent directories that existed when the session started, so a `.claude/agents/` created during this setup is invisible until restart; other tools may also cache their agent and command lists. Include this restart notice in the final report of Step 6.
+5. **Tell the user how to load what was just installed, by tool, before running `/do-execute-all-tasks`** (or any newly installed command): **Opencode** — run `/reload` (if commands look outdated, e.g. a project re-cloned at the same path, `opencode service restart`); **Claude Code** — skills are picked up live (use `/reload-skills` only if `.claude/skills/` was just created), but a `.claude/agents/` directory created during this setup is only detected after restarting the session; **Cursor** and **GitHub Copilot** — the documentation does not say, so tell the user to reload the IDE window or open a new chat session if the commands/agents do not appear. Include this notice in the final report of Step 6.
 
 > Use Bash to run `cp` commands. `<skill-dir>` is the project-local `do-setup` directory resolved in item 1 (e.g. `.agents/skills/do-setup`).
 
@@ -257,7 +257,7 @@ Based on the AI tool selected by the user in Step 0, install the `agent-execute-
    - **MCPs detectados:** name, capability and source of each server (mark `não registrado` when applicable), or "nenhum MCP detectado".
    - **Lacunas:** the informational gaps computed in Step 3B (e.g. "sem MCP de interface: o E2E de interface será pulado") and, when no skills/MCPs were found, a hint to install them and run `/do-setup refresh`.
    - **Arquivo de configuração duplicado (apenas se o Counterpart file check encontrou):** "Existem `CLAUDE.md` e `AGENTS.md`. O Claude Code lê só o `CLAUDE.md` quando os dois existem e o Opencode lê o `AGENTS.md`; as seções geradas aqui só chegam à ferramenta escolhida. Para unificar, mantenha o conteúdo no `AGENTS.md` e deixe no `CLAUDE.md` a linha `@AGENTS.md`." Do not change the other file.
-   End with the restart notice from Step 5 item 5 (restart the AI tool before running `/do-execute-all-tasks`) — except in `refresh` mode, where no agents were installed and the notice is omitted.
+   End with the load notice from Step 5 item 5 (how to load the installed agents/commands in the selected tool) — except in `refresh` mode, where no agents were installed and the notice is omitted.
 4. **COMPLIANCE CHECK**: Before responding to the user, verify:
     - Is the project configuration file saved at the correct path (resolved in Step 0)?
     - Did you accurately identify the project stack and skills?
