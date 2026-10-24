@@ -126,7 +126,7 @@ tasks.md            │   - Implementação + tests                   │
 │   │  - Checklist PRD     │                                                  │
 │   │  - Accessibility     │────────────┐                                     │
 │   │  - Visual verification│           │                                     │
-│   │  - Gera bugs.md      │            │                                     │
+│   │  - Gera qa/qa-N/bugs/│            │                                     │
 │   └──────────┬───────────┘            │                                     │
 │              │                        │                                     │
 │              │ (se houver bugs)       │ (zero bugs HIGH)                    │
@@ -138,7 +138,7 @@ tasks.md            │   - Implementação + tests                   │
 │   │    severidade        │                                                  │
 │   │  - Tests de regressão│                                                  │
 │   │  - E2E via MCP       │                                                  │
-│   │  - Atualiza bugs.md  │                                                  │
+│   │  - Atualiza o bug    │                                                  │
 │   └──────────┬───────────┘                                                  │
 │              │                                                              │
 │              └─────────────▶ (repetir do-execute-qa) ◀──────────────────────┘
@@ -490,9 +490,8 @@ O framework não exige nenhuma linguagem ou stack. O que você precisa:
     │   └── review-1/           # 1ª rodada de review (do-execute-review); a próxima será review-2/...
     │       ├── review-report.md
     │       └── fixes/fix-R01-critico-....md
-    ├── bugs.md                 # (legado) Bugs encontrados
-    ├── fix-report.md           # Relatório de correções do review (do-execute-review-fix)
-    ├── bugfix-report.md        # Relatório Bugfix (do-execute-qa-bugfix)
+    ├── review-report.md        # (legado) relatório solto na raiz, de PRDs anteriores às pastas de rodada
+    ├── qa-report.md            # (legado) idem para o QA
     └── tasks/
         ├── tasks.md            # Index de tasks (do-create-tasks)
         ├── 1_task.md           # Task 1 detalhada
