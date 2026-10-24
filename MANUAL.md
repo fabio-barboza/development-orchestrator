@@ -29,6 +29,8 @@ npx skills add fabio-barboza/development-orchestrator
 
 Isso instala todas as skills do framework (`do-setup`, `do-create-prd`, `do-create-techspec`, etc.) no seu ambiente de IA.
 
+> **Instale o framework em um lugar só: no projeto ou global, não nos dois.** Se o mesmo nome de skill existir nos dois, a ferramenta decide qual carregar (no Claude Code a global vence a do projeto; nas outras a documentação não diz), e você pode rodar uma versão diferente da esperada. O `do-setup` avisa quando encontra cópias globais de skills `do-*`.
+
 > ⚠️ **Se as skills ou os comandos `/do-*` não aparecerem após o `npx skills add` ou o `do-setup`, recarregue a ferramenta.** O jeito depende dela:
 >
 > | Ferramenta | Como recarregar |
