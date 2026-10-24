@@ -131,7 +131,7 @@ For all tools: if the config file already exists, proceed to Step 2 without over
 2. **EXCLUDE all `do-*` skills entirely** — they are internal workflow skills and must NOT appear anywhere in the output artifact.
 3. For each remaining skill, read its descriptor (`SKILL.md`, or the `.mdc` content for Cursor rules).
 4. Based on the Step 2 summary, keep the skills that are relevant: they cover at least one of the project's primary language or framework, the adopted architecture, or an identified pattern or integration (queues, database, API, tests, UI, etc.).
-5. For each kept skill record: name, **path** (project-relative when inside the project, absolute when global — confirm the file exists before writing it) and "when to use".
+5. For each kept skill record: name, **path of its `SKILL.md` file** (project-relative when inside the project, absolute when global — the path must end in `SKILL.md` and the file must exist before you write it; never a bare directory) and "when to use".
 6. Technologies identified in Step 2 with no matching skill go to `## Uncovered Skills`.
 7. **Global copies of DO skills (warn only):** while scanning the global directories, note every `do-*` skill found **outside the project** (`~/.agents/skills/`, `~/.claude/skills/`, `~/.config/opencode/skills/`, `~/.cursor/skills/`). For each one, compare its `SKILL.md` with the project copy (`cmp`) and record `idêntica` or `diferente` (or `sem cópia no projeto`). Do not list them in the configuration file and do not delete or edit anything: this is only reported in Step 6. Reason: when the same skill name exists globally and in the project, the tool decides which one loads — Claude Code documents that the **personal/global copy wins over the project copy**; for Opencode, Cursor and GitHub Copilot the documentation does not say.
 
@@ -160,13 +160,13 @@ Merge the following sections into the project configuration file at the path det
 ## Available Skills
 **IMPORTANTE: Antes de iniciar qualquer tarefa, leia o arquivo da skill correspondente à tecnologia ou padrão envolvido usando a ferramenta de leitura de arquivos disponível na sua plataforma. As skills contêm convenções, restrições e padrões obrigatórios para este projeto — não prossiga sem lê-las.**
 
-Exemplo: para trabalhar com [primeira-tecnologia], leia o arquivo `[caminho-da-primeira-skill]` antes de qualquer implementação.
+Exemplo: para trabalhar com [primeira-tecnologia], leia o arquivo `[caminho-do-SKILL.md-da-primeira-skill]` antes de qualquer implementação.
 
 > Lista gravada pelo `/do-setup`. Skills instaladas depois podem não constar aqui: consulte também a lista de skills da sua ferramenta ou rode `/do-setup refresh`.
 
 | Skill | Caminho | Quando usar |
 |-------|---------|-------------|
-| [name] | [path found in Step 3] | [usage context] |
+| [name] | [path of the skill's SKILL.md file] | [usage context] |
 
 ## Uncovered Skills
 | Tecnologia | Observação |
