@@ -1,6 +1,6 @@
 ---
 name: do-execute-review-fix
-description: "Recebe o caminho de um arquivo de fix task em review-[N]/fixes/ (ex: review-1/fixes/fix-R01-critico-senha.md), implementa a correção, roda a suite de testes e atualiza o status do arquivo. Use quando do-execute-review gerou arquivos de fix task e o usuário quiser resolver um problema específico. Não use para correções em lote — invoque uma vez por arquivo. Não use para QA, correção de bugs de QA (use do-execute-qa-bugfix) ou implementação de novas features."
+description: "Recebe o caminho de um arquivo de fix task em review/review-[N]/fixes/ (ex: review/review-1/fixes/fix-R01-critico-senha.md), implementa a correção, roda a suite de testes e atualiza o status do arquivo. Use quando do-execute-review gerou arquivos de fix task e o usuário quiser resolver um problema específico. Não use para correções em lote — invoque uma vez por arquivo. Não use para QA, correção de bugs de QA (use do-execute-qa-bugfix) ou implementação de novas features."
 ---
 
 # Review Fix Execution
@@ -40,7 +40,7 @@ All files you create, read or execute MUST live **inside the project root**. Fil
 ## Invocation
 This skill fixes **one finding at a time**. The user must provide the path to the specific fix task file:
 ```
-do-execute-review-fix ./prds/prd-[feature-slug]/review-[N]/fixes/fix-[R-XX]-[severidade]-[slug].md
+do-execute-review-fix ./prds/prd-[feature-slug]/review/review-[N]/fixes/fix-[R-XX]-[severidade]-[slug].md
 ```
 If no file path is provided, list all `pendente` fix task files of the most recent review round (and of the legacy `review-fixes/`, if any) as described in `do-shared/references/do-run-folders.md` and ask the user which one to fix.
 
@@ -118,7 +118,7 @@ Todos os artefatos gerados (atualizações no arquivo de fix task, atualizaçõe
 
 ## References
 - Round folders: `do-shared/references/do-run-folders.md`
-- Fix task file (input): `./prds/prd-[feature-slug]/review-[N]/fixes/fix-[R-XX]-[severidade-completa]-[slug].md`
-- Review Report: `./prds/prd-[feature-slug]/review-[N]/review-report.md` (same round as the fix file)
+- Fix task file (input): `./prds/prd-[feature-slug]/review/review-[N]/fixes/fix-[R-XX]-[severidade-completa]-[slug].md`
+- Review Report: `./prds/prd-[feature-slug]/review/review-[N]/review-report.md` (same round as the fix file)
 - PRD: `./prds/prd-[feature-slug]/prd.md`
 - TechSpec: `./prds/prd-[feature-slug]/techspec.md`

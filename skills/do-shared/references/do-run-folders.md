@@ -6,40 +6,42 @@ Procedimento padrão referenciado por `do-execute-review`, `do-execute-review-fi
 
 ```
 ./prds/prd-[feature-slug]/
-  review-1/
-    review-report.md
-    fixes/fix-[R-XX]-[severidade-completa]-[slug].md
-  review-2/
-    ...
-  qa-1/
-    qa-report.md
-    bugs/bug-[XX]-[severidade-completa]-[slug].md
-    screenshots/
-  qa-2/
-    ...
+  review/
+    review-1/
+      review-report.md
+      fixes/fix-[R-XX]-[severidade-completa]-[slug].md
+    review-2/
+      ...
+  qa/
+    qa-1/
+      qa-report.md
+      bugs/bug-[XX]-[severidade-completa]-[slug].md
+      screenshots/
+    qa-2/
+      ...
 ```
 
-Nos skills, `<review-dir>` significa `prds/prd-[feature-slug]/review-[N]` e `<qa-dir>` significa `prds/prd-[feature-slug]/qa-[N]`.
+As rodadas ficam agrupadas em `review/` e `qa/`, para que a raiz do PRD não acumule uma pasta por rodada. Nos skills, `<review-dir>` significa `prds/prd-[feature-slug]/review/review-[N]` e `<qa-dir>` significa `prds/prd-[feature-slug]/qa/qa-[N]`.
 
 ## Criar uma rodada nova (`do-execute-review`, `do-execute-qa`)
 
 Faça isto **uma única vez, no início da execução**, e use o mesmo `[N]` até o fim:
 
-1. Liste o conteúdo de `./prds/prd-[feature-slug]/` e considere só as pastas cujo nome casa exatamente com `review-<número>` (ou `qa-<número>`).
+1. Liste o conteúdo de `./prds/prd-[feature-slug]/review/` (ou `qa/`) e considere só as pastas cujo nome casa exatamente com `review-<número>` (ou `qa-<número>`). Se a pasta `review/` (ou `qa/`) não existir, não há rodada anterior.
 2. `[N]` = maior número encontrado + 1, ou `1` se não houver nenhuma. Nunca reutilize um número, mesmo que uma pasta do meio tenha sido apagada, e nunca grave dentro de uma rodada existente.
-3. Não crie a pasta ainda: ela nasce junto com o primeiro arquivo gravado (`mkdir -p`), para que uma execução que termina sem produzir nada (por exemplo, "nada para revisar") não deixe uma rodada vazia. `fixes/`, `bugs/` e `screenshots/` também nascem com o primeiro arquivo.
+3. Não crie a pasta ainda: ela (e a pasta `review/` ou `qa/` que a contém) nasce junto com o primeiro arquivo gravado (`mkdir -p`), para que uma execução que termina sem produzir nada (por exemplo, "nada para revisar") não deixe uma rodada vazia. `fixes/`, `bugs/` e `screenshots/` também nascem com o primeiro arquivo.
 4. Os IDs (`R-01`, `bug-01`) recomeçam em cada rodada: o caminho já identifica a rodada.
 
 ## Quando NÃO criar a pasta
 
-A pasta de uma rodada só existe se a execução produziu pelo menos um artefato. Se não há nada para revisar (nenhuma alteração) ou nada para validar (nenhuma task concluída, nenhum código implementado), a skill informa isso **apenas na resposta**: não cria arquivo nem pasta `review-[N]`/`qa-[N]`, e o próximo `[N]` não é consumido.
+A pasta de uma rodada só existe se a execução produziu pelo menos um artefato. Se não há nada para revisar (nenhuma alteração) ou nada para validar (nenhuma task concluída, nenhum código implementado), a skill informa isso **apenas na resposta**: não cria arquivo nem pasta `review/review-[N]`/`qa/qa-[N]`, e o próximo `[N]` não é consumido.
 
 ## Layout legado
 
-PRDs antigos têm `review-report.md`, `review-fixes/`, `qa-report.md`, `qa-bugs/` e `qa-screenshots/` soltos na raiz do PRD. Esses itens formam uma **rodada legada**:
+PRDs antigos têm `review-report.md`, `review-fixes/`, `qa-report.md`, `qa-bugs/` e `qa-screenshots/` soltos na raiz do PRD. Pastas `review-<número>/` e `qa-<número>/` diretamente na raiz do PRD (sem a pasta `review/` ou `qa/`) são de um layout intermediário e seguem a mesma regra. Esses itens formam uma **rodada legada**:
 
 - Nunca os sobrescreva, mova ou apague.
-- Não entram na contagem de `[N]` (a primeira rodada no layout novo é `review-1`/`qa-1`).
+- Não entram na contagem de `[N]` (a primeira rodada no layout novo é `review/review-1`/`qa/qa-1`).
 - Valem como "rodada anterior" para a seção de pendências (abaixo) quando não existir nenhuma rodada numerada anterior.
 
 ## Descobrir a rodada a partir de um arquivo de entrada (`do-execute-review-fix`, `do-execute-qa-bugfix`)

@@ -41,7 +41,7 @@ Skill assets/references are loaded via your AI tool's native skill resolver — 
 2. Read the Tech Spec at `./prds/prd-[feature-slug]/techspec.md` and verify implemented technical decisions. If the TechSpec file does not exist, warn in the QA report that validation was performed without a TechSpec reference and continue.
 3. Read Tasks at `./prds/prd-[feature-slug]/tasks/tasks.md` and verify completion status of each task. If `tasks.md` does not exist, warn in the QA report and continue.
 4. Load the project skills relevant to the feature under test by following `do-shared/references/do-project-context.md` (Skills procedure); no specific skill is assumed to exist. Then create a verification checklist based on the requirements.
-5. **Resolve the QA round** following `do-shared/references/do-run-folders.md`: `<qa-dir>` = `prds/prd-[feature-slug]/qa-[N]`, where `[N]` is the highest existing `qa-<number>` folder + 1 (or 1). Decide `[N]` now and use the same value for the whole execution (bugs, screenshots and report all live inside it); create the folder with the first file you write. Never write into an existing round or overwrite the legacy `qa-report.md`/`qa-bugs/`/`qa-screenshots/` at the PRD root. Then collect the open bugs of the previous round (see "Pendências da rodada anterior" in that reference).
+5. **Resolve the QA round** following `do-shared/references/do-run-folders.md`: `<qa-dir>` = `prds/prd-[feature-slug]/qa/qa-[N]`, where `[N]` is the highest existing `qa-<number>` folder inside `qa/` + 1 (or 1). Decide `[N]` now and use the same value for the whole execution (bugs, screenshots and report all live inside it); create the folder with the first file you write. Never write into an existing round or overwrite the legacy `qa-report.md`/`qa-bugs/`/`qa-screenshots/` at the PRD root. Then collect the open bugs of the previous round (see "Pendências da rodada anterior" in that reference).
 6. Do NOT skip this step — understanding requirements is fundamental for QA.
 7. **DO NOT stop here. DO NOT present the checklist and wait for approval. Proceed IMMEDIATELY to Step 2.**
 
@@ -112,7 +112,7 @@ Todos os artefatos gerados (relatório de QA, arquivos de bug individuais) devem
 
 ## Error Handling
 - If the PRD does not exist, halt and direct the user to run `do-create-prd`.
-- If there is nothing to validate (no task marked complete in `tasks.md` and no implemented code for the feature), report that **in the response only**: create no file and no `qa-[N]` folder.
+- If there is nothing to validate (no task marked complete in `tasks.md` and no implemented code for the feature), report that **in the response only**: create no file and no `qa/qa-[N]` folder.
 - If the TechSpec or tasks.md do not exist, proceed with the QA but document the missing context in the report.
 - If a required service is not running, apply `do-shared/references/do-service-readiness.md` — probe first, reuse if running, start only safe dev servers when missing, document gaps for external services. Never kill a running service. If the dev server fails to start or throws errors, **immediately open a bug file** documenting the startup error (including full error output), finalize the report with status REPROVADO, and stop. Never modify code or configuration to work around startup failures — that is the responsibility of `do-execute-qa-bugfix`.
 - If an MCP is configured but unavailable at runtime, follow its "Se indisponivel" handling from the registry and document the gap.
@@ -130,6 +130,6 @@ Todos os artefatos gerados (relatório de QA, arquivos de bug individuais) devem
 - Tasks: `./prds/prd-[feature-slug]/tasks/tasks.md`
 - Bug template: `do-execute-qa/assets/bug-template.md`
 - Round folders: `do-shared/references/do-run-folders.md`
-- Bugs output dir: `./prds/prd-[feature-slug]/qa-[N]/bugs/bug-[XX]-[severidade-completa]-[slug].md`
-- QA Report output: `./prds/prd-[feature-slug]/qa-[N]/qa-report.md`
-- Screenshots output dir: `./prds/prd-[feature-slug]/qa-[N]/screenshots/`
+- Bugs output dir: `./prds/prd-[feature-slug]/qa/qa-[N]/bugs/bug-[XX]-[severidade-completa]-[slug].md`
+- QA Report output: `./prds/prd-[feature-slug]/qa/qa-[N]/qa-report.md`
+- Screenshots output dir: `./prds/prd-[feature-slug]/qa/qa-[N]/screenshots/`

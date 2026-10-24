@@ -21,7 +21,7 @@ status: aberto
 [O que está acontecendo]
 
 ## Evidência
-`qa-[N]/screenshots/[nome-do-screenshot].png`
+`qa/qa-[N]/screenshots/[nome-do-screenshot].png`
 
 ## Componente Afetado
 [Componente ou arquivo afetado]

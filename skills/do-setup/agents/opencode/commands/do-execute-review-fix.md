@@ -19,5 +19,5 @@ Se não for fornecido, **pergunte uma única vez** antes de prosseguir.
 ## Exemplo
 
 ```
-/do-execute-review-fix prds/prd-user-auth/review-1/fixes/fix-R01-critico-validacao.md
+/do-execute-review-fix prds/prd-user-auth/review/review-1/fixes/fix-R01-critico-validacao.md
 ```

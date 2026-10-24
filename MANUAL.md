@@ -234,7 +234,7 @@ Se o resultado for `REPROVADO` ou `APROVADO COM RESSALVAS` com itens pendentes, 
 
 Repita até o status ser `APROVADO` (ou `APROVADO COM RESSALVAS` sem itens que você queira corrigir).
 
-> **Cada rodada tem a sua pasta.** Cada execução do `do-execute-review` grava em `prds/prd-<slug>/review-1/`, `review-2/`, … (relatório em `review-N/review-report.md` e fix tasks em `review-N/fixes/`), então rodar o review de novo nunca sobrescreve o anterior. O `do-execute-review-fix` descobre a rodada pelo caminho do fix task que você passa, e o relatório novo lista os itens que ainda estavam pendentes na rodada anterior. PRDs antigos, com `review-report.md` solto na raiz, continuam funcionando.
+> **Cada rodada tem a sua pasta.** Cada execução do `do-execute-review` grava em `prds/prd-<slug>/review/review-1/`, `review/review-2/`, … (relatório em `review/review-N/review-report.md` e fix tasks em `review/review-N/fixes/`), então rodar o review de novo nunca sobrescreve o anterior. O `do-execute-review-fix` descobre a rodada pelo caminho do fix task que você passa, e o relatório novo lista os itens que ainda estavam pendentes na rodada anterior. PRDs antigos, com `review-report.md` solto na raiz, continuam funcionando.
 
 ---
 
@@ -255,7 +255,7 @@ Se bugs forem encontrados, corrija e revalide:
 
 Repita até não restar nenhum bug de severidade HIGH. Feature pronta!
 
-> **Mesma lógica no QA:** cada `do-execute-qa` cria `qa-1/`, `qa-2/`, … com `qa-report.md`, `bugs/` e `screenshots/` da rodada. O `do-execute-qa-bugfix` usa o caminho do bug (`qa-N/bugs/bug-....md`) para saber em que rodada trabalhar, e o relatório da rodada nova traz os bugs ainda abertos da anterior.
+> **Mesma lógica no QA:** cada `do-execute-qa` cria `qa/qa-1/`, `qa/qa-2/`, … com `qa-report.md`, `bugs/` e `screenshots/` da rodada. O `do-execute-qa-bugfix` usa o caminho do bug (`qa/qa-N/bugs/bug-....md`) para saber em que rodada trabalhar, e o relatório da rodada nova traz os bugs ainda abertos da anterior.
 
 ---
 

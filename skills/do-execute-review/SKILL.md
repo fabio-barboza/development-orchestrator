@@ -42,7 +42,7 @@ Skill assets/references are loaded via your AI tool's native skill resolver — 
 3. Read the Tasks at `./prds/prd-[feature-slug]/tasks/tasks.md` to verify the scope implemented. If `tasks.md` does not exist, warn in the review report and continue.
 4. Read the project rules to know the required standards.
 5. Load the project skills relevant to the changes by following `do-shared/references/do-project-context.md` (Skills procedure) and use their conventions as additional review criteria. **Do this NOW, before Step 2** — reading the skills after the analysis or the tests is a violation, because the conventions must shape what you look for. No specific skill is assumed to exist; if none is installed or relevant, continue without them.
-6. **Resolve the review round** following `do-shared/references/do-run-folders.md`: `<review-dir>` = `prds/prd-[feature-slug]/review-[N]`, where `[N]` is the highest existing `review-<number>` folder + 1 (or 1). Decide `[N]` now and use the same value for the whole execution; create the folder with the first file you write (if there is nothing to review, no folder is created). Never write into an existing round or overwrite the legacy `review-report.md`/`review-fixes/` at the PRD root. Then collect the open items of the previous round (see "Pendências da rodada anterior" in that reference).
+6. **Resolve the review round** following `do-shared/references/do-run-folders.md`: `<review-dir>` = `prds/prd-[feature-slug]/review/review-[N]`, where `[N]` is the highest existing `review-<number>` folder inside `review/` + 1 (or 1). Decide `[N]` now and use the same value for the whole execution; create the folder with the first file you write (if there is nothing to review, no folder is created). Never write into an existing round or overwrite the legacy `review-report.md`/`review-fixes/` at the PRD root. Then collect the open items of the previous round (see "Pendências da rodada anterior" in that reference).
 
 **Step 2: Code Change Analysis (Mandatory)**
 1. Check if the project is a git repository by running `git rev-parse --is-inside-work-tree`.
@@ -134,7 +134,7 @@ Skill assets/references are loaded via your AI tool's native skill resolver — 
 Todos os artefatos gerados (relatório de review, arquivos de tarefa de correção) devem ser escritos em Português do Brasil (PT-BR). Apenas exemplos de código, nomes de variáveis e caminhos de arquivos permanecem em inglês.
 
 ## Error Handling
-- If no git changes are found and git is available, report that there is nothing to review **in the response only**: create no file and no `review-[N]` folder.
+- If no git changes are found and git is available, report that there is nothing to review **in the response only**: create no file and no `review/review-[N]` folder.
 - If git is not initialized, fall back to manual file listing and document this in the report.
 - If tests fail, the review status MUST be REPROVADO regardless of other findings.
 - If PRD/TechSpec/tasks.md are missing, proceed with the review but document the missing context in the report.
@@ -150,6 +150,6 @@ Todos os artefatos gerados (relatório de review, arquivos de tarefa de correç�
 - PRD: `./prds/prd-[feature-slug]/prd.md`
 - TechSpec: `./prds/prd-[feature-slug]/techspec.md`
 - Tasks: `./prds/prd-[feature-slug]/tasks/tasks.md`
-- Review Report output: `./prds/prd-[feature-slug]/review-[N]/review-report.md`
+- Review Report output: `./prds/prd-[feature-slug]/review/review-[N]/review-report.md`
 - Round folders: `do-shared/references/do-run-folders.md`
-- Fix Tasks output dir: `./prds/prd-[feature-slug]/review-[N]/fixes/fix-[R-XX]-[severidade-completa]-[slug].md`
+- Fix Tasks output dir: `./prds/prd-[feature-slug]/review/review-[N]/fixes/fix-[R-XX]-[severidade-completa]-[slug].md`

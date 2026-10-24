@@ -277,7 +277,7 @@ PLANEJAMENTO       EXECUÇÃO           REVIEW GERAL      VALIDAÇÃO
 - Se status = **REPROVADO** (ou **APROVADO COM RESSALVAS** com itens a corrigir): rodar `do-execute-review-fix` → depois `do-execute-review` novamente
 - Se status = **APROVADO**: prossegue para FASE 4 (QA)
 
-**Output:** `./prds/prd-[slug]/review-[N]/review-report.md` (uma pasta nova a cada rodada: `review-1/`, `review-2/`…), com os fix tasks em `review-[N]/fixes/`. O relatório inclui os itens ainda pendentes da rodada anterior.
+**Output:** `./prds/prd-[slug]/review/review-[N]/review-report.md` (uma pasta nova a cada rodada: `review/review-1/`, `review/review-2/`…), com os fix tasks em `review/review-[N]/fixes/`. O relatório inclui os itens ainda pendentes da rodada anterior.
 
 **Status:** APROVADO / APROVADO COM RESSALVAS / REPROVADO
 
@@ -288,7 +288,7 @@ PLANEJAMENTO       EXECUÇÃO           REVIEW GERAL      VALIDAÇÃO
 **Quando usar:** Após `do-execute-review` retornar REPROVADO ou APROVADO COM RESSALVAS.
 
 **O que faz:**
-1. Recebe **um** fix task (`review-[N]/fixes/fix-R..md`) — invoque uma vez por arquivo, começando pelos críticos
+1. Recebe **um** fix task (`review/review-[N]/fixes/fix-R..md`) — invoque uma vez por arquivo, começando pelos críticos
 2. Lê o `review-report.md` da mesma rodada para contexto e implementa a correção
 3. Roda suite completa de testes — o fix nunca é concluído com testes failing
 4. Atualiza o fix task (`corrigido` / `não-resolvido`) e o finding correspondente no `review-report.md` da rodada
@@ -312,8 +312,8 @@ PLANEJAMENTO       EXECUÇÃO           REVIEW GERAL      VALIDAÇÃO
 6. Documenta bugs encontrados com evidência visual
 
 **Output:**
-- `./prds/prd-[slug]/qa-[N]/qa-report.md` (uma pasta nova a cada rodada: `qa-1/`, `qa-2/`…)
-- `./prds/prd-[slug]/qa-[N]/bugs/bug-[XX]-....md` (se houver bugs) e `qa-[N]/screenshots/`
+- `./prds/prd-[slug]/qa/qa-[N]/qa-report.md` (uma pasta nova a cada rodada: `qa/qa-1/`, `qa/qa-2/`…)
+- `./prds/prd-[slug]/qa/qa-[N]/bugs/bug-[XX]-....md` (se houver bugs) e `qa/qa-[N]/screenshots/`
 - O relatório inclui os bugs ainda abertos da rodada anterior
 
 **Status:** APROVADO apenas se TODOS requisitos verificados e funcionando
@@ -480,13 +480,15 @@ O framework não exige nenhuma linguagem ou stack. O que você precisa:
 └── prd-[feature-slug]/
     ├── prd.md                  # Product Requirements Document (do-create-prd)
     ├── techspec.md             # Tech Spec (do-create-techspec)
-    ├── qa-1/                   # 1ª rodada de QA (do-execute-qa); a próxima será qa-2/...
-    │   ├── qa-report.md
-    │   ├── bugs/bug-01-alta-....md
-    │   └── screenshots/
-    ├── review-1/               # 1ª rodada de review (do-execute-review); a próxima será review-2/...
-    │   ├── review-report.md
-    │   └── fixes/fix-R01-critico-....md
+    ├── qa/
+    │   └── qa-1/               # 1ª rodada de QA (do-execute-qa); a próxima será qa-2/...
+    │       ├── qa-report.md
+    │       ├── bugs/bug-01-alta-....md
+    │       └── screenshots/
+    ├── review/
+    │   └── review-1/           # 1ª rodada de review (do-execute-review); a próxima será review-2/...
+    │       ├── review-report.md
+    │       └── fixes/fix-R01-critico-....md
     ├── bugs.md                 # (legado) Bugs encontrados
     ├── fix-report.md           # Relatório de correções do review (do-execute-review-fix)
     ├── bugfix-report.md        # Relatório Bugfix (do-execute-qa-bugfix)
@@ -573,10 +575,10 @@ O framework não exige nenhuma linguagem ou stack. O que você precisa:
 # 6. QA final com E2E completo
 /do-execute-qa projeto-exemplo
 > [roda E2E via MCP disponível, accessibility, visual verification]
-> [gera qa-1/qa-report.md + qa-1/bugs/ se houver problemas]
+> [gera qa/qa-1/qa-report.md + qa/qa-1/bugs/ se houver problemas]
 
 # 7. Se houver bugs HIGH/MEDIUM: loop de correção
-[se qa-1/bugs/ tem bugs abertos] → /do-execute-qa-bugfix prds/prd-projeto-exemplo/qa-1/bugs/<bug>.md
+[se qa/qa-1/bugs/ tem bugs abertos] → /do-execute-qa-bugfix prds/prd-projeto-exemplo/qa/qa-1/bugs/<bug>.md
 > [corrige por severidade + tests de regressão]
 
 # 8. Revalida com QA novamente

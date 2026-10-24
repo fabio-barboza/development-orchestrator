@@ -64,4 +64,4 @@ Report in Brazilian Portuguese (PT-BR).
 ## References
 - Tasks index: `./prds/prd-[feature-slug]/tasks/tasks.md`
 - Task files: `./prds/prd-[feature-slug]/tasks/[num]_task.md`
-- Review/QA rounds: `./prds/prd-[feature-slug]/review-[N]/`, `./prds/prd-[feature-slug]/qa-[N]/` (see `do-shared/references/do-run-folders.md`)
+- Review/QA rounds: `./prds/prd-[feature-slug]/review/review-[N]/`, `./prds/prd-[feature-slug]/qa/qa-[N]/` (see `do-shared/references/do-run-folders.md`)

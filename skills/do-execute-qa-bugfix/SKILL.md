@@ -1,6 +1,6 @@
 ---
 name: do-execute-qa-bugfix
-description: "Recebe o caminho de um arquivo de bug em qa-[N]/bugs/ (ex: qa-1/bugs/bug-01-alta-formulario.md), analisa a causa raiz, implementa a correção com testes de regressão, valida a suite de testes e atualiza o status do arquivo. Use quando o usuário pedir para corrigir um bug específico encontrado no QA. Não use para correções em lote — invoque uma vez por bug. Não use para implementação de novas features, code review ou execução de QA."
+description: "Recebe o caminho de um arquivo de bug em qa/qa-[N]/bugs/ (ex: qa/qa-1/bugs/bug-01-alta-formulario.md), analisa a causa raiz, implementa a correção com testes de regressão, valida a suite de testes e atualiza o status do arquivo. Use quando o usuário pedir para corrigir um bug específico encontrado no QA. Não use para correções em lote — invoque uma vez por bug. Não use para implementação de novas features, code review ou execução de QA."
 ---
 
 # Bug Fix Execution
@@ -27,7 +27,7 @@ All files you create, read or execute MUST live **inside the project root**. Fil
 ## Invocation
 This skill fixes **one bug at a time**. The user must provide the path to the specific bug file to fix:
 ```
-do-execute-qa-bugfix ./prds/prd-[feature-slug]/qa-[N]/bugs/bug-[XX]-[severidade]-[slug].md
+do-execute-qa-bugfix ./prds/prd-[feature-slug]/qa/qa-[N]/bugs/bug-[XX]-[severidade]-[slug].md
 ```
 If no file path is provided, list all `aberto` bug files of the most recent QA round (and of the legacy `qa-bugs/`, if any) as described in `do-shared/references/do-run-folders.md` and ask the user which one to fix.
 
@@ -113,10 +113,10 @@ Todos os artefatos gerados (atualizações no arquivo de bug, seções de resolu
 
 ## References
 - Round folders: `do-shared/references/do-run-folders.md`
-- Bug file (input): `./prds/prd-[feature-slug]/qa-[N]/bugs/bug-[XX]-[severidade-completa]-[slug].md`
+- Bug file (input): `./prds/prd-[feature-slug]/qa/qa-[N]/bugs/bug-[XX]-[severidade-completa]-[slug].md`
 - Regression test patterns: `do-execute-qa-bugfix/references/regression-test-patterns.md`
 - MCP Discovery: `do-shared/references/do-mcp-discovery-instructions.md`
 - MCP Registry: `do-shared/references/do-mcp-capabilities.md`
 - PRD: `./prds/prd-[feature-slug]/prd.md`
 - TechSpec: `./prds/prd-[feature-slug]/techspec.md`
-- Screenshots: `./prds/prd-[feature-slug]/qa-[N]/screenshots/`
+- Screenshots: `./prds/prd-[feature-slug]/qa/qa-[N]/screenshots/`

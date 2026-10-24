@@ -19,5 +19,5 @@ Se não for fornecido, **pergunte uma única vez** antes de prosseguir.
 ## Exemplo
 
 ```
-/do-execute-qa-bugfix prds/prd-user-auth/qa-1/bugs/bug-01-alta-formulario.md
+/do-execute-qa-bugfix prds/prd-user-auth/qa/qa-1/bugs/bug-01-alta-formulario.md
 ```
