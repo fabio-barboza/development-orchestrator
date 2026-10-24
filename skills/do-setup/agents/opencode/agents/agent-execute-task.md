@@ -1,5 +1,5 @@
 ---
-description: Subagente isolado que executa UM item de trabalho delegado, em contexto limpo: uma task de um PRD (skill `do-execute-task`), um fix task de review (`do-execute-review-fix`) ou um bug de QA (`do-execute-qa-bugfix`). Não use para criar PRD/TechSpec/tasks nem para rodar review ou QA.
+description: Subagente isolado que executa UM item de trabalho delegado, em contexto limpo — uma task de um PRD (skill `do-execute-task`), um fix task de review (`do-execute-review-fix`) ou um bug de QA (`do-execute-qa-bugfix`). Não use para criar PRD/TechSpec/tasks nem para rodar review ou QA.
 mode: subagent
 permission:
   read: allow
