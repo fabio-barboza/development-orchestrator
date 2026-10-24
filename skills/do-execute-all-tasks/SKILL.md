@@ -77,6 +77,8 @@ Para **cada** task na fila:
 
 #### 2.2. Delegação em subagente isolado
 
+**Nomes de arquivo:** `<ID>` é o ID da task como aparece no `tasks.md` (`1.0`, `11.0`). `<num>` é a **parte inteira** do ID (`1.0` → `1`; `11.0` → `11`). O arquivo da task é sempre `<num>_task.md` (`1_task.md`), **nunca** `<ID>_task.md` (`1.0_task.md`). Idem para o review (`<num>_task_review.md`) e a pasta de rascunho (`.do-tmp/task-<num>/`).
+
 **Esta é a etapa que garante o isolamento de contexto.** Chame a ferramenta de delegação (tabela acima) apontando para `agent-execute-task`, com a descrição "Executar task <ID>" e este prompt:
 
 ```
