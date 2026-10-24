@@ -10,7 +10,9 @@ Procedimento padrão referenciado pelas skills de execução (`do-execute-task`,
    - **Cursor:** `.cursor/mcp.json`
    - **Opencode:** `opencode.json` na raiz do projeto (chave `mcp`); se ausente, o global `~/.config/opencode/opencode.json`
 
-   Ler o arquivo encontrado para listar os MCP servers configurados.
+   Listar os MCP servers configurados nesse arquivo, **somente pelos nomes** (ver o aviso de segurança abaixo).
+
+   **Segurança — nunca leia o arquivo inteiro para o contexto.** Esses arquivos (principalmente o global do Opencode e qualquer configuração de ferramenta) costumam conter credenciais de provedores, tokens e cabeçalhos de autorização; ler já os expõe ao modelo e ao histórico da sessão. **Não use `cat`, nem a tool de leitura de arquivos, no arquivo de configuração inteiro.** Extraia somente os **nomes dos servidores** e o **tipo** (local/remoto) do bloco de MCP (`mcpServers`, `servers` ou `mcp`, conforme a ferramenta), com um comando de extração que imprima apenas essas chaves (o arquivo pode ser JSON com comentários: remova-os ao analisar). Nunca imprima `env`, `headers`, `url` com credenciais, `apiKey`, `token` ou qualquer valor. Se não conseguir isolar o bloco de MCP sem expor o restante, **não leia o arquivo** e use somente a lista de tools da sessão.
 
    **Complemento pela lista de tools:** além do arquivo, verifique as tools disponíveis na sua sessão. Tools expostas por um server que não consta em nenhum arquivo de configuração do projeto (MCP configurado globalmente) indicam que ele existe; trate-o como configurado.
 2. Ler o catálogo de capacidades em `do-shared/references/do-mcp-capabilities.md` e **classificar cada server pelo que as suas tools fazem** (nomes e descrições das tools), nunca pelo nome do server.

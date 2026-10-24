@@ -46,7 +46,7 @@ Skill assets/references are loaded via your AI tool's native skill resolver — 
 
 **Step 2: MCP Discovery & Capability Guard (starts immediately after Step 1 — no pause, no confirmation)**
 1. **MCP Discovery**: Execute the discovery procedure at `do-shared/references/do-mcp-discovery-instructions.md`:
-   a. Read the MCP configuration file for the current AI tool (`.mcp.json` for Claude Code, `.vscode/mcp.json` for GitHub Copilot, `.cursor/mcp.json` for Cursor, `opencode.json` for Opencode) to list configured MCP servers.
+   a. List the MCP servers (names and type only — never print or read the whole configuration file, see the security rule in `do-shared/references/do-mcp-discovery-instructions.md`) from the MCP configuration file for the current AI tool (`.mcp.json` for Claude Code, `.vscode/mcp.json` for GitHub Copilot, `.cursor/mcp.json` for Cursor, `opencode.json` for Opencode) 
    b. Read the capability catalog at `do-shared/references/do-mcp-capabilities.md` and classify each server by what its tools do (never by the server's name).
    c. Build an internal capability map (e.g., `{ "ui-testing": ["<server-a>"], "messaging": ["<server-b>"] }`).
 2. **Capability Guard**: Analyze the PRD, Tech Spec, and Tasks to determine if the feature involves a **user interface**, a **service** (API, messaging, data store), or **both**. Apply the capability guard from the discovery instructions:

@@ -88,7 +88,7 @@ Skill assets/references are loaded via your AI tool's native skill resolver — 
 5. As you complete each subtask listed in the task file (X.1, X.2, etc.), mark it as `[x]` in the `[num]_task.md` file.
 6. Resolve the project's commands (test suite, static checks, local service start) following `do-shared/references/do-project-commands.md`; never assume a language, package manager or tool.
 7. **MCP Discovery & E2E tests — WHEN TO RUN**: Execute the MCP discovery procedure at `do-shared/references/do-mcp-discovery-instructions.md`:
-   a. Read the MCP configuration file for the current AI tool (`.mcp.json` for Claude Code, `.vscode/mcp.json` for GitHub Copilot, `.cursor/mcp.json` for Cursor, `opencode.json` for Opencode) to list configured MCP servers.
+   a. List the MCP servers (names and type only — never print or read the whole configuration file, see the security rule in `do-shared/references/do-mcp-discovery-instructions.md`) from the MCP configuration file for the current AI tool (`.mcp.json` for Claude Code, `.vscode/mcp.json` for GitHub Copilot, `.cursor/mcp.json` for Cursor, `opencode.json` for Opencode) 
    b. Read the capability catalog at `do-shared/references/do-mcp-capabilities.md` and classify each server by what its tools do (never by the server's name).
    c. Build capability map and apply the **capability guard**:
       - Task with a user interface + `ui-testing` MCP available → run UI E2E.
