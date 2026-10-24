@@ -74,7 +74,7 @@ interface NomeServico {
 
 [Se necessário, descreva testes E2E:
 
-- Teste o frontend junto com o backend **usando o Playwright**]
+- Descreva como validar o fluxo completo de ponta a ponta, usando as capacidades de teste disponíveis no projeto]
 
 ## Sequenciamento de Desenvolvimento
 

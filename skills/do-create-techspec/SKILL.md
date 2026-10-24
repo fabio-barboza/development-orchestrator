@@ -1,6 +1,6 @@
 ---
 name: do-create-techspec
-description: Creates Technical Specifications from existing PRDs, translating product requirements into architectural decisions and implementation guidance. Performs deep project analysis, uses Context7 MCP for technical research and Web Search for business rules. Use when the user asks to create a tech spec, define architecture, or plan implementation for a feature with an existing PRD. Do not use for PRD creation, task breakdowns, or direct code implementation.
+description: Creates Technical Specifications from existing PRDs, translating product requirements into architectural decisions and implementation guidance. Performs deep project analysis, uses a documentation MCP when available (otherwise Web Search) for technical research and Web Search for business rules. Use when the user asks to create a tech spec, define architecture, or plan implementation for a feature with an existing PRD. Do not use for PRD creation, task breakdowns, or direct code implementation.
 ---
 
 # Tech Spec Creation
@@ -28,9 +28,9 @@ Before anything else, determine the execution environment:
 5. Resolve available tools based on environment:
    - **AskUserQuestion**: use in all environments.
    - **TaskUpdate**: available in Claude Code; in Copilot, Cursor, and Opencode, skip gracefully
-   - **Context7 MCP**: available if configured; fallback to Web Search otherwise
+   - **Documentation MCP** (capability `documentation`): optional — use it only if discovered per `do-shared/references/do-mcp-discovery-instructions.md`; otherwise use Web Search or the codebase
 
-Skill assets/references are loaded via your AI tool's native skill resolver - do not hard-code paths. Store the detected tool and capability flags internally.
+Skill assets/references are loaded via your AI tool's native skill resolver - do not hard-code paths. Paths like `do-shared/...` are relative to the skills directory (the parent folder of this skill, e.g. `.agents/skills/`), not the project root; glob tools skip hidden directories such as `.agents/`, so read these files by their full path (see `do-shared/references/do-project-context.md`). Store the detected tool and capability flags internally.
 
 **Step 1: Validate Prerequisites**
 1. Confirm the feature slug has been provided.
@@ -48,7 +48,7 @@ Skill assets/references are loaded via your AI tool's native skill resolver - do
 4. Explore solution strategies, patterns, risks, and alternatives.
 
 **Step 4: Research (Mandatory)**
-1. Use Context7 MCP to resolve technical questions about frameworks and libraries.
+1. Resolve technical questions about frameworks and libraries. If a documentation MCP (capability `documentation`) was discovered, use it; otherwise proceed without it.
 2. Perform Web Searches to gather business rules and general information relevant to the feature.
 3. Complete all research BEFORE asking clarification questions.
 
@@ -64,7 +64,7 @@ Skill assets/references are loaded via your AI tool's native skill resolver - do
 3. Do NOT proceed until answers are received.
 
 **Step 6: Standards Compliance Mapping (Mandatory)**
-1. Identify project skills available to your AI tool (use the tool's native skill discovery - do not assume a fixed directory). **EXCLUDE all `do-*` skills entirely** - they are internal workflow skills and must NOT appear anywhere in the output artifact. Only evaluate technology/library skills (e.g., `claude-api`, `find-skills`).
+1. Identify the project skills relevant to this feature by following `do-shared/references/do-project-context.md` (Skills procedure: `Available Skills` section of the project configuration file plus the skills your AI tool exposes natively; do not assume any specific skill exists). **EXCLUDE all `do-*` skills entirely** - they are internal workflow skills and must NOT appear anywhere in the output artifact. Read the relevant ones and check the spec against their conventions. If none are installed or relevant, state that in the spec's standards section.
 2. Highlight deviations with justification and compliant alternatives.
 
 **Step 7: Generate Tech Spec (Mandatory)**
@@ -113,7 +113,7 @@ Todos os artefatos gerados (documento Tech Spec) devem ser escritos em Portuguê
 ## Error Handling
 - If the PRD does not exist at the expected path, halt and ask the user to create it first via the `do-create-prd` skill.
 - If the template file is missing within this skill, report the error and halt - do not generate a Tech Spec without the template.
-- If Context7 MCP is unavailable, fall back to Web Search for technical documentation.
+- If no documentation MCP is available, fall back to Web Search for technical documentation.
 - If the output file already exists, confirm with the user before overwriting.
 
 ## References

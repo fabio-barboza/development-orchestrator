@@ -34,7 +34,7 @@ Before anything else, determine the execution environment:
    - **AskUserQuestion**: use in all environments.
    - **TaskUpdate**: available in Claude Code; in Copilot, Cursor, and Opencode, skip gracefully.
 
-Skill assets/references are loaded via your AI tool's native skill resolver — do not hard-code paths. Store the detected tool and capability flags internally.
+Skill assets/references are loaded via your AI tool's native skill resolver — do not hard-code paths. Paths like `do-shared/...` are relative to the skills directory (the parent folder of this skill, e.g. `.agents/skills/`), not the project root; glob tools skip hidden directories such as `.agents/`, so read these files by their full path (see `do-shared/references/do-project-context.md`). Store the detected tool and capability flags internally.
 
 **Step 1: Validate Prerequisites**
 1. Confirm the feature name or description has been provided by the user.

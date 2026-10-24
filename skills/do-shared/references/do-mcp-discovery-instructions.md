@@ -1,6 +1,6 @@
 # Descoberta e Roteamento de MCPs
 
-Procedimento padrao referenciado pelas skills de execucao (do-execute-task, do-execute-qa, do-execute-qa-bugfix, do-execute-review). Substitui a logica hardcoded de Playwright por descoberta dinamica baseada em capacidades.
+Procedimento padrão referenciado pelas skills de execução (`do-execute-task`, `do-execute-qa`, `do-execute-qa-bugfix`, `do-execute-review`) e pelo `do-setup`. A descoberta é dinâmica e baseada em **capacidades**: nenhum servidor, produto ou ferramenta específica é presumido.
 
 ## Procedimento de Descoberta
 
@@ -9,39 +9,41 @@ Procedimento padrao referenciado pelas skills de execucao (do-execute-task, do-e
    - **GitHub Copilot:** `.vscode/mcp.json`
    - **Cursor:** `.cursor/mcp.json`
    - **Opencode:** `opencode.json` na raiz do projeto (chave `mcp`); se ausente, o global `~/.config/opencode/opencode.json`
+
    Ler o arquivo encontrado para listar os MCP servers configurados.
-   **Fallback pela lista de tools:** se nenhum arquivo listar MCP servers, verifique as tools disponíveis na sua sessão. Uma tool cujo nome contém o nome de um server do registry (ex.: `playwright` + `browser_`) indica que a capacidade existe, mesmo sem arquivo de configuração no projeto (MCP configurado globalmente). Trate esse server como configurado.
-2. Ler o registry de capacidades MCP em `do-shared/references/do-mcp-capabilities.md` para mapear cada server as suas capacidades e tools.
-3. Construir mapa interno de capacidades. Exemplo:
-   ```
-   { "browser-testing": ["playwright"], "message-queue": ["rabbitmq"], "documentation": ["context7"] }
-   ```
-4. Para cada necessidade de teste/validacao no procedimento atual:
-   a. Identificar a capacidade necessaria (ex: `browser-testing` para frontend E2E, `message-queue` para validacao de mensageria).
-   b. Buscar no mapa qual MCP server provem essa capacidade.
-   c. **Se existe**: usar os tools conforme descrito na entrada do registry. Respeitar as regras de "Requer app rodando" e "Se indisponivel".
-   d. **Se nao existe**: documentar o gap no relatorio ("MCP com capacidade [X] nao configurado — validacao [Y] nao executada") e continuar com testes unitarios/integracao.
-5. Para MCPs que requerem app rodando: verificar se o servico esta acessivel antes de invocar tools. Se nao estiver, tentar iniciar (dev server para browser-testing, verificar broker para message-queue, etc.).
-6. Se MCP configurado mas indisponivel em runtime (erro de conexao, tools nao respondem): seguir o handling de indisponibilidade descrito na entrada do registry. **Atencao:** erro de conexao do *servico alvo* (ex.: `connection refused` ao navegar para a aplicacao) NAO e indisponibilidade do MCP — o servico caiu. Restabeleca-o pelo procedimento de `do-shared/references/do-service-readiness.md` e repita a chamada. Nunca troque o metodo de validacao: nao substitua o MCP por scripts que usam a biblioteca de automacao diretamente nem por CLI.
-7. Se um MCP no arquivo de configuração NAO esta listado no registry: tentar usar tools com prefixo `mcp__<server-name>__` (Claude Code, Cursor, GitHub Copilot) ou `<server-name>_` (Opencode) e documentar no relatorio que o MCP nao esta registrado em `do-shared/references/do-mcp-capabilities.md`.
 
-## Guard de Capacidade (substitui o frontend guard binario)
+   **Complemento pela lista de tools:** além do arquivo, verifique as tools disponíveis na sua sessão. Tools expostas por um server que não consta em nenhum arquivo de configuração do projeto (MCP configurado globalmente) indicam que ele existe; trate-o como configurado.
+2. Ler o catálogo de capacidades em `do-shared/references/do-mcp-capabilities.md` e **classificar cada server pelo que as suas tools fazem** (nomes e descrições das tools), nunca pelo nome do server.
+3. Construir um mapa interno de capacidades. Exemplo (os nomes são apenas ilustrativos):
+   ```
+   { "ui-testing": ["<server-a>"], "messaging": ["<server-b>"], "documentation": ["<server-c>"] }
+   ```
+4. Para cada necessidade de teste/validação no procedimento atual:
+   a. Identificar a capacidade necessária (ex.: `ui-testing` para validar fluxos de interface, `messaging` para validar fluxos de mensageria).
+   b. Buscar no mapa qual MCP server provê essa capacidade.
+   c. **Se existe**: usar as tools dele. Respeitar as regras de "Requer alvo em execução" e "Se indisponível" da categoria no catálogo.
+   d. **Se não existe**: documentar a lacuna no relatório ("MCP com capacidade [X] não configurado — validação [Y] não executada") e continuar com testes unitários/integração.
+5. Para capacidades que requerem alvo em execução: verificar se o serviço está acessível antes de invocar as tools, pelo procedimento de `do-shared/references/do-service-readiness.md`.
+6. Se um MCP está configurado mas indisponível em runtime (erro de conexão, tools não respondem): seguir o tratamento de indisponibilidade da categoria no catálogo. **Atenção:** erro de conexão do *serviço alvo* (ex.: conexão recusada ao acessar a aplicação) NÃO é indisponibilidade do MCP — o serviço caiu. Restabeleça-o pelo procedimento de `do-shared/references/do-service-readiness.md` e repita a chamada. Nunca troque o método de validação: não substitua o MCP por scripts que acionam diretamente uma biblioteca de automação nem por linha de comando.
+7. Se as tools de um server não se encaixam em nenhuma categoria do catálogo, ignore-o para fins de validação e registre-o no relatório como "capacidade não reconhecida".
 
-O guard antigo era binario: "se backend, pular E2E". O novo guard e baseado em capacidades disponiveis.
+## Guard de Capacidade
+
+O guard é baseado nas capacidades disponíveis, não no tipo de tecnologia do projeto.
 
 **Como aplicar:**
 
-1. Analisar a feature (PRD, TechSpec, Tasks) para determinar se envolve **frontend/UI**, **backend**, ou **ambos**.
-2. Consultar o mapa de capacidades construido no passo 3 acima.
-3. Aplicar a tabela de decisao:
+1. Analisar a feature (PRD, TechSpec, Tasks) para determinar o que ela expõe: **interface de usuário**, **serviço** (API, mensageria, armazenamento de dados) ou outro tipo de artefato (biblioteca, ferramenta de linha de comando, etc.).
+2. Consultar o mapa de capacidades construído no passo 3 acima.
+3. Aplicar a tabela de decisão:
 
-| Tipo da Feature | MCP com capacidade relevante | Acao |
+| Tipo da feature | MCP com capacidade relevante | Ação |
 |-----------------|------------------------------|------|
-| Frontend + `browser-testing` disponivel | Sim | Rodar E2E via browser MCP |
-| Backend + `message-queue`/`database`/`cache`/`api-testing` disponivel | Sim | Rodar E2E backend via MCP correspondente |
-| Frontend + Backend + ambos MCPs disponiveis | Sim | Rodar ambos E2E (browser + backend) |
-| Backend + apenas `browser-testing` disponivel | Nao | Pular E2E (browser nao valida backend). Documentar gap. |
-| Frontend + apenas MCPs backend disponiveis | Nao | Pular E2E browser. Documentar gap. |
-| Qualquer tipo + nenhum MCP relevante | Nao | Pular E2E. Documentar gap. Prosseguir com unit/integration. |
+| Interface de usuário + `ui-testing` disponível | Sim | Rodar validação ponta a ponta via MCP de interface |
+| Serviço + `api-testing`/`messaging`/`data-store` disponível | Sim | Rodar validação ponta a ponta do serviço via MCP correspondente |
+| Interface + serviço, com os dois tipos de MCP disponíveis | Sim | Rodar as duas validações |
+| Serviço e apenas `ui-testing` disponível | Não | Pular a validação ponta a ponta. Documentar a lacuna. |
+| Interface e apenas MCPs de serviço disponíveis | Não | Pular a validação de interface. Documentar a lacuna. |
+| Qualquer tipo + nenhum MCP relevante | Não | Pular a validação ponta a ponta. Documentar a lacuna. Prosseguir com unitários/integração. |
 
-**Regra critica**: O guard so pula E2E quando NENHUM MCP disponivel consegue validar o tipo de feature. A presenca de um MCP backend habilita E2E para features backend que antes eram puladas.
+**Regra crítica**: o guard só pula a validação ponta a ponta quando NENHUM MCP disponível consegue validar o tipo de feature.

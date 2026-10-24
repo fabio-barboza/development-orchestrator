@@ -8,54 +8,49 @@ A regression test MUST fail when the fix is reverted. If it passes without the f
 ## Pattern by Bug Type
 
 ### Unit Test (isolated logic bug)
+Pseudo-code — write it in the project's own test framework and style:
 ```
-describe("BugFix: <bug description>", () => {
-  it("should <correct behavior> when <bug scenario>", () => {
-    // Arrange: reproduce the exact input that triggered the bug
-    const input = <exact_bad_input>;
+test "BugFix: <bug description>":
+    # Arrange: reproduce the exact input that triggered the bug
+    input = <exact_bad_input>
 
-    // Act
-    const result = functionUnderTest(input);
+    # Act
+    result = unit_under_test(input)
 
-    // Assert: the previously broken behavior now works
-    expect(result).toBe(<expected_correct_value>);
-  });
-});
+    # Assert: the previously broken behavior now works
+    assert result equals <expected_correct_value>
 ```
-Use for: off-by-one errors, null handling, incorrect calculations, wrong conditions.
+Use for: off-by-one errors, missing-value handling, incorrect calculations, wrong conditions.
 
 ### Integration Test (module communication bug)
 ```
-describe("BugFix: <bug description>", () => {
-  it("should <correct behavior> across <module-a> and <module-b>", async () => {
-    // Arrange: set up the real dependency chain that was broken
-    const dep = new RealDependency();
-    const sut = new SystemUnderTest(dep);
+test "BugFix: <bug description>":
+    # Arrange: set up the real dependency chain that was broken
+    dependency = real <dependency>
+    system = <system_under_test>(dependency)
 
-    // Act: trigger the exact flow that caused the bug
-    const result = await sut.methodThatWasBroken(<inputs>);
+    # Act: trigger the exact flow that caused the bug
+    result = system.<operation_that_was_broken>(<inputs>)
 
-    // Assert
-    expect(result).toMatchObject(<expected_shape>);
-    expect(dep.someState).toBe(<expected_side_effect>);
-  });
-});
+    # Assert
+    assert result has <expected_shape>
+    assert dependency state equals <expected_side_effect>
 ```
-Use for: wrong data passed between layers, missing await, incorrect mapping, bad error propagation.
+Use for: wrong data passed between layers, missing synchronization/await, incorrect mapping, bad error propagation.
 
 ### E2E Test (UI/flow bug)
 ```
-// Use MCP browser tools to reproduce the user flow that triggered the bug
-// 1. Navigate to the affected page
-// 2. Perform the exact sequence of actions that caused the bug
-// 3. Assert the corrected behavior (screenshot evidence)
+# Use the UI-testing MCP tools to reproduce the user flow that triggered the bug
+# 1. Navigate to the affected screen
+# 2. Perform the exact sequence of actions that caused the bug
+# 3. Assert the corrected behavior (screenshot evidence)
 ```
 Use for: UI state not updating, form validation not triggering, navigation broken, visual regression.
 
 ## Edge Cases to Cover
 After the main regression test, add at least one edge case test:
-- Null / undefined input
-- Empty string or empty array
+- Missing / null-like input
+- Empty text or empty collection
 - Boundary values (0, -1, max)
 - Concurrent operations (if applicable)
 

@@ -1,6 +1,6 @@
 ---
 name: do-execute-task
-description: Implements feature tasks by loading required skills, reading PRD/TechSpec context, analyzing dependencies, executing the implementation with tests, and performing an automatic code review. Marks tasks as complete in tasks.md. Use when the user asks to implement a task, execute a task, or start working on a specific task number. Do not use for creating tasks, running QA, or bug fixing.
+description: Implements feature tasks by loading the project skills relevant to the task, reading PRD/TechSpec context, analyzing dependencies, executing the implementation with tests, and performing an automatic code review. Marks tasks as complete in tasks.md. Use when the user asks to implement a task, execute a task, or start working on a specific task number. Do not use for creating tasks, running QA, or bug fixing.
 ---
 
 # Task Execution
@@ -37,7 +37,7 @@ When an `Edit` tool call fails, follow this escalation ladder:
 ## Workspace Boundary — ABSOLUTE RULE
 All files you create, read or execute for the task MUST live **inside the project root**. Anything outside it may be stale or belong to another project/run, and reusing it silently corrupts the work.
 
-1. **NEVER** write, read or execute files in `/tmp`, `/var/tmp`, the home directory, other projects, or any path outside the project root. Exceptions: your AI tool's skill files, installed dependencies (e.g. `node_modules`, global CLIs), and paths that the task file, the PRD/TechSpec or the user explicitly name (e.g. another project to analyze, a shared library).
+1. **NEVER** write, read or execute files in `/tmp`, `/var/tmp`, the home directory, other projects, or any path outside the project root. Exceptions: your AI tool's skill files, installed dependencies (the project's dependency directory, global CLIs), and paths that the task file, the PRD/TechSpec or the user explicitly name (e.g. another project to analyze, a shared library).
 2. **Scratch files** (exploratory scripts, generators, ad-hoc checks, intermediate outputs) go ONLY in `./.do-tmp/task-[num]/` (e.g. `./.do-tmp/task-3/`). Create it with `mkdir -p` when first needed. If the project is a git repository and `.gitignore` does not list `.do-tmp/`, append `.do-tmp/` to `.gitignore`.
 3. **Do not reuse scratch files from other tasks or previous runs.** Never list, read or execute anything in `./.do-tmp/` outside the current `task-[num]` folder. If you need a helper again, recreate it.
 4. **Tests that validate the task are NOT scratch** — write them in the project's test location defined by the TechSpec / project conventions, so they persist and run in the full suite (Step 4B).
@@ -56,9 +56,9 @@ If your context is compacted or summarized in the middle of the task (you can no
 4. Check for `opencode.json`, `.opencode/` directory, or `AGENTS.md` → **Opencode**
 5. Resolve available tools:
    - **TaskUpdate**: available in Claude Code; in Copilot, Cursor, and Opencode, skip gracefully
-   - **Context7 MCP**: available if configured; fallback to Web Search otherwise
+   - **Documentation MCP** (capability `documentation`): optional — use it only if discovered per `do-shared/references/do-mcp-discovery-instructions.md`; otherwise use Web Search or the codebase
 
-Skill assets/references are loaded via your AI tool's native skill resolver — do not hard-code paths. Store the detected tool and capability flags internally.
+Skill assets/references are loaded via your AI tool's native skill resolver — do not hard-code paths. Paths like `do-shared/...` are relative to the skills directory (the parent folder of this skill, e.g. `.agents/skills/`), not the project root; glob tools skip hidden directories such as `.agents/`, so read these files by their full path (see `do-shared/references/do-project-context.md`). Store the detected tool and capability flags internally.
 
 **Step 1: Pre-Task Configuration (Mandatory — execute silently, do NOT present results to user)**
 1. If the user did not provide the `[feature-slug]`, scan the `./prds/` directory to identify the target PRD folder. **AUTOMATIC SELECTION RULE**: If only one PRD folder exists, use it automatically. If multiple exist, select based on this priority: (a) match with task number mentioned by user, (b) most recently modified folder (check timestamps), (c) alphabetically first. **NEVER ask the user to choose.**
@@ -68,11 +68,13 @@ Skill assets/references are loaded via your AI tool's native skill resolver — 
 5. Read the Tech Spec at `./prds/prd-[feature-slug]/techspec.md` for technical requirements. If the TechSpec file does not exist, **HALT IMMEDIATELY** with a clear error: "TechSpec file missing. Run `do-create-techspec` first." — do NOT ask permission or wait for user response.
 6. Read `./prds/prd-[feature-slug]/tasks/tasks.md` to understand the full task list and verify dependencies. If `tasks.md` does not exist, **HALT IMMEDIATELY** with a clear error: "Tasks file missing. Run `do-create-tasks` first." — do NOT ask permission or wait for user response.
 7. Identify dependencies from previous tasks and verify they are complete.
-8. If the task file contains a `<skills>` section listing relevant skills, read those skill files (let your AI tool resolve them) and incorporate their guidance during implementation.
+8. If the task file contains an optional `<skills>` section listing skills, read those that exist (let your AI tool resolve them) and incorporate their guidance during implementation. Skills that are not installed are skipped without error.
 
-**Step 2: Load Required Skills**
-1. Identify the technologies involved in the task.
-2. Use Context7 MCP to check documentation of involved frameworks/libraries if needed.
+**Step 2: Load Project Skills and MCPs**
+1. Identify the technologies and the kind of work involved in the task (UI, API, database, tests, etc.).
+2. Follow `do-shared/references/do-project-context.md` (Skills procedure): read the `Available Skills` section of the project configuration file, complete it with the skills your AI tool exposes natively (ignoring `do-*`), pick the ones relevant to this task and read their `SKILL.md`. No specific skill is assumed to exist — if none is installed or relevant, continue without them.
+3. If a documentation MCP (capability `documentation`) was discovered, use it to check documentation of the involved frameworks/libraries; otherwise rely on the codebase, the TechSpec or Web Search.
+4. Keep the result (skills read / none applicable / none installed) for the review file (Step 7).
 
 **Step 3: Task Analysis (INTERNAL ONLY — do NOT output as standalone message)**
 1. Briefly analyze: main objectives, how the task fits the project, dependencies.
@@ -82,28 +84,28 @@ Skill assets/references are loaded via your AI tool's native skill resolver — 
 
 **Step 4: Implementation (SAME response as Step 3 — zero latency, zero user interaction)**
 1. Implementation begins in the same response as analysis. There is no separate "planning" message.
-2. Follow all project standards established in the project configuration file (CLAUDE.md, .github/copilot-instructions.md, or .cursor/rules/project.mdc) and project rules.
+2. Follow all project standards established in the project configuration file (CLAUDE.md, AGENTS.md, .github/copilot-instructions.md, or .cursor/rules/project.mdc), the project rules and the guidance of the skills read in Step 2.
 3. Implement solutions without workarounds.
 4. Respect ALL `<critical>` tags identified in Step 3 — they are mandatory constraints, not suggestions.
 5. As you complete each subtask listed in the task file (X.1, X.2, etc.), mark it as `[x]` in the `[num]_task.md` file.
-6. Detect the project's package manager from lock files (`bun.lockb` → bun, `pnpm-lock.yaml` → pnpm, `package-lock.json` → npm, default: `npm`).
+6. Resolve the project's commands (test suite, static checks, local service start) following `do-shared/references/do-project-commands.md`; never assume a language, package manager or tool.
 7. **MCP Discovery & E2E tests — WHEN TO RUN**: Execute the MCP discovery procedure at `do-shared/references/do-mcp-discovery-instructions.md`:
    a. Read the MCP configuration file for the current AI tool (`.mcp.json` for Claude Code, `.vscode/mcp.json` for GitHub Copilot, `.cursor/mcp.json` for Cursor, `opencode.json` for Opencode) to list configured MCP servers.
-   b. Read the MCP capabilities file at `do-shared/references/do-mcp-capabilities.md` to map each server to capabilities and tools.
+   b. Read the capability catalog at `do-shared/references/do-mcp-capabilities.md` and classify each server by what its tools do (never by the server's name).
    c. Build capability map and apply the **capability guard**:
-      - Frontend task + `browser-testing` MCP available → run browser E2E.
-      - Backend task + backend-capable MCP available (`message-queue`, `database`, `cache`, `api-testing`) → run backend E2E via that MCP.
-      - Frontend + Backend + both available → run both.
+      - Task with a user interface + `ui-testing` MCP available → run UI E2E.
+      - Task exposing a service + service-capable MCP available (`api-testing`, `messaging`, `data-store`) → run service E2E via that MCP.
+      - UI + service, with both kinds available → run both.
       - Task type + no relevant MCP → skip E2E, continue with unit/integration tests, document gap in review.
-8. **HOW TO RUN E2E tests**: MUST be executed via the appropriate MCP tools as listed in the capability registry — **NEVER via CLI**. Use the tools described in each MCP's registry entry.
-9. **Service readiness — MANDATORY before invoking any MCP/E2E that depends on a running service**: Follow the procedure at `do-shared/references/do-service-readiness.md`. The rule is **check first, reuse if running, start only when needed, never kill running services**. For MCPs whose registry entry has `Requer app rodando: Sim`, run a port/health probe before invoking tools; if the service is not running, start only safe dev servers (`npm run dev`, `npm start`, `bun dev`, `pnpm dev`); for brokers or external services, document the gap instead of attempting to start them automatically.
-10. **If an MCP is unavailable** (connection error, tools not responding): Follow the "Se indisponivel" handling from the MCP's registry entry. Continue with unit/integration tests and document the E2E gap in the review. A `connection refused` (or similar) from the *target service* is NOT MCP unavailability — the service went down: bring it back with the service-readiness procedure (item 9) and retry. Never switch the validation method — do not replace the MCP with scripts that drive the automation library directly or with a CLI.
+8. **HOW TO RUN E2E tests**: MUST be executed via the appropriate MCP tools, as described for the capability in the catalog — **NEVER via CLI**.
+9. **Service readiness — MANDATORY before invoking any MCP/E2E that depends on a running service**: Follow the procedure at `do-shared/references/do-service-readiness.md`. The rule is **check first, reuse if running, start only when needed, never kill running services**. For capabilities that require a running target, probe the service before invoking tools; if it is not running, start it only with the project's own local start command (see `do-shared/references/do-project-commands.md`); for brokers, data stores or other external services, document the gap instead of attempting to start them automatically.
+10. **If an MCP is unavailable** (connection error, tools not responding): Follow the "Se indisponível" handling of the capability in the catalog. Continue with unit/integration tests and document the E2E gap in the review. A connection-refused (or similar) error from the *target service* is NOT MCP unavailability — the service went down: bring it back with the service-readiness procedure (item 9) and retry. Never switch the validation method — do not replace the MCP with scripts that drive an automation library directly or with a CLI.
 
 **Step 4B: ALL TESTS MUST PASS — NON-NEGOTIABLE GATE**
 
 **A task with failing tests is NOT a completed task. This is an ABSOLUTE, NON-NEGOTIABLE rule.**
 
-1. After implementation, run the FULL test suite (unit, integration, and typecheck if available).
+1. After implementation, run the FULL test suite (unit, integration, and the project's static checks if it defines any), using the commands resolved in Step 4 item 6.
 2. If ALL tests pass → proceed to Step 5.
 3. If ANY test fails → **YOU ARE PROHIBITED FROM PROCEEDING TO STEP 5.** You MUST:
    a. Read the failing test output carefully.
@@ -159,12 +161,12 @@ The ONLY permitted modification to `tasks.md` is changing `[ ]` to `[x]` for the
    - **MAIOR**: Violações de padrão de código, testes ausentes, nomenclatura incorreta.
    - **MENOR**: Sugestões de estilo, melhorias menores.
    - **POSITIVO**: Coisas bem feitas que merecem reconhecimento.
-5. Run the test suite using the detected package manager. If a `typecheck` script exists in `package.json`, run it. Include any failures as critical issues.
+5. Run the test suite and, if the project defines them, its static checks (commands from Step 4 item 6). Include any failures as critical issues.
 6. Address any issues identified. **Iteration limit**: You may perform a maximum of 3 fix-and-review cycles. If critical issues persist after 3 cycles, mark as **MUDANÇAS SOLICITADAS** in Step 7.
 
 **Step 7: Create Review File (Mandatory)**
 
-1. Read the template at `do-execute-task/assets/review-artifact-template.md`.
+1. Read the template at `do-execute-task/assets/review-artifact-template.md`. Fill its `Skills e MCPs do Projeto` section with the record defined in `do-shared/references/do-project-context.md` (skills read in Step 2, MCPs used or gaps — "nenhuma instalada" is a valid value).
 2. Determine the review status based on Step 6 findings:
    - **APROVADO**: Sem problemas críticos/maiores.
    - **APROVADO COM OBSERVAÇÕES**: Sem críticos, problemas menores ou poucos maiores não bloqueantes.
@@ -172,7 +174,7 @@ The ONLY permitted modification to `tasks.md` is changing `[ ]` to `[x]` for the
 3. **CREATE THE FILE**: Use the `Write` tool to create `[num]_task_review.md` in `./prds/prd-[feature-slug]/tasks/`. This is the MOST IMPORTANT action in this step.
    **MANDATORY FILENAME RULE — ABSOLUTE, NON-NEGOTIABLE:**
    - The filename MUST be exactly `<integer>_task_review.md` matching the integer of the task being reviewed (e.g., task `11_task.md` → review `11_task_review.md`).
-   - **PROHIBITED**: descriptive slugs (`11_weekly_forecast_review.md` ❌), decimal (`11.0_task_review.md` ❌), variants (`review_11.md`, `11_review.md` ❌).
+   - **PROHIBITED**: descriptive slugs (`11_descriptive_name_review.md` ❌), decimal (`11.0_task_review.md` ❌), variants (`review_11.md`, `11_review.md` ❌).
 4. **VERIFY THE FILE EXISTS**: Immediately after the Write tool call, call `read_file` on `./prds/prd-[feature-slug]/tasks/[num]_task_review.md`. You MUST see the file content returned. If the read fails or returns empty → **the Write FAILED. Redo it NOW.**
 5. If the `read_file` succeeds, the file is confirmed created. Proceed to Step 8.
 
@@ -203,13 +205,15 @@ Perform ALL checks below. If ANY fails, fix it first.
 
 6. **CHECK 6 — Critical tags**: Verify all `<critical>` tags from the task file were satisfied.
 
-7. **CHECK 7 — Workspace boundary**: Confirm no file was created outside the project root during this task (Workspace Boundary rule). Remove `./.do-tmp/task-[num]/` (`rm -rf ./.do-tmp/task-[num]`) and confirm it no longer exists. If any task artifact ended up outside the project, move what must persist (e.g. tests) into the project and delete the rest. Also confirm that no screenshot or evidence file was left in the project root — move the ones that must persist to `./prds/prd-[feature-slug]/task-screenshots/` and delete the rest.
+7. **CHECK 7 — Project skills and MCPs registered**: the review file read in CHECK 2 contains the `Skills e MCPs do Projeto` section filled in (skills read, or "nenhuma aplicável"/"nenhuma instalada"). This is a record of the Step 2 consultation, not an obligation to use a skill. If the section is missing → add it NOW and re-read the file.
 
-**BLOCKING RULE: If Check 1, 2, 3, 4, or 7 fails, you are PROHIBITED from sending a final response. Fix the issue and re-run the checks. A task with failing tests is NEVER complete.**
+8. **CHECK 8 — Workspace boundary**: Confirm no file was created outside the project root during this task (Workspace Boundary rule). Remove `./.do-tmp/task-[num]/` (`rm -rf ./.do-tmp/task-[num]`) and confirm it no longer exists. If any task artifact ended up outside the project, move what must persist (e.g. tests) into the project and delete the rest. Also confirm that no screenshot or evidence file was left in the project root — move the ones that must persist to `./prds/prd-[feature-slug]/task-screenshots/` and delete the rest.
+
+**BLOCKING RULE: If Check 1, 2, 3, 4, 7, or 8 fails, you are PROHIBITED from sending a final response. Fix the issue and re-run the checks. A task with failing tests is NEVER complete.**
 
 **ANTI-HALLUCINATION ENFORCEMENT**: If your final response includes ✅ for an artifact but the corresponding `read_file` tool call in Step 7 was never made or returned an error, you are LYING to the user. This is the worst possible outcome. When in doubt, re-read the file.
 
-8. **FINAL OUTPUT MANIFEST** (include in your final response to the user):
+9. **FINAL OUTPUT MANIFEST** (include in your final response to the user):
    ```
    📋 Artefatos:
    - Testes: ✅ Todos passando
@@ -245,6 +249,7 @@ Todos os artefatos gerados (incluindo o arquivo de review) devem ser escritos em
 - Tasks: `./prds/prd-[feature-slug]/tasks/tasks.md`
 - Review template: `do-execute-task/assets/review-artifact-template.md`
 - Code standards: `do-execute-task/references/code-standards.md`
+- Project Skills and MCPs: `do-shared/references/do-project-context.md`
 - MCP Discovery: `do-shared/references/do-mcp-discovery-instructions.md`
 - MCP Registry: `do-shared/references/do-mcp-capabilities.md`
 - Service Readiness: `do-shared/references/do-service-readiness.md`

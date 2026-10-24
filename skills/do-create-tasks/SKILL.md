@@ -27,9 +27,9 @@ Before anything else, determine the execution environment:
 4. Check for `opencode.json`, `.opencode/` directory, or `AGENTS.md` → **Opencode**
 5. Resolve available tools based on environment:
    - **TaskUpdate**: available in Claude Code; in Copilot, Cursor, and Opencode, skip gracefully
-   - **Context7 MCP**: available if configured; fallback to Web Search otherwise
+   - **Documentation MCP** (capability `documentation`): optional — use it only if discovered per `do-shared/references/do-mcp-discovery-instructions.md`; otherwise use Web Search or the codebase
 
-Skill assets/references are loaded via your AI tool's native skill resolver — do not hard-code paths. Store the detected tool and capability flags internally.
+Skill assets/references are loaded via your AI tool's native skill resolver — do not hard-code paths. Paths like `do-shared/...` are relative to the skills directory (the parent folder of this skill, e.g. `.agents/skills/`), not the project root; glob tools skip hidden directories such as `.agents/`, so read these files by their full path (see `do-shared/references/do-project-context.md`). Store the detected tool and capability flags internally.
 
 **Step 1: Validate Prerequisites**
 1. Confirm the feature slug has been provided.
@@ -40,13 +40,13 @@ Skill assets/references are loaded via your AI tool's native skill resolver — 
 **Step 2: Analyze PRD and Tech Spec (Mandatory)**
 1. Read the PRD completely to extract requirements.
 2. Read the Tech Spec completely to extract technical decisions.
-3. Use Context7 MCP (`resolve-library-id` → `query-docs`) to check documentation of frameworks/libraries involved — this helps estimate task complexity and define accurate implementation steps. If Context7 MCP is unavailable, proceed without it.
+3. Check documentation of the frameworks/libraries involved — this helps estimate task complexity and define accurate implementation steps. If a documentation MCP (capability `documentation`) was discovered, use it; otherwise proceed without it.
 4. Identify main components and their dependencies.
 
 **Step 3: Generate High-Level Task List (Mandatory)**
 1. Present the high-level task list to the user for approval BEFORE generating any files.
 2. Organize tasks by logical deliverable.
-3. Order tasks logically: dependencies before dependents (e.g., backend before frontend, both before E2E tests).
+3. Order tasks logically: dependencies before dependents (e.g., foundations before the features that use them, all of them before E2E tests).
 4. Each task MUST be a functional, incremental deliverable.
 5. Each task MUST have its own set of unit and integration tests.
 6. **No task-count limit**: create as many tasks as the PRD and Tech Spec actually require. Never merge unrelated work or drop scope just to reduce the count.
@@ -63,8 +63,8 @@ Skill assets/references are loaded via your AI tool's native skill resolver — 
 6. Create individual task files: `./prds/prd-[feature-slug]/tasks/[num]_task.md`.
    **MANDATORY FILENAME RULE — ABSOLUTE, NON-NEGOTIABLE:**
    - The filename MUST be exactly `<integer>_task.md` — e.g., `1_task.md`, `2_task.md`, `10_task.md`, `11_task.md`.
-   - **PROHIBITED**: descriptive slugs (`11_weekly_forecast.md` ❌), decimal numbering in filename (`1.0_task.md` ❌), title fragments (`1_task_login.md` ❌), uppercase (`1_Task.md` ❌), prefixes (`task_1.md` ❌).
-   - The task title (e.g., "Tarefa 1.0: Weekly Forecast") goes INSIDE the file content — NEVER in the filename.
+   - **PROHIBITED**: descriptive slugs (`11_descriptive_name.md` ❌), decimal numbering in filename (`1.0_task.md` ❌), title fragments (`1_task_login.md` ❌), uppercase (`1_Task.md` ❌), prefixes (`task_1.md` ❌).
+   - The task title (e.g., "Tarefa 1.0: Título descritivo da task") goes INSIDE the file content — NEVER in the filename.
    - The integer matches the main task number from `tasks.md` (the X in `X.0`). For task `11.0`, the file is `11_task.md`.
 7. Use format X.0 for main tasks, X.Y for subtasks **inside the file content only** — never in the filename.
 8. Do NOT repeat implementation details already in the Tech Spec — reference it instead.

@@ -1,5 +1,5 @@
 ---
-description: Valida a implementação de uma feature contra PRD, Tech Spec e Tasks via testes E2E com MCPs disponíveis, verificação de acessibilidade (WCAG 2.2) e análise visual. Documenta todos os bugs encontrados com evidências e gera um relatório de QA abrangente.
+description: Valida a implementação de uma feature contra PRD, Tech Spec e Tasks via testes E2E com MCPs disponíveis, verificação de acessibilidade e análise visual. Documenta todos os bugs encontrados com evidências e gera um relatório de QA abrangente.
 ---
 
 # /do-execute-qa

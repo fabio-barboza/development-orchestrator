@@ -1,6 +1,6 @@
 ---
 name: do-setup
-description: Initializes the project, identifies relevant skills, and updates the project configuration file (CLAUDE.md, .github/copilot-instructions.md, .cursor/rules/project.mdc, or .cursorrules) with project summary, conventions, and available skills. Accepts an optional argument "agents" to only install orchestration agents and commands without running the full setup. Use when the user asks to initialize the project, configure the agent-assisted development environment, or install agents with "/do-setup agents". Do not use for PRD creation, task implementation, code review, or QA testing.
+description: Initializes the project, identifies relevant skills, and updates the project configuration file (CLAUDE.md, .github/copilot-instructions.md, .cursor/rules/project.mdc, or .cursorrules) with project summary, conventions, and available skills. Also inventories the installed skills and MCP servers and reports them (with gaps) to the user. Accepts optional arguments: "agents" to only install orchestration agents and commands without running the full setup, and "refresh" to only re-detect skills and MCPs and update those sections after new ones are installed. Use when the user asks to initialize the project, configure the agent-assisted development environment, install agents with "/do-setup agents", or refresh the detected skills/MCPs with "/do-setup refresh". Do not use for PRD creation, task implementation, code review, or QA testing.
 ---
 
 # Project Setup
@@ -22,6 +22,7 @@ You are a senior developer advocate responsible for project initialization, tool
 Check if the user invoked this skill with the argument `agents` (e.g., `/do-setup agents`).
 
 - If the argument **is** `agents`: set mode = `agents-only`. Skip Steps 1–4 and 6. Execute only Step 0 (AI tool selection) and Step 5 (install agents).
+- If the argument **is** `refresh`: set mode = `refresh`. Execute only Step 0 (AI tool selection), Step 3 (discover skills), Step 3B (inventory MCPs), Step 4 restricted to the `## Available Skills`, `## Uncovered Skills` and `## Available MCPs` sections, and Step 6. Skip Steps 1, 2 and 5 — except that, for **GitHub Copilot**, you must also re-sync the `<server-name>/*` MCP entries of the `tools:` list in `.github/agents/agent-execute-task.agent.md` with the MCPs found in Step 3B (add the new ones, keep the existing ones), since Copilot only exposes listed tools to the worker. The project configuration file must already exist; if it does not, stop and tell the user to run `/do-setup` (full) first. In this mode derive the project technologies from the existing `## Project Summary` section instead of re-analysing the project.
 - If no argument or any other argument: set mode = `full`. Execute all steps in order.
 
 **Step 0: Ask the User Which AI Tool to Configure (MANDATORY FIRST ACTION — HARD STOP)**
@@ -96,45 +97,57 @@ The initialization strategy depends on the AI tool selected by the user in Step 
 
 For all tools: if the config file already exists, proceed to Step 2 without overwriting it.
 
+**Counterpart file check (warn only — never modify the other file):** if the tool selected is **Opencode** and a `CLAUDE.md` exists, or the tool selected is **Claude Code** and an `AGENTS.md` exists, remember it for the Step 6 report. Do not merge, convert or edit the other file.
+
 **Step 2: Deep Project Analysis**
 1. Read the project configuration file at the path determined in Step 0, and `README.md` if it exists.
-2. Read root config files if they exist: `package.json`, `go.mod`, `pom.xml`, `build.gradle`, `build.gradle.kts`, `docker-compose.yml`, `tsconfig.json`, `settings.gradle`, `.nvmrc`, `Makefile`, `Dockerfile`.
+2. List the project root and read the root-level files that declare dependencies, build, test and run commands, versions or infrastructure (manifests, build descriptors, task runners, container/orchestration files, version pins, compiler/type configuration) — whatever the project uses. Do not assume a particular language or tool: identify them from what is actually there.
 3. Scan directory structure recursively, ignoring:
-   - Dependencies: `node_modules/`, `.venv/`, `venv/`, `vendor/`, `.gradle/`, `.m2/`
-   - Build: `target/`, `build/`, `dist/`, `out/`, `.next/`, `__pycache__/`
+   - What the project itself excludes (read its version-control ignore file): dependency directories, build outputs, caches and generated artifacts
+   - Compiled and packaged artifacts, and binaries/media (images, documents, archives)
    - Hidden: any path starting with `.` (except `.claude/`, `.github/`, and `.cursor/`)
-   - Binaries/media: `*.jar`, `*.class`, `*.png`, `*.jpg`, `*.pdf`
-4. Read representative files from each layer (e.g., a controller, a use case, a repository) to understand adopted patterns.
+4. Read representative files from each layer or module (entry points, business logic, data access, tests) to understand adopted patterns.
 5. Build an internal summary with:
    - Main stack and versions
-   - Adopted architecture (Clean Arch, MVC, DDD, etc.)
+   - Adopted architecture and design patterns
    - Naming and organization patterns
    - System purpose
    - External integrations (queues, databases, APIs)
 6. Check test infrastructure:
-   - Look for a `test` script in `package.json` (or equivalent for the stack).
-   - Scan for test files (`*.test.*`, `*.spec.*`, `__tests__/`, `test/`, `tests/`).
+   - Look for how the project declares its test command (see `do-shared/references/do-project-commands.md`).
+   - Scan for test files and directories following the project's own naming conventions.
+7. Extract the project commands (install, run all tests, run one test, static checks, start the service locally and its port/health address) from what the project itself declares, following `do-shared/references/do-project-commands.md`. Record only commands that exist; use `—` for the rest. They are written to `## Project Commands` in Step 4.
    - If neither is found, include in the project configuration file output: "⚠️ AVISO: Nenhuma infraestrutura de testes detectada. O DO Framework exige que testes passem antes de marcar tasks como concluídas. Configure um test runner antes de usar `do-execute-task`."
 
-**Step 3: Identify Relevant Skills**
-1. List all available skills by scanning the skills directory corresponding to the AI tool the user selected in Step 0:
-   - **Claude Code**: `.claude/skills/`
-   - **Opencode**: `.agents/skills/`
-   - **GitHub Copilot**: `.github/` (look for instruction files)
-   - **Cursor AI**: `.agents/skills/` and `.cursor/skills/` (each skill has a `SKILL.md`), plus `.cursor/rules/` (scan all `.mdc` files)
-   List every skill/rule file found and read its content.
-2. **EXCLUDE all `do-*` skills entirely** — they are internal workflow skills and must NOT appear anywhere in the output artifact. Only evaluate technology/library skills (e.g., `claude-api`, `find-skills`).
-3. For each remaining (non-`do-*`) skill, read its descriptor file (`SKILL.md` for skills, the `.mdc` content for Cursor rules).
-4. Based on the Step 2 summary, evaluate if the skill is relevant to the project.
-5. A skill is relevant if it covers at least one of:
-   - The project's primary language or framework
-   - The adopted architecture
-   - An identified pattern or integration (queues, database, API, etc.)
+**Step 3: Discover Installed Skills**
+**No skill other than the `do-*` ones is assumed to exist.** Zero skills found is a valid result, not an error.
+1. Build the list of installed skills from both sources and merge them (de-duplicate by skill name; a project-level skill wins over a global one):
+   a. **Native list:** the skills your AI tool already exposes in the session (for example the list shown by the `skill` tool). Use name, description and location when provided.
+   b. **Directory scan:** every directory below that exists, each skill being a subfolder containing a `SKILL.md`:
+      - Project: `.agents/skills/`, `.claude/skills/`, `.cursor/skills/`, `.opencode/skills/`, `.github/skills/`
+      - Global (home directory): `~/.agents/skills/`, `~/.claude/skills/`, `~/.config/opencode/skills/`, `~/.cursor/skills/`
+      - Extra for **GitHub Copilot**: instruction files in `.github/`. Extra for **Cursor AI**: all `.mdc` files in `.cursor/rules/`.
+   Ignore folders without a `SKILL.md`.
+2. **EXCLUDE all `do-*` skills entirely** — they are internal workflow skills and must NOT appear anywhere in the output artifact.
+3. For each remaining skill, read its descriptor (`SKILL.md`, or the `.mdc` content for Cursor rules).
+4. Based on the Step 2 summary, keep the skills that are relevant: they cover at least one of the project's primary language or framework, the adopted architecture, or an identified pattern or integration (queues, database, API, tests, UI, etc.).
+5. For each kept skill record: name, **path** (project-relative when inside the project, absolute when global — confirm the file exists before writing it) and "when to use".
+6. Technologies identified in Step 2 with no matching skill go to `## Uncovered Skills`.
+
+**Step 3B: Inventory MCP Servers (read-only)**
+Skip in `agents-only` mode. This step only **reads** configuration — never start, call or test an MCP server, and never make network calls.
+1. Follow the discovery procedure in `do-shared/references/do-mcp-discovery-instructions.md` (project MCP config file for the selected tool, global config, and the tools exposed in the session) and map each server with `do-shared/references/do-mcp-capabilities.md`. Both live in the skills directory, next to `do-setup` (the project-local `<skill-dir>` parent from Step 5): read them by full path, since glob tools skip hidden directories such as `.agents/`.
+2. For each MCP found record: name, source (project config, global config or session tools), type (local/remote) and capability. A server absent from the registry is listed as `não registrado`. **Never copy tokens, headers, URLs with credentials or environment values** from the config into any output.
+3. Compute informational **gaps** from the Step 2 summary (never errors):
+   - project has a user interface and no `ui-testing` capability → UI E2E will be skipped by `do-execute-task`/`do-execute-qa`;
+   - project integrates with a service (messaging, data store, API) and no matching capability (`messaging`, `data-store`, `api-testing`) → service E2E will be skipped;
+   - no `documentation` capability → library docs will come from Web Search or the codebase.
+4. Zero MCPs found is a valid result.
 
 **Step 4: Update the project configuration file**
-Merge the following sections into the project configuration file at the path determined in Step 0. Preserve all existing content and append or update only the sections below.
+Merge the following sections into the project configuration file at the path determined in Step 0. Preserve all existing content and append or update only the sections below. In `refresh` mode update only `## Available Skills`, `## Uncovered Skills` and `## Available MCPs`.
 
-> **Instrução ao agente (não incluir no arquivo gerado):** Na seção `## Available Skills`, escreva SOMENTE o parágrafo IMPORTANTE, o exemplo e a tabela. Nunca inclua skills `do-*` (do-setup, do-create-prd, do-create-techspec, do-create-tasks, do-execute-task, do-execute-review, do-execute-qa, etc.) na tabela. O parágrafo IMPORTANTE é **obrigatório** — não omita, não parafraseie.
+> **Instrução ao agente (não incluir no arquivo gerado):** Se o Step 3 não encontrou nenhuma skill de tecnologia, a tabela de `## Available Skills` recebe uma única linha `_(nenhuma)_ | — | Nenhuma skill de tecnologia detectada` e a linha "Exemplo:" é omitida. Se o Step 3B não encontrou MCPs, a tabela de `## Available MCPs` recebe uma única linha `_(nenhum)_ | — | Nenhum MCP detectado`. Nunca escreva tokens, headers ou valores de ambiente. Na seção `## Available Skills`, escreva SOMENTE o parágrafo IMPORTANTE, o exemplo, a observação e a tabela. Nunca inclua skills `do-*` (do-setup, do-create-prd, do-create-techspec, do-create-tasks, do-execute-task, do-execute-review, do-execute-qa, etc.) na tabela. O parágrafo IMPORTANTE é **obrigatório** — não omita, não parafraseie.
 
 ```markdown
 ## Project Summary
@@ -148,19 +161,37 @@ Merge the following sections into the project configuration file at the path det
 
 Exemplo: para trabalhar com [primeira-tecnologia], leia o arquivo `[caminho-da-primeira-skill]` antes de qualquer implementação.
 
+> Lista gravada pelo `/do-setup`. Skills instaladas depois podem não constar aqui: consulte também a lista de skills da sua ferramenta ou rode `/do-setup refresh`.
+
 | Skill | Caminho | Quando usar |
 |-------|---------|-------------|
-| [name] | [skills-dir]/[skill]/SKILL.md | [usage context] |
+| [name] | [path found in Step 3] | [usage context] |
 
 ## Uncovered Skills
 | Tecnologia | Observação |
 |------------|------------|
-| [e.g., Java/Quarkus] | Nenhuma skill disponível localmente — adicione manualmente ao diretório de skills |
+| [technology identified in Step 2] | Nenhuma skill disponível localmente — adicione manualmente ao diretório de skills |
+
+## Available MCPs
+> Resumo gravado pelo `/do-setup`; a descoberta em tempo de execução (`do-shared/references/do-mcp-discovery-instructions.md`) prevalece. Para atualizar após instalar MCPs, rode `/do-setup refresh`.
+
+| MCP | Capacidade | Quando usar |
+|-----|------------|-------------|
+| [name] | [capability from the registry, or "não registrado"] | [usage context] |
 
 ## Project Conventions
 - **Naming:** [file and folder naming patterns]
 - **Directory structure:** [relevant paths per layer]
 - **Output patterns:** [where to generate files, templates used]
+
+## Project Commands
+| Finalidade | Comando | Observação |
+|------------|---------|------------|
+| Instalar dependências | [command or —] | [prerequisites] |
+| Rodar todos os testes | [command or —] | [scope] |
+| Rodar um teste isolado | [command with placeholder or —] | [how to filter] |
+| Checagem estática | [command(s) or —] | [type checking, lint, formatting — whatever the project defines] |
+| Iniciar o serviço local | [command or —] | [port or health address] |
 ```
 
 **Step 5: Install Orchestration Agents & Commands**
@@ -174,10 +205,10 @@ Based on the AI tool selected by the user in Step 0, install the `agent-execute-
 
 > Naming convention: skills and commands keep the `do-` prefix; agents use the `agent-` prefix to avoid name collisions with the underlying skill.
 
-1. Resolve `<skill-dir>` **inside the current project only**. The templates were copied alongside the `SKILL.md` when the user ran `npx skills add`.
-   - Check these paths, in order, relative to the project root, and use the first that exists: `.agents/skills/do-setup`, `.claude/skills/do-setup`. If neither exists, use the `do-setup` directory that `npx skills add` created **inside the project root**.
+1. Resolve `<skill-dir>` **inside the current project only**. The templates were copied alongside the `SKILL.md` when the DO Framework skills were installed in this project.
+   - Check these paths, in order, relative to the project root, and use the first that exists: `.agents/skills/do-setup`, `.claude/skills/do-setup`. If neither exists, use the `do-setup` directory that the installation created **inside the project root**.
    - **NEVER** use a `do-setup` copy outside the project root (parent directories such as `~/projects/.agents/`, global/home skill directories, other projects). Those copies can be stale and install an obsolete orchestrator. Do not run a recursive Glob from a parent directory to find it.
-   - Sanity check: `<skill-dir>/agents/<tool>/agents/` must contain `agent-execute-task.md` (`agent-execute-task.agent.md` for GitHub Copilot) and must **not** contain any `*execute-all-tasks*` file. If the check fails, the copy is stale: **STOP** and tell the user to run `npx skills add fabio-barboza/development-orchestrator` again in this project.
+   - Sanity check: `<skill-dir>/agents/<tool>/agents/` must contain `agent-execute-task.md` (`agent-execute-task.agent.md` for GitHub Copilot) and must **not** contain any `*execute-all-tasks*` file. If the check fails, the copy is stale: **STOP** and tell the user to reinstall the DO Framework skills in this project (see the installation instructions in the README).
 2. Execute **only** the installation block that matches the AI tool selected by the user in Step 0. Do not install assets for other tools.
 
    **Claude Code** (if the user selected option 1):
@@ -198,6 +229,7 @@ Based on the AI tool selected by the user in Step 0, install the `agent-execute-
    - Run `mkdir -p .github/agents .github/prompts`
    - Copy `<skill-dir>/agents/github/agents/agent-execute-task.agent.md` → `.github/agents/agent-execute-task.agent.md`
    - Copy `<skill-dir>/agents/github/prompts/do-execute-all-tasks.prompt.md` → `.github/prompts/do-execute-all-tasks.prompt.md`
+   - **MCP tools for the worker:** the template's `tools:` list has no MCP entries (GitHub Copilot only exposes to a custom agent the tools it lists). After copying, append one `  - <server-name>/*` line to the `tools:` list of `.github/agents/agent-execute-task.agent.md` for **every MCP server** found by the Step 3B discovery (in `agents-only` mode run just the read-only discovery of Step 3B, item 1, for this purpose), using the server names as written in `.vscode/mcp.json`. If no MCP server is found, append nothing. This keeps Copilot equivalent to the other tools, where the worker sees whatever MCPs the project has.
    - **Do NOT** copy any `agent-execute-all-tasks.agent.md` — orchestration is embedded in the prompt.
    - Delete any orchestrator agent left by previous installs (all legacy names): `rm -f .github/agents/agent-execute-all-tasks.agent.md .github/agents/do-execute-all-tasks.agent.md .github/agents/execute-all-tasks.agent.md`.
 
@@ -220,25 +252,31 @@ Based on the AI tool selected by the user in Step 0, install the `agent-execute-
 **Step 6: Report Results & Sync Progress (Mandatory)**
 1. **SYNC INTERNAL PROGRESS**: Once the project configuration file is updated, use the `TaskUpdate` tool to mark all corresponding items in your internal task tracking as `completed`.
 2. **ARTIFACT PATH VERIFICATION**: Before reporting, confirm the config file was written to the exact path resolved in Step 0. Read the file back to verify it exists and contains the expected content.
-3. Provide a summary of the setup performed, ending with the restart notice from Step 5 item 5 (restart the AI tool before running `/do-execute-all-tasks`).
+3. Provide a summary of the setup performed. It MUST include this inventory (omit empty lines only if the corresponding list is empty, and say so):
+   - **Skills detectadas:** name and path of each relevant technology skill, or "nenhuma skill de tecnologia detectada".
+   - **MCPs detectados:** name, capability and source of each server (mark `não registrado` when applicable), or "nenhum MCP detectado".
+   - **Lacunas:** the informational gaps computed in Step 3B (e.g. "sem MCP de interface: o E2E de interface será pulado") and, when no skills/MCPs were found, a hint to install them and run `/do-setup refresh`.
+   - **Arquivo de configuração duplicado (apenas se o Counterpart file check encontrou):** "Existem `CLAUDE.md` e `AGENTS.md`. O Claude Code lê só o `CLAUDE.md` quando os dois existem e o Opencode lê o `AGENTS.md`; as seções geradas aqui só chegam à ferramenta escolhida. Para unificar, mantenha o conteúdo no `AGENTS.md` e deixe no `CLAUDE.md` a linha `@AGENTS.md`." Do not change the other file.
+   End with the restart notice from Step 5 item 5 (restart the AI tool before running `/do-execute-all-tasks`) — except in `refresh` mode, where no agents were installed and the notice is omitted.
 4. **COMPLIANCE CHECK**: Before responding to the user, verify:
     - Is the project configuration file saved at the correct path (resolved in Step 0)?
     - Did you accurately identify the project stack and skills?
     - Leia a seção `## Available Skills` no arquivo gerado e confirme que o parágrafo `**IMPORTANTE:**` está presente antes da tabela. Se não estiver, insira-o agora antes de responder ao usuário.
+    - Confirme que a seção `## Available MCPs` existe no arquivo gerado e que nenhum token, header ou valor de ambiente foi copiado para ele.
 
 ## Output Language
 Todos os artefatos gerados (seções do arquivo de configuração do projeto, resumos) devem ser escritos em Português do Brasil (PT-BR). Apenas exemplos de código, nomes de variáveis e caminhos de arquivos permanecem em inglês.
 
 ## Error Handling
-- If no config files are found (no `package.json`, `go.mod`, etc.), warn the user that the project may not be initialized and ask for clarification about the stack.
+- If the project root has no files declaring dependencies, build or run commands, warn the user that the project may not be initialized and ask for clarification about the stack.
 - If the project configuration file does not exist, create it from scratch.
 - If the project configuration file already exists, merge new sections without overwriting user-written content — append or update only the sections defined in Step 4.
-- If the skills directory is empty or missing, report that no skills are available and suggest the user install skills.
+- If no skills (other than `do-*`) or no MCP servers are found, this is not an error: write the empty-state rows, report it in the inventory and suggest installing them and running `/do-setup refresh`.
 - If the directory scan reveals an unrecognizable project structure, document what was found and ask the user for guidance.
 
 ## References
 - Output: Project configuration file (e.g., `CLAUDE.md` for Claude Code, `AGENTS.md` for Opencode, `.github/copilot-instructions.md` for GitHub Copilot, `.cursor/rules/project.mdc` or `.cursorrules` for Cursor AI)
-- Skills directories:
+- Skills discovery: the tool's native skill list plus the directories scanned in Step 3. Conventional locations by tool:
   - Claude Code: `.claude/skills/` (each skill has a `SKILL.md`)
   - Opencode: `.agents/skills/` (each skill has a `SKILL.md`)
   - GitHub Copilot: `.github/` (instruction files)

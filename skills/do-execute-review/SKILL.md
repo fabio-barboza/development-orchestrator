@@ -33,24 +33,25 @@ Before anything else, determine the execution environment:
 4. Check for `opencode.json`, `.opencode/` directory, or `AGENTS.md` → **Opencode**
 5. Resolve available tools based on environment:
    - **TaskUpdate**: available in Claude Code; in Copilot, Cursor, and Opencode, skip gracefully
-   - **Context7 MCP**: available if configured; fallback to Web Search otherwise
+   - **Documentation MCP** (capability `documentation`): optional — use it only if discovered per `do-shared/references/do-mcp-discovery-instructions.md`; otherwise use Web Search or the codebase
 
-Skill assets/references are loaded via your AI tool's native skill resolver — do not hard-code paths. Store the detected tool and capability flags internally.
+Skill assets/references are loaded via your AI tool's native skill resolver — do not hard-code paths. Paths like `do-shared/...` are relative to the skills directory (the parent folder of this skill, e.g. `.agents/skills/`), not the project root; glob tools skip hidden directories such as `.agents/`, so read these files by their full path (see `do-shared/references/do-project-context.md`). Store the detected tool and capability flags internally.
 
 **Step 1: Documentation Analysis (Mandatory)**
 1. Read the PRD at `./prds/prd-[feature-slug]/prd.md` to understand the feature requirements and expected outcomes. If the PRD file does not exist, warn in the review report and continue.
 2. Read the Tech Spec at `./prds/prd-[feature-slug]/techspec.md` to understand expected architectural decisions. If the TechSpec file does not exist, warn in the review report that the review was performed without a TechSpec reference and continue.
 3. Read the Tasks at `./prds/prd-[feature-slug]/tasks/tasks.md` to verify the scope implemented. If `tasks.md` does not exist, warn in the review report and continue.
 4. Read the project rules to know the required standards.
+5. Load the project skills relevant to the changes by following `do-shared/references/do-project-context.md` (Skills procedure) and use their conventions as additional review criteria. No specific skill is assumed to exist; if none is installed or relevant, continue without them.
+6. **Resolve the review round** following `do-shared/references/do-run-folders.md`: `<review-dir>` = `prds/prd-[feature-slug]/review-[N]`, where `[N]` is the highest existing `review-<number>` folder + 1 (or 1). Decide `[N]` now and use the same value for the whole execution; create the folder with the first file you write (if there is nothing to review, no folder is created). Never write into an existing round or overwrite the legacy `review-report.md`/`review-fixes/` at the PRD root. Then collect the open items of the previous round (see "Pendências da rodada anterior" in that reference).
 
 **Step 2: Code Change Analysis (Mandatory)**
 1. Check if the project is a git repository by running `git rev-parse --is-inside-work-tree`.
 2. **If git is available**, run git commands to understand what changed:
    - `git status` to see modified files.
    - `git diff` and `git diff --staged` to see all changes.
-   - `git log main..HEAD --oneline` to see branch commits.
-   - `git diff main...HEAD` for the full branch diff.
-3. **If git is NOT available**, ask the user which files to review, or scan the project for recently modified files using `ls -lt`. Document in the review report that git was unavailable.
+   - Determine the base branch (the repository's default branch, or the branch this one was created from) and use it as `<base>`: `git log <base>..HEAD --oneline` to see branch commits and `git diff <base>...HEAD` for the full branch diff.
+3. **If git is NOT available**, scan the project for recently modified files using `ls -lt` (do not ask the user). Document in the review report that git was unavailable.
 4. For each modified file:
    a. Analyze changes line by line.
    b. Verify adherence to project standards.
@@ -86,14 +87,14 @@ Skill assets/references are loaded via your AI tool's native skill resolver — 
    - Task tests were implemented.
 
 **Step 6: Test Execution (Mandatory)**
-1. Detect the project's package manager from lock files (`bun.lockb` → bun, `pnpm-lock.yaml` → pnpm, `package-lock.json` → npm). Default to `npm` if none found.
-2. Run the test suite using the detected package manager (e.g., `npm test`).
-3. **Service readiness — MANDATORY before any MCP/E2E that depends on a running service**: Follow the procedure at `do-shared/references/do-service-readiness.md`. Probe each required service (frontend dev server, backend API, broker, database) first; reuse it if already running; start only safe dev servers if missing (`npm run dev`, `npm start`, `bun dev`, `pnpm dev`); document gaps for external services. **Never kill a running service.** If a dev server fails to start, document the failure in the review report as a critical finding and skip the dependent E2E.
-4. **E2E tests via MCP**: Execute the MCP discovery procedure at `do-shared/references/do-mcp-discovery-instructions.md` — read the MCP configuration file for the current AI tool (`.mcp.json` for Claude Code, `.vscode/mcp.json` for GitHub Copilot, `.cursor/mcp.json` for Cursor, `opencode.json` for Opencode) and the MCP capabilities file at `do-shared/references/do-mcp-capabilities.md` to build the capability map. Apply the capability guard:
-   - Frontend changes + `browser-testing` MCP → run browser E2E via MCP tools. If MCP is unavailable, document the E2E gap in the review report — do NOT use CLI fallback.
-   - Backend changes + backend-capable MCP (`message-queue`, `database`, `cache`, `api-testing`) → run backend E2E via MCP tools.
+1. Resolve the project's commands (test suite, static checks, local service start) following `do-shared/references/do-project-commands.md`; never assume a language, package manager or tool.
+2. Run the test suite with the resolved test command.
+3. **Service readiness — MANDATORY before any MCP/E2E that depends on a running service**: Follow the procedure at `do-shared/references/do-service-readiness.md`. Probe each required service (the application under test, an API, a broker, a data store) first; reuse it if already running; start only the project's own services with its local start command if missing; document gaps for external services. **Never kill a running service.** If a service fails to start, document the failure in the review report as a critical finding and skip the dependent E2E.
+4. **E2E tests via MCP**: Execute the MCP discovery procedure at `do-shared/references/do-mcp-discovery-instructions.md` — read the MCP configuration file for the current AI tool (`.mcp.json` for Claude Code, `.vscode/mcp.json` for GitHub Copilot, `.cursor/mcp.json` for Cursor, `opencode.json` for Opencode) and classify each server using the capability catalog at `do-shared/references/do-mcp-capabilities.md` to build the capability map. Apply the capability guard:
+   - Changes to a user interface + `ui-testing` MCP → run UI E2E via MCP tools. If the MCP is unavailable, document the E2E gap in the review report — do NOT use CLI fallback.
+   - Changes to a service + service-capable MCP (`api-testing`, `messaging`, `data-store`) → run service E2E via MCP tools.
    - Changes type + no relevant MCP → skip E2E, document gap in review report.
-5. If a `typecheck` script exists in `package.json`, run it. Otherwise, skip type checking.
+5. If the project defines static checks (type checking, lint, formatting), run them. Otherwise, skip.
 6. Verify:
    - All tests pass.
    - New tests added for new code.
@@ -103,13 +104,13 @@ Skill assets/references are loaded via your AI tool's native skill resolver — 
 
 **Step 7: Code Quality Analysis (Mandatory)**
 1. Read the code quality checklist at `do-execute-review/references/code-quality-checklist.md`.
-2. Use Context7 MCP (`resolve-library-id` → `query-docs`) to verify correct API usage, best practices, and recommended patterns for the frameworks/libraries used in the reviewed code. If Context7 MCP is unavailable, proceed without it.
+2. Verify correct API usage, best practices, and recommended patterns for the frameworks/libraries used in the reviewed code. If a documentation MCP (capability `documentation`) was discovered, use it; otherwise proceed without it.
 3. Assess: complexity, DRY, SOLID, naming, comments, error handling, security, performance.
 
 **Step 8: Generate Review Report (Mandatory)**
 1. Read the report template at `do-execute-review/assets/review-report-template.md`.
-2. Fill in all sections with actual findings.
-3. Save the report to `./prds/prd-[feature-slug]/review-report.md`.
+2. Fill in all sections with actual findings, including the `Pendências da Rodada Anterior` section (previous-round items that still persist; do NOT create new fix files for them) and the `Skills e MCPs do Projeto` record defined in `do-shared/references/do-project-context.md`.
+3. Save the report to `./<review-dir>/review-report.md`.
 4. **Important**: This skill only reports findings — it does NOT implement fixes. All issues are documented for the developer to address.
 5. Apply approval criteria:
    - **APROVADO**: Todos os critérios atendidos, testes passando, código em conformidade com as regras e TechSpec.
@@ -122,28 +123,28 @@ Skill assets/references are loaded via your AI tool's native skill resolver — 
    a. Assign a sequential ID (R-01, R-02, …) if not already assigned.
    b. Generate a `brief-slug` from the finding description (lowercase, hyphen-separated, max 5 words).
    c. Fill the template with the finding's ID, severity, status (`pendente`), affected file/line, description, and suggested correction.
-   d. Save to `./prds/prd-[feature-slug]/review-fixes/fix-[R-XX]-[severidade-completa]-[brief-slug].md`, where `[severidade-completa]` is the full severity word in lowercase: `critico`, `maior` or `menor`. Do NOT abbreviate (e.g. `fix-R01-critico-campo-senha-exposto.md`, NOT `fix-R01-crit-campo-senha.md`).
-3. Create the `review-fixes/` directory automatically if it does not exist — no need to run `mkdir`, simply write the first file to the path.
+   d. Save to `./<review-dir>/fixes/fix-[R-XX]-[severidade-completa]-[brief-slug].md`, where `[severidade-completa]` is the full severity word in lowercase: `critico`, `maior` or `menor`. Do NOT abbreviate (e.g. `fix-R01-critico-campo-senha-exposto.md`, NOT `fix-R01-crit-campo-senha.md`).
+3. Create the `fixes/` directory automatically if it does not exist — no need to run `mkdir`, simply write the first file to the path.
 4. If there are no findings (status APROVADO), skip this step entirely — do NOT create an empty directory.
 
 **Step 10: Report Results & Sync Progress (Mandatory)**
 1. **SYNC INTERNAL PROGRESS**: Once the review report is generated, if `TaskUpdate` is available (Claude Code only; skip in Copilot and Cursor), use it to mark all corresponding items in your internal task tracking as `completed`. Otherwise, skip this step.
 2. Provide the final review report to the user.
 3. **COMPLIANCE CHECK**: Before responding to the user, verify with actual tool calls:
-    - Call `read_file` on `./prds/prd-[feature-slug]/review-report.md` to confirm the report was saved. If missing, go back to Step 8 and create it.
-    - If findings exist, confirm that `./prds/prd-[feature-slug]/review-fixes/` contains one file per finding.
+    - Call `read_file` on `./<review-dir>/review-report.md` to confirm the report was saved. If missing, go back to Step 8 and create it.
+    - If findings exist, confirm that `./<review-dir>/fixes/` contains one file per finding of this round.
     - Do all findings match the `git diff` and code analysis?
 
 ## Output Language
 Todos os artefatos gerados (relatório de review, arquivos de tarefa de correção) devem ser escritos em Português do Brasil (PT-BR). Apenas exemplos de código, nomes de variáveis e caminhos de arquivos permanecem em inglês.
 
 ## Error Handling
-- If no git changes are found and git is available, report that there is nothing to review.
+- If no git changes are found and git is available, report that there is nothing to review **in the response only**: create no file and no `review-[N]` folder.
 - If git is not initialized, fall back to manual file listing and document this in the report.
 - If tests fail, the review status MUST be REPROVADO regardless of other findings.
 - If PRD/TechSpec/tasks.md are missing, proceed with the review but document the missing context in the report.
-- If a configured MCP is unavailable at runtime, follow its "Se indisponivel" handling from the registry. Do NOT use CLI fallback (e.g., `npx playwright test`) — document the E2E gap in the review report instead.
-- If an MCP requires a running service that is not up, apply `do-shared/references/do-service-readiness.md` — probe first, reuse if running, start only safe dev servers, document gaps for external services. Never kill a running service.
+- If a configured MCP is unavailable at runtime, follow the "Se indisponível" handling of its capability in the catalog. Do NOT use CLI fallback — document the E2E gap in the review report instead.
+- If an MCP requires a running service that is not up, apply `do-shared/references/do-service-readiness.md` — probe first, reuse if running, start only the project's own services, document gaps for external services. Never kill a running service.
 - Check if there are files that SHOULD have been modified but were not.
 - Be constructive in criticism — always suggest alternatives.
 
@@ -157,5 +158,6 @@ Todos os artefatos gerados (relatório de review, arquivos de tarefa de correç�
 - PRD: `./prds/prd-[feature-slug]/prd.md`
 - TechSpec: `./prds/prd-[feature-slug]/techspec.md`
 - Tasks: `./prds/prd-[feature-slug]/tasks/tasks.md`
-- Review Report output: `./prds/prd-[feature-slug]/review-report.md`
-- Fix Tasks output dir: `./prds/prd-[feature-slug]/review-fixes/fix-[R-XX]-[severidade-completa]-[slug].md`
+- Review Report output: `./prds/prd-[feature-slug]/review-[N]/review-report.md`
+- Round folders: `do-shared/references/do-run-folders.md`
+- Fix Tasks output dir: `./prds/prd-[feature-slug]/review-[N]/fixes/fix-[R-XX]-[severidade-completa]-[slug].md`

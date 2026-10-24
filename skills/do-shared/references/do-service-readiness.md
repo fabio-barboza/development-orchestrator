@@ -1,6 +1,6 @@
 # Service Readiness Procedure
 
-Standard procedure referenced by execution skills (`do-execute-task`, `do-execute-review`, `do-execute-qa`) whenever an MCP, automated test, or validation step requires a running service (frontend dev server, backend API, broker, database, cache, etc.).
+Standard procedure referenced by execution skills (`do-execute-task`, `do-execute-review`, `do-execute-qa`) whenever an MCP, automated test, or validation step requires a running service (the application under test, an API, a broker, a data store, a cache, etc.).
 
 **Rule of thumb:** check first, reuse if running, start only when needed, never kill services that the user might be using.
 
@@ -8,22 +8,22 @@ Standard procedure referenced by execution skills (`do-execute-task`, `do-execut
 
 Apply this procedure before invoking any tool/test that depends on a running service:
 
-- An MCP whose registry entry has `Requer app rodando: Sim` (e.g., `playwright`, `rabbitmq`).
-- E2E tests (browser-based or backend) that hit an HTTP endpoint, queue, database, or cache.
+- An MCP whose capability (see `do-shared/references/do-mcp-capabilities.md`) requires a running target (`ui-testing`, `api-testing`, `messaging`, `data-store`).
+- End-to-end tests (user-interface or service) that hit an HTTP endpoint, queue, data store, or cache.
 - Integration tests that require external infrastructure.
 
-If the current step uses only unit tests, typecheck, lint, or static analysis, **skip this procedure**.
+If the current step uses only unit tests, static checks, or static analysis, **skip this procedure**.
 
 ## Step A: Identify Required Services
 
 1. List the services that the upcoming step depends on. Sources of truth:
-   - MCP registry entry at `do-shared/references/do-mcp-capabilities.md` (`Requer app rodando` field).
-   - Project configuration (`package.json` scripts, `docker-compose.yml`, `.env`) for known ports.
-   - Task/PRD/TechSpec context (frontend feature → frontend dev server; backend feature → API server and any broker/database mentioned).
+   - The capability table at `do-shared/references/do-mcp-capabilities.md` (`Requer alvo em execução`).
+   - The project's own configuration for ports and start commands: the `Project Commands` section (see `do-shared/references/do-project-commands.md`) and the project's declared run/infrastructure files.
+   - Task/PRD/TechSpec context (a feature with a user interface → the application serving it; a feature exposing a service → that service and any broker, data store or cache it mentions).
 2. For each required service, determine:
-   - **Type**: `dev-server` (safe to auto-start) or `external` (broker, database, cache — never auto-start).
-   - **Expected port** (when known): e.g., `3000` for Next.js, `5173` for Vite, `5672` for RabbitMQ AMQP, `15672` for RabbitMQ HTTP, `5432` for Postgres, `6379` for Redis.
-   - **Health check command** (when available): a curl/HTTP probe, MCP `connection.health`, or process probe.
+   - **Type**: `dev-server` (the project's own application, safe to auto-start) or `external` (broker, data store, cache, third-party API — never auto-start).
+   - **Expected port or address** (when known): read from the project's configuration or the `Project Commands` section; never assume a port by technology.
+   - **Health check** (when available): an HTTP probe, a health tool exposed by the MCP, or a process probe.
 
 ## Step B: Check If Already Running
 
@@ -31,8 +31,8 @@ For each required service, in this order:
 
 1. **Port probe** (preferred when port is known): run `lsof -ti :<port>` (Linux/macOS) or `ss -ltn 'sport = :<port>'`. A non-empty result means the port is bound.
 2. **HTTP health probe** (when applicable): `curl -fsS -o /dev/null -w "%{http_code}" http://localhost:<port>/<health-path>` and accept any 2xx/3xx response.
-3. **MCP health probe** (when the MCP exposes one): use the registry-listed health tool (e.g., `mcp__rabbitmq__connection.health`).
-4. **Process probe** (last resort): `pgrep -f "<process-pattern>"` (e.g., `"npm run dev"`, `"vite"`, `"bun dev"`).
+3. **MCP health probe** (when the MCP exposes a health/status tool): use that tool.
+4. **Process probe** (last resort): `pgrep -f "<process-pattern>"`, using a fragment of the project's own start command.
 
 Record each service as `running` or `not-running`. **Never kill a process that is already running** — the user may be using it.
 
@@ -40,11 +40,7 @@ Record each service as `running` or `not-running`. **Never kill a process that i
 
 For each service marked `not-running`:
 
-1. **If type is `dev-server`** — attempt to start using known-safe commands, picking the first that matches the project:
-   - `bun dev` (when `bun.lockb` exists and a `dev` script is defined)
-   - `pnpm dev` (when `pnpm-lock.yaml` exists)
-   - `npm run dev` or `npm start` (default fallback)
-   - For monorepos, prefer the workspace-scoped command (e.g., `bun --filter <package> dev`).
+1. **If type is `dev-server`** — start it with the project's own local start command, obtained per `do-shared/references/do-project-commands.md` (the `Iniciar o serviço local` row or what the project declares). Use only a command the project itself defines for local development; never invent one. For multi-package projects, use the command scoped to the package under test.
 
    Start the process in the background so the tool call returns immediately — a dev server never exits, so a foreground call blocks the session. Use your AI tool's native background mechanism when available:
    - **Opencode**: `shell` tool with `background: true`
@@ -57,7 +53,7 @@ For each service marked `not-running`:
 
    Then re-run Step B until the service responds or a 60-second timeout elapses. If the service fails to start (compile error, port already taken by an unrelated process, missing env var), do NOT modify code or configuration to work around it — report the failure (each consumer skill defines how: bug file, review finding, or HALT).
 
-2. **If type is `external`** (broker, database, cache, third-party API) — do NOT attempt to start. Document the gap in the consumer skill's report (review report, QA report, or task review) using the wording from the MCP registry's `Se indisponivel` field. Continue with whichever tests do not require that service.
+2. **If type is `external`** (broker, database, cache, third-party API) — do NOT attempt to start. Document the gap in the consumer skill's report (review report, QA report, or task review) using the `Se indisponível` wording of the capability in `do-shared/references/do-mcp-capabilities.md`. Continue with whichever tests do not require that service.
 
 ## Step D: Verify Before Use
 
@@ -75,5 +71,5 @@ For each service marked `not-running`:
 
 - **Port bound by an unrelated process:** report the conflict to the user via the consumer skill's report; do NOT terminate the conflicting process.
 - **Dev server starts but health check fails after timeout:** treat as startup failure; the consumer skill defines the next step (HALT, bug file, or review finding).
-- **MCP health tool itself fails:** treat the MCP as unavailable and follow its `Se indisponivel` handling from `do-shared/references/do-mcp-capabilities.md`.
-- **Multiple candidate start commands:** pick exactly one based on the lock file; never run more than one dev-server starter for the same package.
+- **MCP health tool itself fails:** treat the MCP as unavailable and follow the `Se indisponível` handling of its capability in `do-shared/references/do-mcp-capabilities.md`.
+- **Multiple candidate start commands:** pick the one the project documents as primary; never run more than one starter for the same service.

@@ -116,7 +116,7 @@ tasks.md            │   - Implementação + tests                   │
 │   │  do-execute-qa       │                                                  │
 │   │                      │                                                  │
 │   │  - E2E completo via  │                                                  │
-│   │    MCP (Playwright)  │                                                  │
+│   │    MCP (ui-testing)  │                                                  │
 │   │  - Checklist PRD     │                                                  │
 │   │  - Accessibility     │────────────┐                                     │
 │   │  - Visual verification│           │                                     │
@@ -171,6 +171,8 @@ PLANEJAMENTO       EXECUÇÃO           REVIEW GERAL      VALIDAÇÃO
 
 **Argumento opcional:** `/do-setup agents` — pula a análise do projeto e instala apenas os agents/commands (útil quando o setup já foi feito anteriormente)
 
+**Argumento opcional:** `/do-setup refresh` — redetecta as skills e os MCPs instalados (depois de instalar novos) e atualiza só as seções `Available Skills`, `Uncovered Skills` e `Available MCPs` do arquivo de configuração. O `do-setup` também **informa** no relatório final as skills e MCPs detectados e as lacunas (por exemplo, sem MCP de browser o E2E de frontend é pulado). Nenhuma skill além das `do-*` é presumida: se não houver nenhuma, o resultado é só um aviso.
+
 > **Opencode (apenas na 1ª execução):** ao contrário das outras ferramentas (Claude Code, Cursor, GitHub Copilot), o opencode **não reconhece skills via `/<skill>`**. Por isso, a *primeira* invocação do `do-setup` precisa ser feita em linguagem natural:
 > ```
 > Execute do-setup
@@ -201,7 +203,7 @@ PLANEJAMENTO       EXECUÇÃO           REVIEW GERAL      VALIDAÇÃO
 **O que faz:**
 1. Analisa PRD profundamente
 2. Explora codebase para entender contexto técnico (chamadas, interfaces, persistence)
-3. **Research via MCP**: Usa Context7 para consultar documentação oficial de frameworks
+3. **Research via MCP**: Usa um MCP de documentação (capacidade `documentation`), se disponível, para consultar documentação oficial; sem ele, usa busca na web
 4. **Clarifications (interativo)**: Perguntas técnicas focadas ao usuário
 5. Gera TechSpec com arquitetura, component design, data models, endpoints, test strategy, **suposições técnicas** e riscos conhecidos
 
@@ -217,7 +219,7 @@ PLANEJAMENTO       EXECUÇÃO           REVIEW GERAL      VALIDAÇÃO
 
 **O que faz:**
 1. Analisa PRD + TechSpec
-2. Research via Context7 para estimar complexidade das libs envolvidas
+2. Pesquisa de documentação (MCP `documentation`, se disponível) para estimar complexidade das libs envolvidas
 3. **High-level list (interativo)**: Apresenta lista de tasks para aprovação
 4. Gera files com tasks detalhadas e subtasks numeradas
 
@@ -237,7 +239,7 @@ PLANEJAMENTO       EXECUÇÃO           REVIEW GERAL      VALIDAÇÃO
 1. Le PRD, TechSpec, tasks.md e `[num]_task.md`
 2. **MCP Discovery**: Descobre quais MCPs estão configurados e aplicável
 3. Implementa com testes unit/integration
-4. **E2E via MCP**: Roda testes E2E usando tools do MCP (Playwright para browser, RabbitMQ para message queue, etc.)
+4. **E2E via MCP**: Roda testes E2E usando as tools dos MCPs disponíveis, conforme a capacidade (`ui-testing`, `api-testing`, `messaging`, `data-store`)
 5. Code review automático contra checklist de padrões
 6. Marca task como `[x]` em `tasks.md`
 7. **Cria review artifact obrigatório**
@@ -269,7 +271,7 @@ PLANEJAMENTO       EXECUÇÃO           REVIEW GERAL      VALIDAÇÃO
 - Se status = **NEEDS_REVISION** ou **REJECTED**: rodar `do-execute-review-fix` → depois `do-execute-review` novamente
 - Se status = **APPROVED**: prossegue para FASE 4 (QA)
 
-**Output:** `./prds/prd-[slug]/review-report.md`
+**Output:** `./prds/prd-[slug]/review-[N]/review-report.md` (uma pasta nova a cada rodada: `review-1/`, `review-2/`…), com os fix tasks em `review-[N]/fixes/`. O relatório inclui os itens ainda pendentes da rodada anterior.
 
 **Status:** ACCEPTED / NEEDS_REVISION / REJECTED
 
@@ -280,16 +282,14 @@ PLANEJAMENTO       EXECUÇÃO           REVIEW GERAL      VALIDAÇÃO
 **Quando usar:** Após `do-execute-review` retornar NEEDS_REVISION ou REJECTED.
 
 **O que faz:**
-1. Lê `review-report.md` e extrai todos os findings por severidade
-2. Implementa correções em ordem: CRITICAL → MAJOR → MINOR (opcional)
-3. Roda suite completa de testes — task nunca completa com testes failing
-4. Atualiza `review-report.md` com status de cada finding (Fixed / Unresolved)
-5. Gera fix report com resumo das correções aplicadas
+1. Recebe **um** fix task (`review-[N]/fixes/fix-R..md`) — invoque uma vez por arquivo, começando pelos críticos
+2. Lê o `review-report.md` da mesma rodada para contexto e implementa a correção
+3. Roda suite completa de testes — o fix nunca é concluído com testes failing
+4. Atualiza o fix task (`corrigido` / `não-resolvido`) e o finding correspondente no `review-report.md` da rodada
 
 **Output:**
-- Correções no codebase
-- `review-report.md` atualizado
-- `./prds/prd-[slug]/fix-report.md`
+- Correção no codebase
+- Fix task e `review-report.md` da rodada atualizados
 
 ---
 
@@ -301,13 +301,14 @@ PLANEJAMENTO       EXECUÇÃO           REVIEW GERAL      VALIDAÇÃO
 1. Cria checklist baseado nos requisitos do PRD
 2. **MCP Discovery**: Identifica MCPs disponíveis e aplica capability guard
 3. **E2E Tests via MCP**: Roda flows completos capturando screenshots
-4. **Accessibility**: Verifica WCAG 2.2 (keyboard nav, labels, contrast, etc.)
+4. **Accessibility**: Verifica acessibilidade da interface (navegação por teclado, rótulos, contraste, etc.)
 5. **Visual verification**: Screenshots de estados diferentes
 6. Documenta bugs encontrados com evidência visual
 
 **Output:**
-- `./prds/prd-[slug]/qa-report.md`
-- `./prds/prd-[slug]/bugs.md` (se houver bugs)
+- `./prds/prd-[slug]/qa-[N]/qa-report.md` (uma pasta nova a cada rodada: `qa-1/`, `qa-2/`…)
+- `./prds/prd-[slug]/qa-[N]/bugs/bug-[XX]-....md` (se houver bugs) e `qa-[N]/screenshots/`
+- O relatório inclui os bugs ainda abertos da rodada anterior
 
 **Status:** APPROVED apenas se TODOS requisitos verificados e funcionando
 
@@ -396,23 +397,23 @@ Orquestra a execução sequencial de todas (ou um subconjunto de) tasks de um PR
 
 ## MCP Integration — Testes E2E Dinâmicos
 
-O DO Framework usa **Model Context Protocol (MCP)** para descoberta dinâmica de ferramentas de teste. Não é hardcoded — tudo configurável via registry.
+O DO Framework usa **Model Context Protocol (MCP)** para descoberta dinâmica de ferramentas de teste. Nenhum servidor, produto ou stack é presumido: o framework classifica cada MCP pelo que as suas tools **fazem**.
 
 ### Como Funciona a Descoberta
 
-1. Le o arquivo de configuração MCP da ferramenta de IA (`.mcp.json`, `.vscode/mcp.json`, etc.) → lista MCP servers configurados
-2. Le `do-shared/references/do-mcp-capabilities.md` → mapeia cada server a capacidades e tools
-3. Constroi mapa interno: `{ "browser-testing": ["playwright"], "message-queue": ["rabbitmq"] }`
-4. Aplica **capability guard**: usa MCP disponível conforme tipo da feature
+1. Lê o arquivo de configuração MCP da ferramenta de IA (`.mcp.json`, `.vscode/mcp.json`, etc.) e as tools expostas na sessão → lista os MCP servers disponíveis
+2. Lê `do-shared/references/do-mcp-capabilities.md` → classifica cada server em uma **capacidade** (`ui-testing`, `api-testing`, `messaging`, `data-store`, `documentation`) pelos nomes e descrições das suas tools
+3. Constrói um mapa interno de capacidades: `{ "<capacidade>": ["<server>"] }`
+4. Aplica **capability guard**: usa o MCP disponível conforme o tipo da feature
 
 ### Capability Guard — Tabela de Decisão
 
-| Tipo Feature | MCP Disponível | Ação |
-|--------------|----------------|------|
-| Frontend + `browser-testing` | Sim | Rodar E2E browser via Playwright MCP |
-| Backend + `message-queue`/`database`/`cache` | Sim | Rodar E2E backend via MCP correspondente |
-| Frontend + Backend + ambos | Sim | Rodar ambos E2Es |
-| Feature + nenhum MCP relevante | Não | Pular E2E, documentar gap, continuar com unit/integration |
+| Tipo da feature | MCP disponível | Ação |
+|-----------------|----------------|------|
+| Interface de usuário + `ui-testing` | Sim | Rodar E2E de interface via MCP |
+| Serviço + `api-testing`/`messaging`/`data-store` | Sim | Rodar E2E do serviço via MCP correspondente |
+| Interface + serviço, com ambos | Sim | Rodar os dois E2Es |
+| Feature + nenhum MCP relevante | Não | Pular E2E, documentar lacuna, continuar com unitários/integração |
 
 ### Como Configurar MCPs no Seu Projeto
 
@@ -425,234 +426,44 @@ A localização e o formato do arquivo de configuração de MCPs **varia conform
 | **Cursor** | `.cursor/mcp.json` | `mcpServers` |
 | **Opencode** | `opencode.json` (raiz do projeto) ou `~/.config/opencode/opencode.json` (global) | `mcp` |
 
-Os MCPs disponíveis para o DO Framework estão documentados em `skills/do-shared/references/do-mcp-capabilities.md`. Você pode adicioná-los no arquivo correspondente à sua ferramenta.
-
-Obs: Você pode adicionar novos MCPs e configurá-los no `skills/do-shared/references/do-mcp-capabilities.md`
-
-**Claude Code — `.mcp.json` (raiz do projeto):**
+Estrutura mínima de uma entrada (os valores entre `<>` vêm da documentação do MCP que você escolher):
 
 ```json
 {
-  "mcpServers": {
-    "playwright": {
+  "<chave-principal>": {
+    "<nome-do-mcp>": {
       "type": "stdio",
-      "command": "npx",
-      "args": ["@playwright/mcp@latest"],
-      "env": {}
-    },
-    "context7": {
-      "type": "stdio",
-      "command": "npx",
-      "args": ["-y", "@upstash/context7-mcp@latest"],
-      "env": {}
-    },
-    "rabbitmq": {
-      "type": "stdio",
-      "command": "uvx",
-      "args": [
-        "mcp-server-rabbitmq@latest",
-        "--rabbitmq-host", "localhost",
-        "--port", "5672",
-        "--username", "guest",
-        "--password", "guest",
-        "--api-port", "15672"
-      ]
+      "command": "<comando>",
+      "args": ["<argumentos>"]
     }
   }
 }
 ```
 
-**GitHub Copilot — `.vscode/mcp.json`:**
+> No **Opencode** a entrada usa `"type": "local"`, `"command": ["<comando>", "<argumentos>"]` e `"enabled": true`. Consulte a documentação da sua ferramenta para o formato exato.
 
-```json
-{
-  "servers": {
-    "playwright": {
-      "type": "stdio",
-      "command": "npx",
-      "args": ["@playwright/mcp@latest"]
-    },
-    "context7": {
-      "type": "stdio",
-      "command": "npx",
-      "args": ["-y", "@upstash/context7-mcp@latest"]
-    },
-    "rabbitmq": {
-      "type": "stdio",
-      "command": "uvx",
-      "args": [
-        "mcp-server-rabbitmq@latest",
-        "--rabbitmq-host", "localhost",
-        "--port", "5672",
-        "--username", "guest",
-        "--password", "guest",
-        "--api-port", "15672"
-      ]
-    }
-  }
-}
-```
-
-**Cursor — `.cursor/mcp.json`:**
-
-```json
-{
-  "mcpServers": {
-    "playwright": {
-      "type": "stdio",
-      "command": "npx",
-      "args": ["@playwright/mcp@latest"],
-      "env": {}
-    },
-    "context7": {
-      "type": "stdio",
-      "command": "npx",
-      "args": ["-y", "@upstash/context7-mcp@latest"],
-      "env": {}
-    },
-    "rabbitmq": {
-      "type": "stdio",
-      "command": "uvx",
-      "args": [
-        "mcp-server-rabbitmq@latest",
-        "--rabbitmq-host", "localhost",
-        "--port", "5672",
-        "--username", "guest",
-        "--password", "guest",
-        "--api-port", "15672"
-      ]
-    }
-  }
-}
-```
-
-**Opencode — `opencode.json` (raiz do projeto):**
-
-> Diferente das outras ferramentas, o Opencode usa a chave `mcp` (não `mcpServers`/`servers`), `type: "local"`, `command` como **array unificado** (binário + args juntos), `environment` no lugar de `env`, e exige a flag `enabled: true` para ativar cada server.
-
-```json
-{
-  "$schema": "https://opencode.ai/config.json",
-  "mcp": {
-    "playwright": {
-      "type": "local",
-      "command": ["npx", "@playwright/mcp@latest"],
-      "enabled": true
-    },
-    "context7": {
-      "type": "local",
-      "command": ["npx", "-y", "@upstash/context7-mcp@latest"],
-      "enabled": true
-    },
-    "rabbitmq": {
-      "type": "local",
-      "command": [
-        "uvx",
-        "mcp-server-rabbitmq@latest",
-        "--rabbitmq-host", "localhost",
-        "--port", "5672",
-        "--username", "guest",
-        "--password", "guest",
-        "--api-port", "15672"
-      ],
-      "enabled": true
-    }
-  }
-}
-```
-
-**MCPs Disponíveis (já documentados em `do-shared/references/do-mcp-capabilities.md`):**
-
-| MCP | Capacidade | Quando Usar |
-|-----|------------|-------------|
-| `playwright` | browser-testing | E2E frontend, validação visual, accessibility |
-| `context7` | documentation research | Pesquisa de documentação oficial durante TechSpec/Tasks |
-| `rabbitmq` | message-queue validation | Validação de filas e mensagens em background jobs |
-
-### Registry de Capacidades
+### Catálogo de Capacidades
 
 **Arquivo:** `skills/do-shared/references/do-mcp-capabilities.md`
 
-Documenta cada MCP com:
-- Capacidades (browser-testing, documentation, message-queue, etc.)
-- Prefixo de tools (`mcp__playwright__browser_*`)
-- Quando usar
-- Requer app rodando? (Sim/Não)
-- Handling se indisponível
-- Lista de tools principais
+Define, para cada capacidade:
+- Descrição e sinais para reconhecê-la nas tools de um server
+- Se requer alvo em execução (aplicação, API, broker, armazenamento)
+- Tratamento se indisponível
 
 ### Adicionar Novo MCP (Zero Code Changes)
 
 1. Configurar no arquivo MCP da sua ferramenta (`.mcp.json`, `.vscode/mcp.json`, etc.)
-2. Adicionar entrada em `do-shared/references/do-mcp-capabilities.md`
-3. **Pronto** — skills descobrem automaticamente, nenhuma edição nas skills necessária
+2. **Pronto** — o servidor é descoberto e classificado automaticamente. Nenhuma edição nas skills nem no catálogo é necessária. Rode `/do-setup refresh` para atualizar o resumo gravado no arquivo de configuração do projeto.
 
 ## Prerequisitos do Ambiente
 
-### Ferramentas Obrigatórias (Comuns a Todas as Stacks)
+O framework não exige nenhuma linguagem ou stack. O que você precisa:
 
-```bash
-# Node.js + npx (necessário para MCPs)
-node --version  # 18+
-npm --version   # 9+
-
-# Git (para versionamento e diff analysis)
-git --version
-```
-
-### Ferramentas Específicas por Stack
-
-```bash
-# Para projetos React/Node.js
-npm install -g supabase  # Supabase CLI (opcional, para DB operations)
-
-# Para projetos Flutter
-flutter --version
-
-# Para projetos Python
-python3 --version
-
-# Escolha conforme sua stack
-```
-
-### Ferramentas Opcionais (para MCPs)
-
-```bash
-# uv (para MCPs Python-based como RabbitMQ)
-uvx --version
-# Install: curl -LsSf https://astral.sh/uv/install.sh | sh
-```
-
-### Configurar um MCP
-
-**Exemplo: Playwright (browser-testing)**
-
-1. Adicionar no arquivo de configuração MCP da sua ferramenta (veja a tabela acima):
-   ```json
-   {
-     "playwright": {
-       "type": "stdio",
-       "command": "npx",
-       "args": ["@playwright/mcp@latest"],
-       "env": {}
-     }
-   }
-   ```
-
-2. Adicionar entrada em `do-shared/references/do-mcp-capabilities.md`:
-   ```markdown
-   ### playwright
-   - **Capacidades:** browser-testing
-   - **Prefixo de tools:** mcp__playwright__browser_*
-   - **Quando usar:** E2E frontend, validação visual
-   - **Requer app rodando:** Sim
-   - **Se indisponível:** Reportar erro, documentar gap no relatório
-   ```
-
-3. Instalar dependências se necessário:
-   ```bash
-   npx @playwright/mcp@latest --help  # Verifica install
-   ```
+- A **ferramenta de IA** escolhida (Claude Code, GitHub Copilot, Cursor ou Opencode).
+- **Git** (para versionamento e análise de diff).
+- Os **pré-requisitos do seu próprio projeto** (compilador/interpretador, gerenciador de dependências, runner de testes). O `do-setup` registra os comandos do projeto na seção `Project Commands` e as skills de execução os usam.
+- Os **pré-requisitos dos MCPs** que você optar por configurar (cada MCP documenta o que precisa).
 
 ## Estrutura de Pastas Gerada
 
@@ -661,9 +472,14 @@ uvx --version
 └── prd-[feature-slug]/
     ├── prd.md                  # Product Requirements Document (do-create-prd)
     ├── techspec.md             # Tech Spec (do-create-techspec)
-    ├── bugs.md                 # Bugs encontrados (do-execute-qa/bugfix)
-    ├── qa-report.md            # Relatório QA (do-execute-qa)
-    ├── review-report.md        # Relatório Review (do-execute-review)
+    ├── qa-1/                   # 1ª rodada de QA (do-execute-qa); a próxima será qa-2/...
+    │   ├── qa-report.md
+    │   ├── bugs/bug-01-alta-....md
+    │   └── screenshots/
+    ├── review-1/               # 1ª rodada de review (do-execute-review); a próxima será review-2/...
+    │   ├── review-report.md
+    │   └── fixes/fix-R01-critico-....md
+    ├── bugs.md                 # (legado) Bugs encontrados
     ├── fix-report.md           # Relatório de correções do review (do-execute-review-fix)
     ├── bugfix-report.md        # Relatório Bugfix (do-execute-qa-bugfix)
     └── tasks/
@@ -720,7 +536,7 @@ uvx --version
 
 # 2. Criar TechSpec
 /do-create-techspec projeto-exemplo
-> [pesquisa docs via Context7 MCP + responde clarifications técnicas]
+> [pesquisa documentação (MCP, se disponível) + responde clarifications técnicas]
 
 # 3. Criar Tasks
 /do-create-tasks projeto-exemplo
@@ -748,11 +564,11 @@ uvx --version
 # ------------------------------------------------
 # 6. QA final com E2E completo
 /do-execute-qa projeto-exemplo
-> [roda E2E via Playwright MCP, accessibility, visual verification]
-> [gera qa-report.md + bugs.md se houver problemas]
+> [roda E2E via MCP disponível, accessibility, visual verification]
+> [gera qa-1/qa-report.md + qa-1/bugs/ se houver problemas]
 
 # 7. Se houver bugs HIGH/MEDIUM: loop de correção
-[se bugs.md tem entries] → /do-execute-qa-bugfix projeto-exemplo
+[se qa-1/bugs/ tem bugs abertos] → /do-execute-qa-bugfix prds/prd-projeto-exemplo/qa-1/bugs/<bug>.md
 > [corrige por severidade + tests de regressão]
 
 # 8. Revalida com QA novamente

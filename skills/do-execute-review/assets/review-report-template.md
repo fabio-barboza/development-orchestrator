@@ -37,6 +37,13 @@
 ## Pontos Positivos
 - [pontos positivos identificados]
 
+## Pendências da Rodada Anterior
+[Itens `pendente` da rodada anterior (ID, severidade, resumo, rodada de origem, situação: persiste / não reproduzido). Se não houver: "Nenhuma pendência da rodada anterior."]
+
+## Skills e MCPs do Projeto
+- Skills do projeto: [lidas: nomes | nenhuma aplicável | nenhuma instalada]
+- MCPs do projeto: [usados: nome (capacidade) | nenhum necessário | lacuna: capacidade não disponível]
+
 ## Recomendações
 - [recomendações de melhoria]
 

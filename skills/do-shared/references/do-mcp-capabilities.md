@@ -1,87 +1,52 @@
-# MCP Capability Registry
+# Catálogo de Capacidades de MCP
 
-Fonte de verdade sobre as capacidades de cada MCP server configurado no projeto. As skills de execução consultam este arquivo para descobrir quais tools usar conforme o contexto da feature.
+Define as **capacidades** que um MCP server pode oferecer e como tratá-las. Este catálogo não lista servidores nem produtos: um MCP é classificado pelo que as suas tools **fazem**, nunca pelo nome do server. As skills de execução consultam este arquivo para decidir quais tools usar conforme o contexto da feature.
 
 ## Categorias de Capacidade
 
-| Categoria | Descricao | Exemplos de uso |
+| Categoria | Descrição | Exemplos de uso |
 |-----------|-----------|-----------------|
-| browser-testing | Navegar, interagir e capturar screenshots de UIs web | E2E frontend, validacao visual, acessibilidade |
-| message-queue | Publicar/consumir mensagens, inspecionar filas e exchanges | Validacao de fluxos event-driven, RabbitMQ E2E |
-| database | Consultar e validar estado do banco de dados | Integridade de dados, validacao de migrations |
-| cache | Ler/escrever/inspecionar entradas de cache | Validacao de comportamento Redis/Memcached |
-| api-testing | Enviar requests HTTP, validar responses | E2E de APIs REST/GraphQL sem browser |
-| documentation | Consultar documentacao de frameworks/libs | Pesquisa tecnica, verificacao de API usage |
+| ui-testing | Operar uma interface de usuário em execução: navegar, interagir, ler o estado da tela e capturar evidência visual | Validação ponta a ponta de fluxos de interface, validação visual, acessibilidade |
+| api-testing | Enviar requisições a uma API em execução e validar as respostas | Validação ponta a ponta de serviços sem interface |
+| messaging | Publicar/consumir mensagens e inspecionar filas, tópicos ou canais | Validação de fluxos orientados a eventos |
+| data-store | Consultar e validar o estado de um armazenamento de dados (banco, cache, índice) | Integridade de dados, validação de migrações, comportamento de cache |
+| documentation | Consultar documentação técnica de bibliotecas, frameworks ou serviços | Pesquisa técnica, verificação de uso correto de APIs |
 
-## Servidores Conhecidos
+## Como classificar um MCP server
 
-> **Prefixo de tools por ferramenta de IA:** os prefixos abaixo usam a convencao `mcp__<server>__<tool>` (Claude Code, Cursor, GitHub Copilot). No **Opencode** a mesma tool e exposta como `<server>_<tool>` (ex.: `playwright_browser_navigate`). Use sempre o nome que aparece na lista de tools da sua sessao.
+Para cada server descoberto (ver `do-mcp-discovery-instructions.md`), olhe os **nomes e descrições das tools** que ele expõe e atribua uma ou mais categorias:
 
-### playwright
-- **Capacidades:** browser-testing
-- **Prefixo de tools:** `mcp__playwright__browser_*`
-- **Quando usar:** E2E de features frontend, validacao visual, verificacao de acessibilidade, captura de screenshots como evidencia
-- **Requer app rodando:** Sim (iniciar dev server antes de usar)
-- **Se indisponivel:** Reportar erro, NAO usar CLI (`npx playwright test`) nem scripts que usam a biblioteca de automacao de browser diretamente (Playwright, Puppeteer, Selenium), documentar gap no relatorio. `connection refused` ao navegar significa que a aplicacao caiu, nao o MCP: restabelecer o servico (`do-service-readiness.md`) e repetir a chamada
-- **Tools principais:**
-  | Tool | Uso |
-  |------|-----|
-  | `browser_navigate` | Navegar para paginas da aplicacao |
-  | `browser_snapshot` | Capturar estado acessivel da pagina (preferido sobre screenshot para analise) |
-  | `browser_click` | Interagir com botoes, links e elementos clicaveis |
-  | `browser_type` | Preencher campos de formulario |
-  | `browser_fill_form` | Preencher multiplos campos de uma vez |
-  | `browser_select_option` | Selecionar opcoes em dropdowns |
-  | `browser_press_key` | Simular teclas (Enter, Tab, Escape, etc.) |
-  | `browser_take_screenshot` | Capturar evidencia visual |
-  | `browser_console_messages` | Verificar erros no console do browser |
-  | `browser_network_requests` | Verificar chamadas de API |
+| Categoria | Sinais nas tools |
+|-----------|------------------|
+| ui-testing | tools que navegam, clicam, digitam, leem o estado/árvore da tela, capturam screenshot ou leem console/rede da interface |
+| api-testing | tools que montam e enviam requisições e inspecionam status, cabeçalhos e corpo das respostas |
+| messaging | tools que publicam, consomem, listam ou inspecionam mensagens, filas, tópicos ou assinaturas |
+| data-store | tools que consultam, listam ou alteram registros, esquemas ou chaves de um armazenamento |
+| documentation | tools que resolvem uma biblioteca/serviço e devolvem documentação ou exemplos |
 
-### context7
-- **Capacidades:** documentation
-- **Prefixo de tools:** `mcp__context7__`
-- **Quando usar:** Verificar documentacao de frameworks/libs para uso correto de APIs, best practices e padroes recomendados
-- **Requer app rodando:** Nao
-- **Se indisponivel:** Prosseguir sem ele
-- **Tools principais:**
-  | Tool | Uso |
-  |------|-----|
-  | `resolve-library-id` | Resolver identificador de uma biblioteca |
-  | `query-docs` | Consultar documentacao da biblioteca |
+Regras:
+- Classifique pelo comportamento. Um nome de server, de produto ou de biblioteca nunca decide a categoria.
+- Se as tools expostas forem genéricas (por exemplo, "buscar operação", "obter documentação da operação", "executar operação"), use-as nessa ordem para descobrir as operações disponíveis e a categoria vem do que as operações fazem.
+- Se nenhuma categoria se aplicar, o server não é usado pelo framework; registre-o como "capacidade não reconhecida" e ignore-o.
+- **Prefixo de tools por ferramenta de IA:** o nome de uma tool aparece como `mcp__<server>__<tool>` (Claude Code, Cursor, GitHub Copilot) ou `<server>_<tool>` (Opencode). Use sempre o nome exato que aparece na lista de tools da sessão.
 
-### rabbitmq
-- **Capacidades:** message-queue
-- **Prefixo de tools:** `mcp__rabbitmq__`
-- **Quando usar:** Validar fluxos de mensageria (publish/consume), inspecionar filas e exchanges, verificar health do broker, testar E2E de features event-driven
-- **Requer app rodando:** Sim (RabbitMQ broker deve estar acessivel em localhost)
-- **Se indisponivel:** Reportar erro, documentar gap no relatorio, continuar com testes unitarios/integracao
-- **Padrao de uso:** Este MCP usa descoberta semantica — use `search-ids` para encontrar operacoes, `get-id` para obter documentacao da operacao, e `call-id` para executar
-- **Tools principais:**
-  | Tool | Uso |
-  |------|-----|
-  | `search-ids` | Busca semantica de operacoes RabbitMQ (ex: "list queues", "publish message") |
-  | `get-id` | Obter documentacao completa de uma operacao pelo ID |
-  | `call-id` | Executar uma operacao RabbitMQ pelo ID e parametros |
-  | `connection.health` | Verificar saude da conexao com o broker (AMQP + HTTP) |
-- **Operacoes comuns (via search-ids + call-id):**
-  - Listar filas e inspecionar mensagens
-  - Publicar mensagens em exchanges
-  - Listar exchanges e bindings
-  - Verificar consumers conectados
-  - Purgar filas (requer `--allow-mutative-tools`)
+## Tratamento por categoria
 
-## Como Adicionar Novo MCP Server
+| Categoria | Requer alvo em execução | Se indisponível |
+|-----------|-------------------------|-----------------|
+| ui-testing | Sim — a aplicação precisa estar rodando (ver `do-service-readiness.md`) | Reportar o erro, **não** usar linha de comando nem scripts que acionam diretamente uma biblioteca de automação de interface; documentar a lacuna no relatório. Um erro de conexão ao navegar até a aplicação significa que a aplicação caiu, não que o MCP está indisponível: restabeleça o serviço e repita a chamada |
+| api-testing | Sim — a API precisa estar rodando | Reportar o erro, documentar a lacuna e continuar com testes unitários/integração |
+| messaging | Sim — o broker/serviço de mensagens precisa estar acessível | Reportar o erro, documentar a lacuna e continuar com testes unitários/integração |
+| data-store | Sim — o armazenamento precisa estar acessível | Reportar o erro, documentar a lacuna e continuar com testes unitários/integração |
+| documentation | Não | Prosseguir sem ele (busca na web ou leitura do código) |
+
+Serviços externos (mensageria, armazenamento de dados, APIs de terceiros) nunca são iniciados automaticamente; apenas servidores de desenvolvimento do próprio projeto, conforme `do-service-readiness.md`.
+
+## Como adicionar um novo MCP server
 
 1. Adicione o server ao arquivo de configuração MCP da sua ferramenta de IA:
    - **Claude Code:** `.mcp.json` na raiz do projeto (ou `~/.mcp.json` para configuração global)
    - **GitHub Copilot:** `.vscode/mcp.json`
    - **Cursor:** `.cursor/mcp.json`
    - **Opencode:** `opencode.json` na raiz do projeto (chave `mcp`) ou o global `~/.config/opencode/opencode.json`
-2. Adicione uma entrada neste arquivo sob "Servidores Conhecidos" com:
-   - Capacidades (usando as categorias da tabela acima)
-   - Prefixo de tools
-   - Quando usar
-   - Se requer app rodando
-   - Handling de indisponibilidade
-   - Lista de tools principais
-3. **Nenhuma skill precisa ser editada** — as skills descobrem capacidades dinamicamente a partir deste registry
+2. **Nenhuma skill nem este catálogo precisa ser editado.** Na próxima execução o server é descoberto e classificado pelas tools que expõe. Rode `/do-setup refresh` para atualizar o resumo gravado no arquivo de configuração do projeto.

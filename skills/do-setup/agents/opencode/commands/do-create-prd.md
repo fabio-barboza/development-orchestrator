@@ -15,5 +15,5 @@ Se não for fornecido, **pergunte uma única vez** antes de prosseguir.
 ## Exemplo
 
 ```
-/do-create-prd autenticação com Google
+/do-create-prd autenticação de usuários
 ```

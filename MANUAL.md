@@ -31,50 +31,27 @@ Isso instala todas as skills do framework (`do-setup`, `do-create-prd`, `do-crea
 
 > ⚠️ **Reinicie a ferramenta após o `npx skills add`.** A maioria das ferramentas de IA (Claude Code, Cursor, GitHub Copilot, opencode) **não recarrega automaticamente** a lista de skills/comandos quando arquivos novos aparecem no disco. Se você abrir o autocomplete e os comandos `/do-*` não estiverem listados, **feche e reabra a ferramenta** (ou recarregue a janela do IDE / reinicie a sessão de chat). Isso vale tanto após o `npx skills add` quanto após o `do-setup` (que adiciona os slash commands em `.claude/commands/`, `.cursor/commands/`, `.github/prompts/` ou `.opencode/commands/`).
 
-### Adicionar skills de tecnologia (opcional, mas recomendado)
+### Adicionar skills do seu projeto (opcional, mas recomendado)
 
-Além das skills do DO Framework, você pode instalar skills específicas para a stack do seu projeto. Elas enriquecem o contexto técnico durante a criação de TechSpec e execução de tasks.
+Além das skills do DO Framework, você pode instalar skills específicas para a tecnologia e as práticas do seu projeto, pelo mesmo mecanismo de instalação. Elas enriquecem o contexto técnico durante a criação de TechSpec e a execução de tasks.
 
-Exemplos:
-
-```bash
-# Frontend / JavaScript
-npx skills add agentskills-io/javascript
-npx skills add agentskills-io/typescript
-npx skills add agentskills-io/react
-npx skills add agentskills-io/nextjs
-
-# Backend
-npx skills add agentskills-io/golang
-npx skills add agentskills-io/java
-npx skills add agentskills-io/python
-
-# Mobile
-npx skills add agentskills-io/flutter
-```
-
-> Procure skills disponíveis em [skills.sh](https://skills.sh). Após instalar, o `do-setup` detecta automaticamente quais são relevantes ao projeto e as registra no arquivo de configuração.
+> Procure skills disponíveis em [skills.sh](https://skills.sh). Nenhuma skill além das `do-*` é obrigatória: o framework funciona sem elas. Após instalar, o `do-setup` (ou `/do-setup refresh`) detecta quais são relevantes ao projeto e as registra no arquivo de configuração.
 
 ---
 
 ## Passo 1 — Configurar MCPs (opcional, mas recomendado)
 
-MCPs habilitam testes E2E automáticos. O mais comum é o Playwright (para browser):
+MCPs habilitam testes E2E automáticos e consulta a documentação. O framework os descobre pelas **capacidades** que oferecem (`ui-testing`, `api-testing`, `messaging`, `data-store`, `documentation`), sem depender de nenhum servidor específico.
 
-**Claude Code** — adicione ao `.mcp.json` na raiz do projeto:
+**Claude Code** — adicione ao `.mcp.json` na raiz do projeto (os valores entre `<>` vêm da documentação do MCP escolhido):
 
 ```json
 {
   "mcpServers": {
-    "playwright": {
+    "<nome-do-mcp>": {
       "type": "stdio",
-      "command": "npx",
-      "args": ["@playwright/mcp@latest"]
-    },
-    "context7": {
-      "type": "stdio",
-      "command": "npx",
-      "args": ["-y", "@upstash/context7-mcp@latest"]
+      "command": "<comando>",
+      "args": ["<argumentos>"]
     }
   }
 }
@@ -96,6 +73,14 @@ Rode **uma única vez** por projeto:
 
 Isso analisa o codebase, gera o arquivo de configuração do projeto (`CLAUDE.md`, `.cursorrules`, etc.) com contexto e convenções, e **instala os agents de orquestração** nos diretórios corretos da sua ferramenta de IA.
 
+O `do-setup` também **inventaria o que está instalado** e informa no relatório final:
+
+- **Skills** (além das `do-*`), detectadas pela lista da sua ferramenta e pelos diretórios de skills do projeto e globais;
+- **MCPs** configurados, com a capacidade de cada um (`ui-testing`, `documentation`, etc.);
+- **Lacunas**, por exemplo "sem MCP de browser: o E2E de frontend será pulado".
+
+O `do-setup` também registra os **comandos do próprio projeto** (instalar dependências, rodar testes, checagem estática, iniciar o serviço local) na seção `Project Commands`, lidos do que o projeto já declara; as skills de execução usam esses comandos em vez de presumir uma linguagem ou ferramenta. O resultado do inventário fica nas seções `Available Skills` e `Available MCPs` do arquivo de configuração. Nenhuma skill além das `do-*` é presumida: se não houver nenhuma, é só um aviso, não um erro. Durante a execução, as skills do framework consultam essas seções (e a lista nativa da ferramenta), leem as skills relevantes à tarefa e registram no review quais usaram.
+
 > **Opencode (apenas na 1ª execução):** o opencode **não reconhece skills via `/<skill>`** — então a *primeira* invocação do `do-setup` precisa ser em linguagem natural:
 > ```
 > Execute do-setup
@@ -107,6 +92,14 @@ Isso analisa o codebase, gera o arquivo de configuração do projeto (`CLAUDE.md
 > /do-setup agents
 > ```
 
+> Se instalou **novas skills ou MCPs depois do setup**, atualize só a lista registrada no arquivo de configuração com:
+> ```
+> /do-setup refresh
+> ```
+> Ele redetecta skills e MCPs e reescreve apenas as seções `Available Skills`, `Uncovered Skills` e `Available MCPs`, sem reanalisar o projeto nem reinstalar os agents. Exige que o setup completo já tenha sido feito.
+
+> **`CLAUDE.md` e `AGENTS.md` juntos:** se o projeto tiver os dois, o Claude Code lê só o `CLAUDE.md` e o Opencode lê o `AGENTS.md`, então as seções geradas pelo `do-setup` só chegam à ferramenta escolhida. O `do-setup` avisa disso e não altera o outro arquivo. Para unificar, mantenha o conteúdo no `AGENTS.md` e deixe no `CLAUDE.md` a linha `@AGENTS.md`.
+
 ---
 
 ## Passo 3 — Criar o PRD
@@ -114,7 +107,7 @@ Isso analisa o codebase, gera o arquivo de configuração do projeto (`CLAUDE.md
 Descreva a feature que você quer construir:
 
 ```
-/do-create-prd adicionar login com Google
+/do-create-prd adicionar autenticação de usuários
 # ou passando um arquivo de contexto:
 /do-create-prd adicionar <arquivo>
 ```
@@ -122,7 +115,7 @@ Descreva a feature que você quer construir:
 A skill vai fazer algumas perguntas para entender o problema, objetivos e flows. Ao final, gera:
 
 ```
-./prds/prd-login-google/prd.md
+./prds/prd-autenticacao-usuarios/prd.md
 ```
 
 ---
@@ -135,10 +128,10 @@ Com o PRD pronto, defina como implementar:
 /do-create-techspec <prd>
 ```
 
-A skill pesquisa documentação oficial (via Context7 MCP), explora o codebase e faz perguntas técnicas. Ao final, gera:
+A skill pesquisa documentação oficial (via MCP de documentação, se disponível), explora o codebase e faz perguntas técnicas. Ao final, gera:
 
 ```
-./prds/prd-login-google/techspec.md
+./prds/prd-autenticacao-usuarios/techspec.md
 ```
 
 ---
@@ -154,9 +147,9 @@ Com o TechSpec pronto, quebre o trabalho em tasks executáveis:
 A skill apresenta uma lista de tasks para você aprovar antes de detalhar. Ao final, gera:
 
 ```
-./prds/prd-login-google/tasks/tasks.md
-./prds/prd-login-google/tasks/1_task.md
-./prds/prd-login-google/tasks/2_task.md
+./prds/prd-autenticacao-usuarios/tasks/tasks.md
+./prds/prd-autenticacao-usuarios/tasks/1_task.md
+./prds/prd-autenticacao-usuarios/tasks/2_task.md
 ...
 ```
 
@@ -180,14 +173,14 @@ Execute cada task em ordem:
 Use o slash command `/do-execute-all-tasks` (a orquestração roda no agente primário da sessão e delega cada task ao subagente `agent-execute-task`) para executar um conjunto de tasks sequencialmente sem intervenção:
 
 ```
-/do-execute-all-tasks prds/prd-login-google/tasks/tasks.md all
+/do-execute-all-tasks prds/prd-autenticacao-usuarios/tasks/tasks.md all
 ```
 
 Você também pode executar um range ou uma lista específica:
 
 ```
-/do-execute-all-tasks prds/prd-login-google/tasks/tasks.md 1.0-4.0
-/do-execute-all-tasks prds/prd-login-google/tasks/tasks.md 1.0,3.0,5.0
+/do-execute-all-tasks prds/prd-autenticacao-usuarios/tasks/tasks.md 1.0-4.0
+/do-execute-all-tasks prds/prd-autenticacao-usuarios/tasks/tasks.md 1.0,3.0,5.0
 ```
 
 > Executa **uma task por vez, estritamente sequencial** (nunca em paralelo — tasks do mesmo PRD editam os mesmos arquivos e o mesmo `tasks.md`), delegando cada execução a um subagente isolado (`agent-execute-task`) — isso evita estouro da janela de contexto em filas longas. Para automaticamente em caso de falha. Disponível no Claude Code, Cursor, GitHub Copilot e Opencode após o `do-setup`.
@@ -223,6 +216,8 @@ Se o resultado for `NEEDS_REVISION` ou `REJECTED`, corrija os findings e repita:
 
 Repita até o status ser `APPROVED`.
 
+> **Cada rodada tem a sua pasta.** Cada execução do `do-execute-review` grava em `prds/prd-<slug>/review-1/`, `review-2/`, … (relatório em `review-N/review-report.md` e fix tasks em `review-N/fixes/`), então rodar o review de novo nunca sobrescreve o anterior. O `do-execute-review-fix` descobre a rodada pelo caminho do fix task que você passa, e o relatório novo lista os itens que ainda estavam pendentes na rodada anterior. PRDs antigos, com `review-report.md` solto na raiz, continuam funcionando.
+
 ---
 
 ## Passo 8 — QA (loop até zero bugs HIGH)
@@ -241,6 +236,8 @@ Se bugs forem encontrados, corrija e revalide:
 ```
 
 Repita até não restar nenhum bug de severidade HIGH. Feature pronta!
+
+> **Mesma lógica no QA:** cada `do-execute-qa` cria `qa-1/`, `qa-2/`, … com `qa-report.md`, `bugs/` e `screenshots/` da rodada. O `do-execute-qa-bugfix` usa o caminho do bug (`qa-N/bugs/bug-....md`) para saber em que rodada trabalhar, e o relatório da rodada nova traz os bugs ainda abertos da anterior.
 
 ---
 

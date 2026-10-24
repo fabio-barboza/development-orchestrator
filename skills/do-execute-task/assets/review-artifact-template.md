@@ -41,11 +41,16 @@
 | Padrão | Status |
 |--------|--------|
 | Padrões de Código | [✅ / ⚠️ / ❌] |
-| Linguagem/Runtime | [✅ / ⚠️ / ❌] |
-| REST/HTTP | [✅ / ⚠️ / ❌] (se aplicável) |
+| Convenções da linguagem do projeto | [✅ / ⚠️ / ❌] |
+| Contratos de interface (APIs, mensagens) | [✅ / ⚠️ / ❌] (se aplicável) |
 | Logging | [✅ / ⚠️ / ❌] (se aplicável) |
-| Framework UI | [✅ / ⚠️ / ❌] (se aplicável) |
+| Interface de usuário | [✅ / ⚠️ / ❌] (se aplicável) |
 | Testes | [✅ / ⚠️ / ❌] |
+
+## Skills e MCPs do Projeto
+
+Skills do projeto: [lidas: nomes | nenhuma aplicável | nenhuma instalada]
+MCPs do projeto: [usados: nome (capacidade) | nenhum necessário | lacuna: capacidade não disponível]
 
 ## Recomendações
 

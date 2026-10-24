@@ -26,13 +26,15 @@ Se faltar qualquer informação, **HALT** com erro claro — não pergunte ao us
 1. Localize o arquivo da skill `do-execute-task` (caminho típico: `.agents/skills/do-execute-task/SKILL.md`, `.cursor/skills/do-execute-task/SKILL.md` ou `.cursor/rules/do-execute-task/SKILL.md`) com `file_search`.
 2. Leia o arquivo na íntegra com `read_file`.
 
+Os arquivos `do-shared/...` citados na skill ficam no diretório de skills, ao lado de `do-execute-task` (a pasta pai dela), e não na raiz do projeto nem na pasta do PRD. Leia-os pelo caminho completo: buscas por glob ignoram diretórios ocultos como `.agents/` e podem retornar vazio mesmo com o arquivo presente.
+
 ### 2. Executar a skill rigorosamente para a task indicada
 
 Siga **na íntegra** o procedimento descrito no `SKILL.md`, sem atalhos. A skill cobre:
 
 - Detecção do ambiente AI tool (Step 0)
 - Pre-Task Configuration: leitura do task file, PRD, TechSpec e `tasks.md` (Step 1)
-- Carga de skills auxiliares (Step 2)
+- Carga das skills e MCPs do projeto (Step 2), conforme `do-shared/references/do-project-context.md` — usa só o que estiver instalado, sem assumir nenhuma skill específica
 - Análise interna da task (Step 3)
 - Implementação (Step 4)
 - Gate de testes "ALL TESTS MUST PASS" (Step 4B)

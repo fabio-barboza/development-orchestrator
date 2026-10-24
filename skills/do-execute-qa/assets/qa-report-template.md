@@ -25,5 +25,11 @@
 |----|-----------|------------|------------|
 | BUG-01 | [descrição] | Alta/Média/Baixa | [link] |
 
+## Pendências da Rodada Anterior
+[Bugs `aberto`/`novo` da rodada anterior (ID, severidade, resumo, rodada de origem, situação: persiste / não reproduzido). Se não houver: "Nenhuma pendência da rodada anterior."]
+
+## Skills do Projeto
+- [lidas: nomes | nenhuma aplicável | nenhuma instalada]
+
 ## Conclusão
 [Parecer final do QA]

@@ -1,6 +1,6 @@
 ---
 name: do-execute-review-fix
-description: "Recebe o caminho de um arquivo de fix task em review-fixes/ (ex: review-fixes/fix-R01-critico-senha.md), implementa a correção, roda a suite de testes e atualiza o status do arquivo. Use quando do-execute-review gerou arquivos de fix task e o usuário quiser resolver um problema específico. Não use para correções em lote — invoque uma vez por arquivo. Não use para QA, correção de bugs de QA (use do-execute-qa-bugfix) ou implementação de novas features."
+description: "Recebe o caminho de um arquivo de fix task em review-[N]/fixes/ (ex: review-1/fixes/fix-R01-critico-senha.md), implementa a correção, roda a suite de testes e atualiza o status do arquivo. Use quando do-execute-review gerou arquivos de fix task e o usuário quiser resolver um problema específico. Não use para correções em lote — invoque uma vez por arquivo. Não use para QA, correção de bugs de QA (use do-execute-qa-bugfix) ou implementação de novas features."
 ---
 
 # Review Fix Execution
@@ -39,9 +39,9 @@ All files you create, read or execute MUST live **inside the project root**. Fil
 ## Invocation
 This skill fixes **one finding at a time**. The user must provide the path to the specific fix task file:
 ```
-do-execute-review-fix ./prds/prd-[feature-slug]/review-fixes/fix-[R-XX]-[severidade]-[slug].md
+do-execute-review-fix ./prds/prd-[feature-slug]/review-[N]/fixes/fix-[R-XX]-[severidade]-[slug].md
 ```
-If no file path is provided, list all `pendente` fix task files in `review-fixes/` and ask the user which one to fix.
+If no file path is provided, list all `pendente` fix task files of the most recent review round (and of the legacy `review-fixes/`, if any) as described in `do-shared/references/do-run-folders.md` and ask the user which one to fix.
 
 ## Procedures
 
@@ -54,15 +54,17 @@ Before anything else, determine the execution environment:
 5. Resolve available tools based on environment:
    - **TaskUpdate**: available in Claude Code; in Copilot, Cursor, and Opencode, skip gracefully
 
-Skill assets/references are loaded via your AI tool's native skill resolver — do not hard-code paths. Store the detected tool and capability flags internally.
+Skill assets/references are loaded via your AI tool's native skill resolver — do not hard-code paths. Paths like `do-shared/...` are relative to the skills directory (the parent folder of this skill, e.g. `.agents/skills/`), not the project root; glob tools skip hidden directories such as `.agents/`, so read these files by their full path (see `do-shared/references/do-project-context.md`). Store the detected tool and capability flags internally.
 
 **Step 1: Context Analysis (Mandatory)**
 1. Read the fix task file provided by the user. If the file does not exist, halt and report.
 2. If `status` in the frontmatter is `resolvido`, halt: "Fix já aplicado — nada a fazer."
 3. Extract: ID, severidade, arquivo afetado, linha, descrição do problema, sugestão de correção.
-4. Read `./prds/prd-[feature-slug]/review-report.md` for additional context on the finding.
+4. Read the round's `review-report.md` (`<review-dir>/review-report.md`, see item 8) for additional context on the finding.
 5. Read `./prds/prd-[feature-slug]/prd.md` and `./prds/prd-[feature-slug]/techspec.md` for context.
-6. Read the project configuration file (CLAUDE.md, .github/copilot-instructions.md, or .cursor/rules/project.mdc) for project conventions.
+6. Read the project configuration file (CLAUDE.md, AGENTS.md, .github/copilot-instructions.md, or .cursor/rules/project.mdc) for project conventions.
+7. Load the project skills relevant to the affected file by following `do-shared/references/do-project-context.md` (Skills procedure); no specific skill is assumed to exist.
+8. **Resolve the review round from the fix file path** following `do-shared/references/do-run-folders.md`: `<review-dir>` is the folder that contains `fixes/` (`review-[N]`), or the PRD root for a legacy `review-fixes/` file. The report read and updated by this fix is that round's `review-report.md`.
 
 **Step 2: Plan Fix (INTERNAL — do NOT output as standalone message)**
 1. Identify affected files and determine root cause from the fix task description.
@@ -70,14 +72,14 @@ Skill assets/references are loaded via your AI tool's native skill resolver — 
 3. **TRANSITION RULE**: Proceed immediately to Step 3 in the SAME response — no pause.
 
 **Step 3: Implement Fix (starts immediately after Step 2 — no pause, no confirmation)**
-1. Detect package manager from lock files (`bun.lockb` → bun, `pnpm-lock.yaml` → pnpm, `package-lock.json` → npm, default: `npm`).
+1. Resolve the project's commands (test suite, static checks) following `do-shared/references/do-project-commands.md`; never assume a language, package manager or tool.
 2. Read the affected file(s) completely.
 3. Implement the root-cause fix — no superficial workarounds.
-4. Run `typecheck` if it exists in `package.json`.
+4. If the project defines static checks (type checking, lint, formatting), run them.
 5. **Iteration limit**: Maximum 3 fix-and-test cycles per finding. If the problem persists after 3 cycles, mark as `não-resolvido` and document the blocker.
 
 **Step 4: Run Full Test Suite (Mandatory Gate)**
-1. Run all tests using the detected package manager (e.g., `npm test`).
+1. Run all tests with the resolved test command.
 2. If all tests pass → proceed to Step 5.
 3. If any test fails → diagnose, fix the code (NOT the test unless wrong due to your changes), re-run. Maximum 5 fix-and-retest cycles.
 4. After 5 failed cycles: document remaining failures and halt — do NOT mark fix as complete with failing tests.
@@ -100,14 +102,14 @@ Skill assets/references are loaded via your AI tool's native skill resolver — 
    - Call `read_file` on the fix task file to confirm `status` was updated.
    - Call `read_file` on `review-report.md` to confirm the finding entry was updated.
 3. Inform the user: finding fixed (or blocked) and tests passing.
-4. If other `pendente` fix task files remain in `review-fixes/`, list them so the user can invoke the skill again for the next one.
+4. If other `pendente` fix task files remain in the same round's `fixes/` folder, list them so the user can invoke the skill again for the next one.
 5. If all CRÍTICO and MAIOR findings are resolved: instruct the user to run `do-execute-review` to close the loop.
 
 ## Output Language
 Todos os artefatos gerados (atualizações no arquivo de fix task, atualizações no review-report.md) devem ser escritos em Português do Brasil (PT-BR). Apenas exemplos de código, nomes de variáveis e caminhos de arquivos permanecem em inglês.
 
 ## Error Handling
-- If no file path is provided, list all `pendente` fix task files in `review-fixes/` and ask the user which one to fix.
+- If no file path is provided, list all `pendente` fix task files of the most recent review round (and of the legacy `review-fixes/`, if any) as described in `do-shared/references/do-run-folders.md` and ask the user which one to fix.
 - If the fix task file does not exist, halt and report.
 - If status is already `resolvido`, halt: nothing to do.
 - If `review-report.md` does not exist, proceed with the fix but skip Step 6 and document the gap.
@@ -116,7 +118,8 @@ Todos os artefatos gerados (atualizações no arquivo de fix task, atualizaçõe
 - If an Edit tool call fails, follow the Edit Failure Recovery escalation ladder above.
 
 ## References
-- Fix task file (input): `./prds/prd-[feature-slug]/review-fixes/fix-[R-XX]-[severidade-completa]-[slug].md`
-- Review Report: `./prds/prd-[feature-slug]/review-report.md`
+- Round folders: `do-shared/references/do-run-folders.md`
+- Fix task file (input): `./prds/prd-[feature-slug]/review-[N]/fixes/fix-[R-XX]-[severidade-completa]-[slug].md`
+- Review Report: `./prds/prd-[feature-slug]/review-[N]/review-report.md` (same round as the fix file)
 - PRD: `./prds/prd-[feature-slug]/prd.md`
 - TechSpec: `./prds/prd-[feature-slug]/techspec.md`
