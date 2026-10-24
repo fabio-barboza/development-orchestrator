@@ -44,7 +44,8 @@ Skill assets/references are loaded via your AI tool's native skill resolver — 
 **Step 3: Generate High-Level Task List (Mandatory)**
 1. Present the high-level task list to the user for approval BEFORE generating any files.
 2. Organize tasks by logical deliverable.
-3. Order tasks logically: dependencies before dependents (e.g., foundations before the features that use them, all of them before E2E tests).
+3. Order tasks logically: dependencies before dependents (e.g., foundations before the features that use them).
+   **Do NOT create an end-to-end or acceptance-validation task** (neither a final one nor one per area): validating the whole feature end to end through the available MCPs belongs to `do-execute-qa`, which documents bugs and hands them to `do-execute-qa-bugfix`. A task validates only its own deliverable, with unit and integration tests and, when it delivers something visible or a service, a smoke check.
 4. Each task MUST be a functional, incremental deliverable.
 5. Each task MUST have its own set of unit and integration tests.
 6. **No task-count limit**: create as many tasks as the PRD and Tech Spec actually require. Never merge unrelated work or drop scope just to reduce the count.

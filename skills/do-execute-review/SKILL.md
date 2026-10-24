@@ -86,22 +86,16 @@ Skill assets/references are loaded via your AI tool's native skill resolver — 
    - Task tests were implemented.
 
 **Step 6: Test Execution (Mandatory)**
-1. Resolve the project's commands (test suite, static checks, local service start) following `do-shared/references/do-project-commands.md`; never assume a language, package manager or tool.
+1. Resolve the project's commands (test suite, static checks) following `do-shared/references/do-project-commands.md`; never assume a language, package manager or tool.
 2. Run the test suite with the resolved test command.
-3. **Service readiness — MANDATORY before any MCP/E2E that depends on a running service**: Follow the procedure at `do-shared/references/do-service-readiness.md`. Probe each required service (the application under test, an API, a broker, a data store) first; reuse it if already running; start only the project's own services with its local start command if missing; document gaps for external services. **Never kill a running service.** If a service fails to start, document the failure in the review report as a critical finding and skip the dependent E2E.
-4. **E2E tests via MCP**: Execute the MCP discovery procedure at `do-shared/references/do-mcp-discovery-instructions.md` — list the MCP servers (names and type only — never print or read the whole configuration file, see the security rule in `do-shared/references/do-mcp-discovery-instructions.md`) from the MCP configuration file for the current AI tool (`.mcp.json` for Claude Code, `.vscode/mcp.json` for GitHub Copilot, `.cursor/mcp.json` for Cursor, `opencode.json` for Opencode) and classify each server using the capability catalog at `do-shared/references/do-mcp-capabilities.md` to build the capability map. Apply the capability guard:
-   - **Scope of the E2E in a review: a smoke check, not QA.** Run at most the main happy-path flow of the changed feature (one flow per capability), plus only what is strictly needed to confirm or refute a finding you already derived from reading the code. Do NOT test responsiveness at several viewports, accessibility, every error state, retry or geolocation permutations, and do NOT investigate runtime root causes in the browser (computed sizes, culprit elements, network traces beyond one request). Anything beyond the smoke check is recorded as a recommendation to run `do-execute-qa`.
-   - Changes to a user interface + `ui-testing` MCP → run UI E2E via MCP tools. If the MCP is unavailable, document the E2E gap in the review report — do NOT use CLI fallback.
-     **Visual evidence goes in the round folder, never in the project root:** run `mkdir -p ./<review-dir>/screenshots` first and ALWAYS pass the full relative path in the screenshot tool's `filename` parameter (e.g. `<review-dir>/screenshots/<description>.png`). Capture evidence only for findings or for a screen you cite in the report; a clean flow does not need one. Reference the screenshot path in the finding. Throwaway captures go in `./.do-tmp/review/`.
-   - Changes to a service + service-capable MCP (`api-testing`, `messaging`, `data-store`) → run service E2E via MCP tools.
-   - Changes type + no relevant MCP → skip E2E, document gap in review report.
-5. If the project defines static checks (type checking, lint, formatting), run them. Otherwise, skip.
-6. Verify:
+3. **No end-to-end tests in the review.** Running the feature end to end (UI or service, through MCP) belongs to `do-execute-qa`; the review judges the code and runs the project's own test suite. If a finding can only be confirmed by running the feature, record it as a recommendation to run `do-execute-qa`. Never start services or browsers in a review.
+4. If the project defines static checks (type checking, lint, formatting), run them. Otherwise, skip.
+5. Verify:
    - All tests pass.
    - New tests added for new code.
    - Coverage did not decrease.
    - Tests are meaningful (not just for coverage).
-7. The review CANNOT be approved if any test fails.
+6. The review CANNOT be approved if any test fails.
 
 **Step 7: Code Quality Analysis (Mandatory)**
 1. Read the code quality checklist at `do-execute-review/references/code-quality-checklist.md`.
@@ -144,8 +138,6 @@ Todos os artefatos gerados (relatório de review, arquivos de tarefa de correç�
 - If git is not initialized, fall back to manual file listing and document this in the report.
 - If tests fail, the review status MUST be REPROVADO regardless of other findings.
 - If PRD/TechSpec/tasks.md are missing, proceed with the review but document the missing context in the report.
-- If a configured MCP is unavailable at runtime, follow the "Se indisponível" handling of its capability in the catalog. Do NOT use CLI fallback — document the E2E gap in the review report instead.
-- If an MCP requires a running service that is not up, apply `do-shared/references/do-service-readiness.md` — probe first, reuse if running, start only the project's own services, document gaps for external services. Never kill a running service.
 - Check if there are files that SHOULD have been modified but were not.
 - Be constructive in criticism — always suggest alternatives.
 
@@ -155,7 +147,6 @@ Todos os artefatos gerados (relatório de review, arquivos de tarefa de correç�
 - Code quality checklist: `do-execute-review/references/code-quality-checklist.md`
 - MCP Discovery: `do-shared/references/do-mcp-discovery-instructions.md`
 - MCP Registry: `do-shared/references/do-mcp-capabilities.md`
-- Service Readiness: `do-shared/references/do-service-readiness.md`
 - PRD: `./prds/prd-[feature-slug]/prd.md`
 - TechSpec: `./prds/prd-[feature-slug]/techspec.md`
 - Tasks: `./prds/prd-[feature-slug]/tasks/tasks.md`

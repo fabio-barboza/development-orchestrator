@@ -70,11 +70,9 @@ interface NomeServico {
 - Componentes a testar juntos
 - Requisitos de dados de teste]
 
-### Testes de E2E
+### Cenários de Aceite
 
-[Se necessário, descreva testes E2E:
-
-- Descreva como validar o fluxo completo de ponta a ponta, usando as capacidades de teste disponíveis no projeto]
+[Se necessário, liste os fluxos de ponta a ponta que a funcionalidade deve cumprir. Eles são validados depois pelo `do-execute-qa` com as capacidades de teste disponíveis no projeto; não viram tarefas.]
 
 ## Sequenciamento de Desenvolvimento
 

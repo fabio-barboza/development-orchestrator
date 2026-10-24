@@ -9,7 +9,6 @@ Procedimento padrão referenciado por `do-execute-review`, `do-execute-review-fi
   review-1/
     review-report.md
     fixes/fix-[R-XX]-[severidade-completa]-[slug].md
-    screenshots/
   review-2/
     ...
   qa-1/

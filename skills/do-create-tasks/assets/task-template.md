@@ -31,7 +31,7 @@
 
 - [ ] Testes de unidade
 - [ ] Testes de integração
-- [ ] Testes E2E (se aplicável)
+- [ ] Teste de fumaça do que a tarefa entrega (somente se entregar interface ou serviço; omitir caso contrário)
 
 <critical>SEMPRE CRIE E EXECUTE OS TESTES DA TAREFA ANTES DE CONSIDERÁ-LA FINALIZADA</critical>
 

@@ -15,7 +15,7 @@ O DO Framework elimina trabalho manual e garante qualidade consistente ao automa
 | **Planejamento**      | PRDs padronizados, critérios claros, sem ambiguidades                     |
 | **Arquitetura**       | TechSpecs profundas com pesquisa automática em documentação oficial       |
 | **Decomposição**      | Tasks atômicas e testáveis, ordenadas por dependência                     |
-| **Execução**          | Implementação com testes E2E via MCP, review automático                   |
+| **Execução**          | Implementação com testes de unidade e integração (e fumaça via MCP), review automático |
 | **Review**            | Gate de qualidade com correção autônoma de findings antes do QA           |
 | **QA**                | Validação sistemática, screenshots como evidência, bugs documentados      |
 | **Bugfix**            | Correção com testes de regressão, priorizada por severidade               |
@@ -68,7 +68,7 @@ Este comando irá:
                     │                                             │
                    ◀│◀   do-execute-task [num]                    │
 tasks.md            │   - Implementação + tests                   │
-[N tasks]  ────────▶│   - E2E via MCP se aplicável                │
+[N tasks]  ────────▶│   - fumaça via MCP se aplicável             │
 (sequencial)        │   - Gera [num]_task_review.md               │
                     │   - Marca task como [x] em tasks.md         │
                     └─────────────────────────────────────────────┘
@@ -89,7 +89,7 @@ tasks.md            │   - Implementação + tests                   │
 │   │  - Conformidade com  │                                                  │
 │   │    TechSpec          │                                                  │
 │   │  - Suite de testes   │                                                  │
-│   │  - E2E via MCP       │──────────────┐                                   │
+│   │  - Sem E2E (é do QA) │──────────────┐                                   │
 │   │  - Padrões de código │              │                                   │
 │   └──────────┬───────────┘              │                                   │
 │              │                          │                                   │
@@ -245,7 +245,7 @@ PLANEJAMENTO       EXECUÇÃO           REVIEW GERAL      VALIDAÇÃO
 1. Le PRD, TechSpec, tasks.md e `[num]_task.md`
 2. **MCP Discovery**: Descobre quais MCPs estão configurados e aplicável
 3. Implementa com testes unit/integration
-4. **E2E via MCP**: Roda testes E2E usando as tools dos MCPs disponíveis, conforme a capacidade (`ui-testing`, `api-testing`, `messaging`, `data-store`)
+4. **Teste de fumaça via MCP**: Valida só o fluxo principal do que a task entregou, usando as tools dos MCPs disponíveis, conforme a capacidade (`ui-testing`, `api-testing`, `messaging`, `data-store`). O E2E completo fica no `do-execute-qa`
 5. Code review automático contra checklist de padrões
 6. Marca task como `[x]` em `tasks.md`
 7. **Cria review artifact obrigatório**
@@ -269,7 +269,7 @@ PLANEJAMENTO       EXECUÇÃO           REVIEW GERAL      VALIDAÇÃO
 1. Le git diff ou lista manual de files modified durante as tasks
 2. Verifica conformidade com TechSpec e padrões de código do projeto
 3. Roda test suite completa (unit, integration, typecheck)
-4. **E2E via MCP**: Valida features com interface ou serviço conforme os MCPs disponíveis
+4. **Sem E2E**: o review julga o código e roda a suíte do projeto; o E2E é do `do-execute-qa`
 5. Classifica issues: CRITICAL / MAJOR / MINOR / POSITIVE / **DESVIO JUSTIFICADO** (divergência técnica válida da TechSpec — não reprova, mas recomenda atualizar a TechSpec)
 6. Gera review report com status final
 
