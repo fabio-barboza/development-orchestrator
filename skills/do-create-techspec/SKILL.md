@@ -1,6 +1,6 @@
 ---
 name: do-create-techspec
-description: Creates Technical Specifications from existing PRDs, translating product requirements into architectural decisions and implementation guidance. Performs deep project analysis, uses a documentation MCP when available (otherwise Web Search) for technical research and Web Search for business rules. Use when the user asks to create a tech spec, define architecture, or plan implementation for a feature with an existing PRD. Do not use for PRD creation, task breakdowns, or direct code implementation.
+description: Creates a Technical Specification from an existing PRD: deep project analysis, technical research (documentation MCP when available, otherwise Web Search), clarifying questions, then the architecture and implementation guidance. Use to create a tech spec or define architecture for a feature with a PRD. Not for PRDs, task breakdowns or code implementation.
 ---
 
 # Tech Spec Creation
@@ -21,10 +21,8 @@ You are a senior software architect specialized in translating product requireme
 
 **Step 0: Detect AI Tool Environment**
 Before anything else, determine the execution environment:
-1. Check for `.claude/` directory in the project root -> **Claude Code**
-2. Check for `.github/copilot-instructions.md`, `.github/agents/` or `.github/prompts/` (a bare `.github/` with only workflows does NOT indicate Copilot) -> **GitHub Copilot**
-3. Check for `.cursor/rules/` or `.cursor/mcp.json` -> **Cursor AI**
-4. Check for `opencode.json`, `.opencode/` directory, or `AGENTS.md` -> **Opencode**
+1. Identify the AI tool you are running in — you know whether you are Claude Code, GitHub Copilot, Cursor AI or Opencode. Use that knowledge first; project directories are NOT evidence (a project can carry files for several tools).
+2. Only if you cannot tell, fall back to project markers: `.claude/` → **Claude Code**; `.github/copilot-instructions.md`, `.github/agents/` or `.github/prompts/` (a bare `.github/` with only workflows does NOT indicate Copilot) → **GitHub Copilot**; `.cursor/rules/` or `.cursor/mcp.json` → **Cursor AI**; `opencode.json`, `.opencode/` or `AGENTS.md` → **Opencode**. If several match, prefer the tool whose agent/command files are installed and whose tools you actually have.
 5. Resolve available tools based on environment:
    - **AskUserQuestion**: use in all environments.
    - **TaskUpdate**: available in Claude Code; in Copilot, Cursor, and Opencode, skip gracefully

@@ -87,7 +87,7 @@ tasks.md            │   - Implementação + tests                   │
 │   │  - Padrões de código │              │                                   │
 │   └──────────┬───────────┘              │                                   │
 │              │                          │                                   │
-│  (NEEDS_REVISION / REJECTED)            │ (APPROVED)                        │
+│  (REPROVADO / COM RESSALVAS)            │ (APROVADO)                        │
 │              ▼                          │                                   │
 │   ┌──────────────────────┐              │                                   │
 │   │ do-execute-review-fix│              │                                   │
@@ -99,7 +99,7 @@ tasks.md            │   - Implementação + tests                   │
 │   └──────────┬───────────┘              │                                   │
 │              │                          │                                   │
 │              └──▶ (repetir review) ◀────┘                                   │
-│                   até APPROVED                                              │
+│                   até APROVADO                                               │
 └─────────────────────────────────────────────────────────────────────────────┘
                                     │
                           (review aprovado)
@@ -171,7 +171,7 @@ PLANEJAMENTO       EXECUÇÃO           REVIEW GERAL      VALIDAÇÃO
 
 **Argumento opcional:** `/do-setup agents` — pula a análise do projeto e instala apenas os agents/commands (útil quando o setup já foi feito anteriormente)
 
-**Argumento opcional:** `/do-setup refresh` — redetecta as skills e os MCPs instalados (depois de instalar novos) e atualiza só as seções `Available Skills`, `Uncovered Skills` e `Available MCPs` do arquivo de configuração. O `do-setup` também **informa** no relatório final as skills e MCPs detectados e as lacunas (por exemplo, sem MCP de browser o E2E de frontend é pulado). Nenhuma skill além das `do-*` é presumida: se não houver nenhuma, o resultado é só um aviso.
+**Argumento opcional:** `/do-setup refresh` — redetecta as skills e os MCPs instalados (depois de instalar novos) e atualiza só as seções `Available Skills`, `Uncovered Skills` e `Available MCPs` do arquivo de configuração. O `do-setup` também **informa** no relatório final as skills e MCPs detectados e as lacunas (por exemplo, sem MCP de interface o E2E de interface é pulado). Nenhuma skill além das `do-*` é presumida: se não houver nenhuma, o resultado é só um aviso.
 
 > **Opencode (apenas na 1ª execução):** ao contrário das outras ferramentas (Claude Code, Cursor, GitHub Copilot), o opencode **não reconhece skills via `/<skill>`**. Por isso, a *primeira* invocação do `do-setup` precisa ser feita em linguagem natural:
 > ```
@@ -263,23 +263,23 @@ PLANEJAMENTO       EXECUÇÃO           REVIEW GERAL      VALIDAÇÃO
 1. Le git diff ou lista manual de files modified durante as tasks
 2. Verifica conformidade com TechSpec e padrões de código do projeto
 3. Roda test suite completa (unit, integration, typecheck)
-4. **E2E via MCP**: Valida features frontend/backend conforme MCPs disponíveis
+4. **E2E via MCP**: Valida features com interface ou serviço conforme os MCPs disponíveis
 5. Classifica issues: CRITICAL / MAJOR / MINOR / POSITIVE / **DESVIO JUSTIFICADO** (divergência técnica válida da TechSpec — não reprova, mas recomenda atualizar a TechSpec)
 6. Gera review report com status final
 
 **Loop de Correção:**
-- Se status = **NEEDS_REVISION** ou **REJECTED**: rodar `do-execute-review-fix` → depois `do-execute-review` novamente
-- Se status = **APPROVED**: prossegue para FASE 4 (QA)
+- Se status = **REPROVADO** (ou **APROVADO COM RESSALVAS** com itens a corrigir): rodar `do-execute-review-fix` → depois `do-execute-review` novamente
+- Se status = **APROVADO**: prossegue para FASE 4 (QA)
 
 **Output:** `./prds/prd-[slug]/review-[N]/review-report.md` (uma pasta nova a cada rodada: `review-1/`, `review-2/`…), com os fix tasks em `review-[N]/fixes/`. O relatório inclui os itens ainda pendentes da rodada anterior.
 
-**Status:** ACCEPTED / NEEDS_REVISION / REJECTED
+**Status:** APROVADO / APROVADO COM RESSALVAS / REPROVADO
 
 ---
 
 ### `do-execute-review-fix` — Corrigir Findings do Code Review
 
-**Quando usar:** Após `do-execute-review` retornar NEEDS_REVISION ou REJECTED.
+**Quando usar:** Após `do-execute-review` retornar REPROVADO ou APROVADO COM RESSALVAS.
 
 **O que faz:**
 1. Recebe **um** fix task (`review-[N]/fixes/fix-R..md`) — invoque uma vez por arquivo, começando pelos críticos
@@ -310,7 +310,7 @@ PLANEJAMENTO       EXECUÇÃO           REVIEW GERAL      VALIDAÇÃO
 - `./prds/prd-[slug]/qa-[N]/bugs/bug-[XX]-....md` (se houver bugs) e `qa-[N]/screenshots/`
 - O relatório inclui os bugs ainda abertos da rodada anterior
 
-**Status:** APPROVED apenas se TODOS requisitos verificados e funcionando
+**Status:** APROVADO apenas se TODOS requisitos verificados e funcionando
 
 ---
 
@@ -515,7 +515,7 @@ O framework não exige nenhuma linguagem ou stack. O que você precisa:
 | TechSpec pronta, criar tasks | `do-create-tasks` | Não |
 | Verificar progresso / retomar trabalho | `do-status` | Não |
 | Implementar task específica | `do-execute-task 1` | Sim (por cada task) |
-| **Review geral (OBRIGATÓRIO antes do QA)** | `do-execute-review` | **Sim (até APPROVED)** |
+| **Review geral (OBRIGATÓRIO antes do QA)** | `do-execute-review` | **Sim (até APROVADO)** |
 | Corrigir findings do review | `do-execute-review-fix` | **Sim (com do-execute-review)** |
 | QA E2E da feature completa | `do-execute-qa` | Sim (com bugfix) |
 | Corrigir bugs encontrados no QA | `do-execute-qa-bugfix` | **Sim (até zero HIGH)** |
@@ -553,12 +553,12 @@ O framework não exige nenhuma linguagem ou stack. O que você precisa:
 /do-execute-task 3  # implementa + testa + review file
 ... (até todas tasks [x] em tasks.md)
 
-# FASE 3: CODE REVIEW GERAL (LOOP até APPROVED)
+# FASE 3: CODE REVIEW GERAL (LOOP até APROVADO)
 # ------------------------------------------------
 # 5. Review geral do PRD (OBRIGATÓRIO antes do QA)
 /do-execute-review projeto-exemplo
-> Status: NEEDS_REVISION / REJECTED? → /do-execute-review-fix projeto-exemplo → /do-execute-review projeto-exemplo
-> Status: APPROVED? → prossegue para QA
+> Status: REPROVADO / COM RESSALVAS? → /do-execute-review-fix projeto-exemplo → /do-execute-review projeto-exemplo
+> Status: APROVADO? → prossegue para QA
 
 # FASE 4: VALIDAÇÃO E2E + BUGFIX (LOOP até zero bugs HIGH)
 # ------------------------------------------------

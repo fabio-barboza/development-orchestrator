@@ -26,6 +26,12 @@ description: Shows current progress of a PRD — completed tasks, next pending t
 2. Flag any `[x]` task missing its review file as incomplete.
 3. If the next pending task is currently in progress, read `./prds/prd-[feature-slug]/tasks/[num]_task.md` to show subtask-level progress.
 
+**Step 3B: Review and QA Rounds (Optional)**
+Follow `do-shared/references/do-run-folders.md` (read only; never create or modify anything).
+1. In `./prds/prd-[feature-slug]/`, find the most recent `review-<N>/` and `qa-<N>/` folders (and, if present, the legacy `review-report.md` / `qa-report.md` at the PRD root).
+2. For each, read the `Status` line of its report and count the open items: `pendente` files in `fixes/` (review) and `aberto`/`novo` files in `bugs/` (QA).
+3. If neither exists, show "nenhum review/QA executado".
+
 **Step 4: Output Status Report**
 
 Produce a concise report in this format:
@@ -38,6 +44,9 @@ Progresso: X/Y tasks concluídas (Z%)
 ✅ Concluídas: 1, 2, 3
 ⏳ Próxima:    4 — [título da task]
 ⏸️  Pendentes: 5, 6, 7 ... Y
+
+🔍 Review: review-[N] — [status] — [X fixes pendentes]
+🧪 QA:     qa-[N] — [status] — [Y bugs abertos]
 
 ⚠️  Artefatos ausentes: [lista de tasks [x] sem review file, se houver]
 🚫 Bloqueios: [tasks com dependências não atendidas, se houver]
@@ -55,3 +64,4 @@ Report in Brazilian Portuguese (PT-BR).
 ## References
 - Tasks index: `./prds/prd-[feature-slug]/tasks/tasks.md`
 - Task files: `./prds/prd-[feature-slug]/tasks/[num]_task.md`
+- Review/QA rounds: `./prds/prd-[feature-slug]/review-[N]/`, `./prds/prd-[feature-slug]/qa-[N]/` (see `do-shared/references/do-run-folders.md`)

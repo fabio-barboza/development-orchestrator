@@ -50,10 +50,8 @@ If your context is compacted or summarized in the middle of the task (you can no
 ## Procedures
 
 **Step 0: Detect AI Tool Environment (execute silently)**
-1. Check for `.claude/` directory in the project root → **Claude Code**
-2. Check for `.github/copilot-instructions.md`, `.github/agents/` or `.github/prompts/` (a bare `.github/` with only workflows does NOT indicate Copilot) → **GitHub Copilot**
-3. Check for `.cursor/rules/` or `.cursor/mcp.json` → **Cursor AI**
-4. Check for `opencode.json`, `.opencode/` directory, or `AGENTS.md` → **Opencode**
+1. Identify the AI tool you are running in — you know whether you are Claude Code, GitHub Copilot, Cursor AI or Opencode. Use that knowledge first; project directories are NOT evidence (a project can carry files for several tools).
+2. Only if you cannot tell, fall back to project markers: `.claude/` → **Claude Code**; `.github/copilot-instructions.md`, `.github/agents/` or `.github/prompts/` (a bare `.github/` with only workflows does NOT indicate Copilot) → **GitHub Copilot**; `.cursor/rules/` or `.cursor/mcp.json` → **Cursor AI**; `opencode.json`, `.opencode/` or `AGENTS.md` → **Opencode**. If several match, prefer the tool whose agent/command files are installed and whose tools you actually have.
 5. Resolve available tools:
    - **TaskUpdate**: available in Claude Code; in Copilot, Cursor, and Opencode, skip gracefully
    - **Documentation MCP** (capability `documentation`): optional — use it only if discovered per `do-shared/references/do-mcp-discovery-instructions.md`; otherwise use Web Search or the codebase

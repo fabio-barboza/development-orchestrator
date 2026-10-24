@@ -77,7 +77,7 @@ O `do-setup` também **inventaria o que está instalado** e informa no relatóri
 
 - **Skills** (além das `do-*`), detectadas pela lista da sua ferramenta e pelos diretórios de skills do projeto e globais;
 - **MCPs** configurados, com a capacidade de cada um (`ui-testing`, `documentation`, etc.);
-- **Lacunas**, por exemplo "sem MCP de browser: o E2E de frontend será pulado".
+- **Lacunas**, por exemplo "sem MCP de interface: o E2E de interface será pulado".
 
 O `do-setup` também registra os **comandos do próprio projeto** (instalar dependências, rodar testes, checagem estática, iniciar o serviço local) na seção `Project Commands`, lidos do que o projeto já declara; as skills de execução usam esses comandos em vez de presumir uma linguagem ou ferramenta. O resultado do inventário fica nas seções `Available Skills` e `Available MCPs` do arquivo de configuração. Nenhuma skill além das `do-*` é presumida: se não houver nenhuma, é só um aviso, não um erro. Durante a execução, as skills do framework consultam essas seções (e a lista nativa da ferramenta), leem as skills relevantes à tarefa e registram no review quais usaram.
 
@@ -199,7 +199,7 @@ Se a execução ficar parada sem mensagem de erro, verifique se há um **pedido 
 
 ---
 
-## Passo 7 — Code Review (loop até APPROVED)
+## Passo 7 — Code Review (loop até APROVADO)
 
 Com todas as tasks concluídas, rode o review geral:
 
@@ -207,14 +207,14 @@ Com todas as tasks concluídas, rode o review geral:
 /do-execute-review <techspec>
 ```
 
-Se o resultado for `NEEDS_REVISION` ou `REJECTED`, corrija os findings e repita:
+Se o resultado for `REPROVADO` ou `APROVADO COM RESSALVAS` com itens pendentes, corrija os findings e repita:
 
 ```
 /do-execute-review-fix <tasks>
 /do-execute-review <tasks>
 ```
 
-Repita até o status ser `APPROVED`.
+Repita até o status ser `APROVADO` (ou `APROVADO COM RESSALVAS` sem itens que você queira corrigir).
 
 > **Cada rodada tem a sua pasta.** Cada execução do `do-execute-review` grava em `prds/prd-<slug>/review-1/`, `review-2/`, … (relatório em `review-N/review-report.md` e fix tasks em `review-N/fixes/`), então rodar o review de novo nunca sobrescreve o anterior. O `do-execute-review-fix` descobre a rodada pelo caminho do fix task que você passa, e o relatório novo lista os itens que ainda estavam pendentes na rodada anterior. PRDs antigos, com `review-report.md` solto na raiz, continuam funcionando.
 
@@ -284,7 +284,7 @@ instalar skills
   do-execute-task 1..N  (uma por vez)
       │
       ▼
-  do-execute-review  ──▶  do-execute-review-fix  ──▶  (repetir até APPROVED)
+  do-execute-review  ──▶  do-execute-review-fix  ──▶  (repetir até APROVADO)
       │
       ▼
   do-execute-qa  ──▶  do-execute-qa-bugfix  ──▶  (repetir até zero HIGH)
