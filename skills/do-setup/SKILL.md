@@ -101,7 +101,7 @@ For all tools: if the config file already exists, proceed to Step 2 without over
 
 **Step 2: Deep Project Analysis**
 1. Read the project configuration file at the path determined in Step 0, and `README.md` if it exists.
-2. List the project root and read the root-level files that declare dependencies, build, test and run commands, versions or infrastructure (manifests, build descriptors, task runners, container/orchestration files, version pins, compiler/type configuration) — whatever the project uses. Do not assume a particular language or tool: identify them from what is actually there.
+2. List the project root and read the root-level files that declare dependencies, build, test and run commands, versions or infrastructure (manifests, build descriptors, task runners, container/orchestration files, version pins, compiler/type configuration) — whatever the project uses. Do not assume a particular language or tool: identify them from what is actually there. **Never read the AI tool's own configuration files** (`opencode.json`, `.mcp.json`, `.vscode/mcp.json`, `.cursor/mcp.json`, the tool's settings files) **nor secret files** (`.env` and similar, key/credential files) in this step: they may hold credentials and are handled only by the MCP inventory in Step 3B, which extracts names only. An example file such as `.env.example` is fine.
 3. Scan directory structure recursively, ignoring:
    - What the project itself excludes (read its version-control ignore file): dependency directories, build outputs, caches and generated artifacts
    - Compiled and packaged artifacts, and binaries/media (images, documents, archives)
