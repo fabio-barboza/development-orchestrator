@@ -40,6 +40,17 @@ Regras:
 | data-store | Sim — o armazenamento precisa estar acessível | Reportar o erro, documentar a lacuna e continuar com testes unitários/integração |
 | documentation | Não | Prosseguir sem ele (busca na web ou leitura do código) |
 
+## Chamadas que terminam sempre
+
+Enquanto uma tool de MCP está rodando, você fica bloqueado: nenhuma regra escrita aqui será lida e ninguém interrompe a chamada por você. Uma espera que nunca termina trava a sessão inteira. Por isso, **quem escreve o código que a tool vai executar** (um script rodado dentro da página, uma expressão avaliada na interface, uma requisição montada à mão) é responsável por garanti-lo finito:
+
+1. **Toda espera tem limite.** Nunca aguarde um evento, uma resposta, um elemento ou uma promessa sem prazo. Envolva a espera numa corrida contra um temporizador curto (por exemplo, de 5 a 10 segundos) que rejeita ou devolve "expirou", e trate esse resultado.
+2. **Prefira a tool dedicada ao código livre.** Para esperar um texto, um elemento ou um tempo, use a tool de espera do MCP, que já tem prazo. Reserve o código livre para ler ou preparar o estado, e mantenha-o curto.
+3. **Sem laços sem saída.** Nenhum laço sem contador máximo; nenhum "aguarde até que" sem prazo.
+4. **Um passo por chamada.** Divida um roteiro longo em chamadas pequenas, cada uma devolvendo um resultado. Uma chamada que precisa de mais de cerca de 30 segundos está errada: divida-a.
+5. **Estado que o código altera é desfeito.** Se o código substituiu algo na página (um método do navegador, uma função global), restaure-o ou recarregue a página antes de seguir.
+6. **Chamada interrompida ou expirada: não repita o mesmo código.** Se a chamada foi interrompida pelo usuário, expirou ou nunca retornou, a causa está no código. Releia o que escreveu, encontre a espera sem limite, corrija e só então tente de novo; no máximo 2 tentativas do mesmo passo. Se persistir, registre a lacuna (`NÃO TESTADO`, com o motivo) e siga para o próximo item.
+
 Serviços externos (mensageria, armazenamento de dados, APIs de terceiros) nunca são iniciados automaticamente; apenas servidores de desenvolvimento do próprio projeto, conforme `do-service-readiness.md`.
 
 ## Como adicionar um novo MCP server

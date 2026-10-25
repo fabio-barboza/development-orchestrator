@@ -86,7 +86,8 @@ Skill assets/references are loaded via your AI tool's native skill resolver — 
 **Step 5: MCP Validation (Mandatory when applicable)**
 1. Execute the MCP discovery procedure at `do-shared/references/do-mcp-discovery-instructions.md`.
 2. For bugs affecting the **UI** (and `ui-testing` MCP available): run `mkdir -p ./<qa-dir>/screenshots` via Bash, then navigate, reproduce the fix flow, and capture screenshot evidence using `filename: <qa-dir>/screenshots/fix-[BUG-XX]-[slug].png`.
-3. For bugs affecting a **service** (and a service-capable MCP — `api-testing`, `messaging` or `data-store` — available): validate end-to-end via MCP tools.
+3. Any code you hand to an MCP tool (a script run in the page, an evaluated expression, a hand-built request) must terminate: bound every wait, never repeat an interrupted call unchanged. See "Chamadas que terminam sempre" in `do-shared/references/do-mcp-capabilities.md`.
+4. For bugs affecting a **service** (and a service-capable MCP — `api-testing`, `messaging` or `data-store` — available): validate end-to-end via MCP tools.
 4. If no relevant MCP available: document the validation gap in the bug file's `## Resolução` section (Step 7), rely on unit/integration tests only.
 
 **Step 6: Final Test Execution (Mandatory Gate)**

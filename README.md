@@ -318,6 +318,7 @@ PLANEJAMENTO       EXECUÇÃO           REVIEW GERAL      VALIDAÇÃO
 - `./prds/prd-[slug]/qa/qa-[N]/bugs/bug-[XX]-....md` (se houver bugs) e `qa/qa-[N]/screenshots/`
 - O relatório inclui os bugs ainda abertos da rodada anterior
 - Cada requisito leva um de quatro status conforme a evidência: `PASSOU` (visto rodando), `FALHOU`, `VERIFICADO NO CÓDIGO` (só leitura de código, nunca conta como aprovado) ou `NÃO TESTADO` (com o motivo e o que foi tentado). Antes de marcar não testado, o QA tenta o que a MCP de interface oferece (permissões, localização simulada, interceptar rede, rodar script na página)
+- Todo código entregue a uma tool de MCP (script na página, expressão avaliada) precisa terminar: esperas com prazo, um passo por chamada, e uma chamada interrompida nunca é repetida igual (regra em `do-mcp-capabilities.md`), porque o harness não impõe timeout e a sessão fica bloqueada
 - Ao terminar, encerra a árvore inteira de processos dos serviços que subiu (wrapper, supervisor e servidor), não só o que segura a porta
 
 **Status:** APROVADO apenas se TODOS requisitos verificados e funcionando
