@@ -88,7 +88,7 @@ Skill assets/references are loaded via your AI tool's native skill resolver — 
 3. Implement solutions without workarounds.
 4. Respect ALL `<critical>` tags identified in Step 3 — they are mandatory constraints, not suggestions.
 5. As you complete each subtask listed in the task file (X.1, X.2, etc.), mark it as `[x]` in the `[num]_task.md` file.
-6. Resolve the project's commands (test suite, static checks, local service start) following `do-shared/references/do-project-commands.md`; never assume a language, package manager or tool.
+6. Resolve the project's commands (test suite, static checks, local service start) following `do-shared/references/do-project-commands.md`; never assume a language, package manager or tool. If the project defines static checks, run them once **before changing any code** and record the baseline (files with errors and the error count); Step 4B and Step 6 compare against it.
 7. **MCP Discovery & E2E tests — WHEN TO RUN**: Execute the MCP discovery procedure at `do-shared/references/do-mcp-discovery-instructions.md`:
    a. List the MCP servers (names and type only — never print or read the whole configuration file, see the security rule in `do-shared/references/do-mcp-discovery-instructions.md`) from the MCP configuration file for the current AI tool (`.mcp.json` for Claude Code, `.vscode/mcp.json` for GitHub Copilot, `.cursor/mcp.json` for Cursor, `opencode.json` for Opencode) 
    b. Read the capability catalog at `do-shared/references/do-mcp-capabilities.md` and classify each server by what its tools do (never by the server's name).
@@ -110,7 +110,8 @@ Run the tests with the commands from `Project Commands`. Re-run only after a cod
 **A task with failing tests is NOT a completed task. This is an ABSOLUTE, NON-NEGOTIABLE rule.**
 
 1. After implementation, run the FULL test suite (unit, integration, and the project's static checks if it defines any), using the commands resolved in Step 4 item 6.
-2. If ALL tests pass → proceed to Step 5.
+   **Static checks gate**: any error in a file this task created or changed is yours and counts as a failure of this step, even when the cause is the project's configuration not recognizing what your code uses (for example a linter without the globals of the test framework): adjust the configuration as part of the task. An error may be called "pre-existing" only if it is in the baseline from Step 4 item 6 and in a file this task did not touch; list each such error in the review (Step 7). Running static checks only on your own files does not replace the full run.
+2. If ALL tests pass and the static checks show no error of yours → proceed to Step 5.
 3. If ANY test fails → **YOU ARE PROHIBITED FROM PROCEEDING TO STEP 5.** You MUST:
    a. Read the failing test output carefully. If the failure is that the project's dependencies are not installed, run the project's dependency install command once (see `do-shared/references/do-project-commands.md`, item 5) and re-run the suite instead of treating it as a code failure.
    b. Diagnose the root cause.
@@ -165,7 +166,7 @@ The ONLY permitted modification to `tasks.md` is changing `[ ]` to `[x]` for the
    - **MAIOR**: Violações de padrão de código, testes ausentes, nomenclatura incorreta.
    - **MENOR**: Sugestões de estilo, melhorias menores.
    - **POSITIVO**: Coisas bem feitas que merecem reconhecimento.
-5. Run the test suite and, if the project defines them, its static checks (commands from Step 4 item 6). Include any failures as critical issues.
+5. Run the test suite and, if the project defines them, its static checks (commands from Step 4 item 6). Include any failures as critical issues. Compare the static checks with the baseline from Step 4 item 6: a new error, or an error in a file this task created or changed, is a critical issue; a remaining baseline error is only an observation.
 6. Address any issues identified. **Iteration limit**: You may perform a maximum of 3 fix-and-review cycles. If critical issues persist after 3 cycles, mark as **MUDANÇAS SOLICITADAS** in Step 7.
 
 **Step 7: Create Review File (Mandatory)**
@@ -195,7 +196,7 @@ The ONLY permitted modification to `tasks.md` is changing `[ ]` to `[x]` for the
 
 Perform ALL checks below. If ANY fails, fix it first.
 
-1. **CHECK 1 — All tests pass**: Confirm that the last test run had ALL tests passing (zero failures). If tests were not run or any test failed → **STOP. Go back to Step 4B. You CANNOT mark the task as complete with failing tests.**
+1. **CHECK 1 — All tests pass**: Confirm that the last test run had ALL tests passing (zero failures) and, if the project defines static checks, that the last full run shows no error in a file this task created or changed. If tests were not run or any test failed → **STOP. Go back to Step 4B. You CANNOT mark the task as complete with failing tests.**
 
 2. **CHECK 2 — Review file exists**: Call `read_file` on `./prds/prd-[feature-slug]/tasks/[num]_task_review.md`. You MUST see actual file content returned by the tool. If the tool returns an error or the file does not exist → **STOP. Go back to Step 7 and create it NOW using the Write tool. Then call `read_file` again to confirm it exists. Do NOT proceed until this check passes.**
 
