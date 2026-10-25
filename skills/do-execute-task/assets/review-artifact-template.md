@@ -47,6 +47,13 @@
 | Interface de usuário | [✅ / ⚠️ / ❌] (se aplicável) |
 | Testes | [✅ / ⚠️ / ❌] |
 
+## Checagens Estáticas
+
+Comando: [comando do projeto | nenhuma definida]
+Linha de base (antes da task): [N erros em M arquivos | limpa]
+Resultado final: [N erros em M arquivos | limpa]
+Erros pré-existentes (somente os da linha de base, em arquivos que a task não tocou): [arquivo — erro | nenhum]
+
 ## Skills e MCPs do Projeto
 
 Skills do projeto: [lidas: nomes | nenhuma aplicável | nenhuma instalada]
