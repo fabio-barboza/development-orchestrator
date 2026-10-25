@@ -47,7 +47,9 @@ For each service marked `not-running`:
    - **Claude Code**: `Bash` tool with `run_in_background: true`
    - **GitHub Copilot**: `run_in_terminal` with `isBackground: true`
    - **Cursor**: `run_terminal_cmd` with `is_background: true`
-   - **Otherwise**: `nohup <command> > <log> 2>&1 &`
+   - **Otherwise**: `nohup <command> > <log> 2>&1 & echo $! > <scratch folder>/<service>.pid`, with the working directory set before (the tool's workdir option, or a `cd <dir>` in its own statement). **Never** wrap the start in a subshell such as `(cd <dir> && <command> &)`: it hides the PID and leaves you unable to stop the tree.
+
+   Whatever the mechanism, keep the handle or the PID of every service you start; Step E needs it.
 
    If you redirect output to a log file, write it inside your skill's scratch folder (e.g. `./.do-tmp/task-[num]/<service>.log`; if your skill defines none, `./.do-tmp/<skill-name>/`) — never in `/tmp` or any path outside the project root.
 

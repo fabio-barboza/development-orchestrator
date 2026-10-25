@@ -26,7 +26,7 @@ All files you create, read or execute MUST live **inside the project root**. Fil
 2. Scratch files (ad-hoc scripts, intermediate outputs) go ONLY in `./.do-tmp/qa-fix/`. Create it with `mkdir -p` when needed; if the project is a git repository and `.gitignore` does not already ignore `.do-tmp` (with or without the trailing slash), append `.do-tmp/` once.
 3. Never reuse scratch files from other runs or from other `./.do-tmp/` folders.
 4. Tests that must persist go in the project's test location, not in `./.do-tmp/`.
-5. Delete `./.do-tmp/qa-fix/` before your final response.
+5. Delete `./.do-tmp/qa-fix/` before your final response. Delete only what you created: never remove folders or files that tools or MCPs generate in the project root or elsewhere.
 6. Do not redirect command output to files: filter it in the pipe (`| tail`, `| grep`). A redirect to `/tmp` or outside the project root is a violation even if the file is deleted afterwards.
 
 ## Invocation
