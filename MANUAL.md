@@ -243,7 +243,7 @@ Se o resultado for `REPROVADO` ou `APROVADO COM RESSALVAS` com itens pendentes, 
 /do-execute-review <tasks>
 ```
 
-Com uma pasta ou vários arquivos, cada fix roda em um subagente isolado, um por vez, dos críticos para os menores. Se um fix falhar, os outros continuam; a fila só para se a suíte ficar vermelha. Você escolhe o lote (pasta inteira, filtro `--min` ou uma lista de arquivos): achados podem ser falsos positivos ou de baixa prioridade, e o framework não decide por você.
+Com uma pasta ou vários arquivos, cada fix roda em um subagente isolado, um por vez, dos críticos para os menores. Se um fix falhar, os outros continuam; a fila só para se a suíte ficar vermelha. Um fix só altera código e testes: se a correção exigir mudar o PRD/TechSpec ou uma decisão sua, o worker não edita nada, devolve `NÃO RESOLVIDO` e a decisão aparece no resumo da fila. Você escolhe o lote (pasta inteira, filtro `--min` ou uma lista de arquivos): achados podem ser falsos positivos ou de baixa prioridade, e o framework não decide por você.
 
 Repita até o status ser `APROVADO` (ou `APROVADO COM RESSALVAS` sem itens que você queira corrigir).
 

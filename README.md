@@ -514,7 +514,7 @@ O framework não exige nenhuma linguagem ou stack. O que você precisa:
 | **Língua dos artifacts** | PT-BR para documentos, English para code/tech terms |
 | **Pastas de rodada** | Review e QA gravam em `review/review-N/` e `qa/qa-N/` dentro do PRD; nada sobrescreve uma rodada anterior |
 | **Raiz do projeto é o limite** | Rascunhos só em `.do-tmp/` (apagado ao fim); saída de comando é filtrada no pipe, nunca redirecionada para fora do projeto; serviços que a execução subiu são encerrados ao final |
-| **Fila de correções** | Com pasta ou vários arquivos, `review-fix` e `qa-bugfix` rodam um subagente por item; a falha de um item não derruba os outros |
+| **Fila de correções** | Com pasta ou vários arquivos, `review-fix` e `qa-bugfix` rodam um subagente por item; a falha de um item não derruba os outros. Um fix só altera código e testes: se exigir mudar PRD/TechSpec ou uma decisão do usuário, o worker devolve `NÃO RESOLVIDO` sem editar nada, e a decisão aparece no resumo |
 
 ## Quando Usar Cada Skill — Guia Rápido
 

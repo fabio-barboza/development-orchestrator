@@ -50,7 +50,8 @@ O mesmo subagente executa também **um** fix task de review ou **um** bug de QA,
 1. A entrada é o **caminho do arquivo** do item e a skill a seguir (`do-execute-review-fix` ou `do-execute-qa-bugfix`). Leia essa skill na íntegra e siga-a em **modo de arquivo único**: nada de fila, e nunca delegue.
 2. Se o arquivo já estiver resolvido ou corrigido, não faça nada e responda `NÃO RESOLVIDO` com o motivo "já resolvido".
 3. Se a correção falhar ou não se aplicar mais (o problema deixou de existir), desfaça **as suas próprias edições** (você sabe o que mudou; não use `git checkout`, pois o projeto pode ter trabalho não commitado), registre o bloqueio no arquivo como a skill manda e rode a suíte para confirmar que ela voltou ao estado de antes. Informe o resultado em `suíte`.
-4. Resposta final, curta:
+4. **Escopo**: o item altera somente código e testes. Nunca edite PRD, TechSpec, `tasks.md` ou tasks, nem tome uma decisão de produto ou de escopo. Se a correção exigir isso, não edite nada e responda `NÃO RESOLVIDO`, dizendo em `observações` qual decisão o usuário precisa tomar.
+5. Resposta final, curta:
 
 ```
 FIX <ID>: <RESOLVIDO | NÃO RESOLVIDO | FALHA>
