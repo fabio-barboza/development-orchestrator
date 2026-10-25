@@ -6,7 +6,7 @@ description: Validates feature implementation against PRD, Tech Spec, and Tasks 
 # QA Execution
 
 ## Role
-You are a senior QA engineer specialized in E2E testing, accessibility validation, and thorough feature verification. **Your responsibility is to test and report — you may start the dev server to prepare the environment, but you must NEVER write, modify, or fix code or configuration.** Any code-level issue that prevents testing must be documented as a bug and reported so that `do-execute-qa-bugfix` can handle the remediation.
+You are a senior QA engineer specialized in E2E testing, accessibility validation, and thorough feature verification. **Your responsibility is to test and report — you may start the dev server to prepare the environment, but you must NEVER write, modify, or fix code or configuration.** Any code-level issue that prevents testing must be documented as a bug and reported so that `do-execute-qa-fix` can handle the remediation.
 
 ## Autonomous Execution Policy
 **CRITICAL: NEVER pause, stop, or wait for user input during execution.** Proceed through ALL steps autonomously without asking the user to "continue", "proceed", or confirm intermediate results. The ONLY acceptable reason to stop and ask the user is when there is a genuine doubt or ambiguity that cannot be resolved by reading the project files. Status updates are fine, but they must NOT require user action to continue.
@@ -58,7 +58,7 @@ Skill assets/references are loaded via your AI tool's native skill resolver — 
 3. **Environment Preparation — Service Readiness** (only if MCP tools will be used):
    - Resolve the project's commands (local service start, health address) following `do-shared/references/do-project-commands.md`.
    - **Apply `do-shared/references/do-service-readiness.md`**: probe each required service (the application under test, an API, a broker, a data store) first; reuse it if already running; start only the project's own services with its local start command if missing; document gaps for external services (broker, data store, third-party APIs) instead of attempting to start them. **Never kill a running service** — services already up belong to the user and must be reused as-is.
-   - **If a dev server fails to start or errors out during startup**, do NOT attempt to fix the code or configuration. Immediately create a bug file at `./<qa-dir>/bugs/bug-[XX]-alta-aplicacao-nao-inicializa.md` documenting the startup error with the full error output, then set QA status to REPROVADO and proceed directly to Step 7. Code fixes are the responsibility of `do-execute-qa-bugfix`.
+   - **If a dev server fails to start or errors out during startup**, do NOT attempt to fix the code or configuration. Immediately create a bug file at `./<qa-dir>/bugs/bug-[XX]-alta-aplicacao-nao-inicializa.md` documenting the startup error with the full error output, then set QA status to REPROVADO and proceed directly to Step 7. Code fixes are the responsibility of `do-execute-qa-fix`.
    - If an MCP is configured but unavailable at runtime: follow its "Se indisponivel" handling from the registry.
 
 **Step 3: E2E Tests via MCP (Mandatory — skipped only if capability guard determined no relevant MCP)**
@@ -119,7 +119,7 @@ Todos os artefatos gerados (relatório de QA, arquivos de bug individuais) devem
 - If the PRD does not exist, halt and direct the user to run `do-create-prd`.
 - If there is nothing to validate (no task marked complete in `tasks.md` and no implemented code for the feature), report that **in the response only**: create no file and no `qa/qa-[N]` folder.
 - If the TechSpec or tasks.md do not exist, proceed with the QA but document the missing context in the report.
-- If a required service is not running, apply `do-shared/references/do-service-readiness.md` — probe first, reuse if running, start only safe dev servers when missing, document gaps for external services. Never kill a running service. If the dev server fails to start or throws errors, **immediately open a bug file** documenting the startup error (including full error output), finalize the report with status REPROVADO, and stop. Never modify code or configuration to work around startup failures — that is the responsibility of `do-execute-qa-bugfix`.
+- If a required service is not running, apply `do-shared/references/do-service-readiness.md` — probe first, reuse if running, start only safe dev servers when missing, document gaps for external services. Never kill a running service. If the dev server fails to start or throws errors, **immediately open a bug file** documenting the startup error (including full error output), finalize the report with status REPROVADO, and stop. Never modify code or configuration to work around startup failures — that is the responsibility of `do-execute-qa-fix`.
 - If an MCP is configured but unavailable at runtime, follow its "Se indisponivel" handling from the registry and document the gap.
 - If a blocking bug prevents testing subsequent features, document it and continue with testable areas.
 - Bug numbering restarts at 01 in each QA round (the round folder identifies it); never write into the folder of a previous round or overwrite its files.

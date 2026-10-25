@@ -1,6 +1,6 @@
-# Fila de Correções (review-fix e qa-bugfix)
+# Fila de Correções (review-fix e qa-fix)
 
-Procedimento padrão do **modo fila** de `do-execute-review-fix` e `do-execute-qa-bugfix`: corrigir vários arquivos (fix tasks ou bugs) de uma vez, cada um em um subagente isolado, na ordem certa e sem que a falha de um impeça os outros. O usuário escolhe o lote; o framework nunca decide sozinho o que corrigir.
+Procedimento padrão do **modo fila** de `do-execute-review-fix` e `do-execute-qa-fix`: corrigir vários arquivos (fix tasks ou bugs) de uma vez, cada um em um subagente isolado, na ordem certa e sem que a falha de um impeça os outros. O usuário escolhe o lote; o framework nunca decide sozinho o que corrigir.
 
 ## Quando usar
 
@@ -32,7 +32,7 @@ Este modo precisa rodar na sessão primária. Erro de profundidade significa que
 Para cada arquivo, chame a ferramenta de delegação para `agent-execute-task` com a descrição "Corrigir <ID>" e este prompt:
 
 ```
-Corrija o item <ID> da rodada <dir> do PRD prds/prd-<slug>/. Arquivo: <caminho>. Siga a skill <do-execute-review-fix | do-execute-qa-bugfix> em modo de arquivo único, na íntegra, e o contrato "Itens de correção" em do-execute-task/references/subagent-mode.md. Você não tem canal com o usuário: não pergunte nada. Regras de ambiente: trabalhe somente dentro da raiz do projeto; rascunhos apenas em .do-tmp/<review-fix | qa-bugfix>/ (apague ao final); nunca redirecione saída de comando para arquivo fora do projeto (filtre no pipe); encerre os serviços que você mesmo subiu; E2E apenas pelas tools de MCP. Leia a skill e os arquivos do-shared pelo caminho completo, sem usar glob (buscas por glob ignoram diretórios ocultos como `.agents/`); a skill está em <caminho da skill que você mesmo leu>. Altere somente código e testes: nunca edite PRD, TechSpec, tasks.md nem tome decisão de produto ou escopo; se a correção exigir isso, não edite nada e retorne NÃO RESOLVIDO dizendo qual decisão o usuário precisa tomar. Se a correção falhar, desfaça as suas próprias edições e confirme que a suíte voltou ao estado anterior. Retorne no formato do contrato.
+Corrija o item <ID> da rodada <dir> do PRD prds/prd-<slug>/. Arquivo: <caminho>. Siga a skill <do-execute-review-fix | do-execute-qa-fix> em modo de arquivo único, na íntegra, e o contrato "Itens de correção" em do-execute-task/references/subagent-mode.md. Você não tem canal com o usuário: não pergunte nada. Regras de ambiente: trabalhe somente dentro da raiz do projeto; rascunhos apenas em .do-tmp/<review-fix | qa-fix>/ (apague ao final); nunca redirecione saída de comando para arquivo fora do projeto (filtre no pipe); encerre os serviços que você mesmo subiu; E2E apenas pelas tools de MCP. Leia a skill e os arquivos do-shared pelo caminho completo, sem usar glob (buscas por glob ignoram diretórios ocultos como `.agents/`); a skill está em <caminho da skill que você mesmo leu>. Altere somente código e testes: nunca edite PRD, TechSpec, tasks.md nem tome decisão de produto ou escopo; se a correção exigir isso, não edite nada e retorne NÃO RESOLVIDO dizendo qual decisão o usuário precisa tomar. Se a correção falhar, desfaça as suas próprias edições e confirme que a suíte voltou ao estado anterior. Retorne no formato do contrato.
 ```
 
 Depois do retorno, **não releia arquivos nem liste pastas**: confie no retorno estruturado.

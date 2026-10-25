@@ -1,6 +1,6 @@
 # Descoberta e Roteamento de MCPs
 
-Procedimento padrão referenciado pelas skills de execução (`do-execute-task`, `do-execute-qa`, `do-execute-qa-bugfix`, `do-execute-review`) e pelo `do-setup`. A descoberta é dinâmica e baseada em **capacidades**: nenhum servidor, produto ou ferramenta específica é presumido.
+Procedimento padrão referenciado pelas skills de execução (`do-execute-task`, `do-execute-qa`, `do-execute-qa-fix`, `do-execute-review`) e pelo `do-setup`. A descoberta é dinâmica e baseada em **capacidades**: nenhum servidor, produto ou ferramenta específica é presumido.
 
 ## Procedimento de Descoberta
 

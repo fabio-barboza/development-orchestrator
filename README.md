@@ -132,7 +132,7 @@ tasks.md            │   - Implementação + tests                   │
 │              │ (se houver bugs)       │ (zero bugs HIGH)                    │
 │              ▼                        │                                     │
 │   ┌──────────────────────┐            │                                     │
-│   │  do-execute-qa-bugfix│◀───────────┘                                     │
+│   │  do-execute-qa-fix│◀───────────┘                                     │
 │   │                      │                                                  │
 │   │  - Corrige por       │                                                  │
 │   │    severidade        │                                                  │
@@ -340,7 +340,7 @@ PLANEJAMENTO       EXECUÇÃO           REVIEW GERAL      VALIDAÇÃO
 
 ---
 
-### `do-execute-qa-bugfix` — Correção de Bugs
+### `do-execute-qa-fix` — Correção de Bugs
 
 **Quando usar:** Após `do-execute-qa` registrar bugs em `qa/qa-[N]/bugs/`.
 
@@ -369,7 +369,7 @@ Orquestra a execução sequencial de todas (ou um subconjunto de) tasks de um PR
 
 > **Por que o laço é uma skill e não um comando:** a lógica fica em arquivo lido do disco na hora (a skill e o contrato do subagente), então uma cópia antiga em cache de comando ou de agente nunca impõe regras antigas. Os arquivos instalados pelo `do-setup` são só ponteiros finos.
 
-> **O mesmo worker corrige itens:** o `agent-execute-task` também executa um fix task (`do-execute-review-fix`) ou um bug (`do-execute-qa-bugfix`), conforme a skill indicada no prompt. É o que permite o modo fila dessas duas skills, sem instalar outro agente.
+> **O mesmo worker corrige itens:** o `agent-execute-task` também executa um fix task (`do-execute-review-fix`) ou um bug (`do-execute-qa-fix`), conforme a skill indicada no prompt. É o que permite o modo fila dessas duas skills, sem instalar outro agente.
 
 > Convenção de nomes: skills e commands usam o prefixo `do-`; agents usam o prefixo `agent-` para não colidir com a skill `do-execute-task` que é executada dentro do worker.
 
@@ -516,7 +516,7 @@ O framework não exige nenhuma linguagem ou stack. O que você precisa:
 | **Língua dos artifacts** | PT-BR para documentos, English para code/tech terms |
 | **Pastas de rodada** | Review e QA gravam em `review/review-N/` e `qa/qa-N/` dentro do PRD; nada sobrescreve uma rodada anterior |
 | **Raiz do projeto é o limite** | Rascunhos só em `.do-tmp/` (apagado ao fim); saída de comando é filtrada no pipe, nunca redirecionada para fora do projeto; serviços que a execução subiu são encerrados ao final |
-| **Fila de correções** | Com pasta ou vários arquivos, `review-fix` e `qa-bugfix` rodam um subagente por item; a falha de um item não derruba os outros. Um fix só altera código e testes: se exigir mudar PRD/TechSpec ou uma decisão do usuário, o worker devolve `NÃO RESOLVIDO` sem editar nada, e a decisão aparece no resumo |
+| **Fila de correções** | Com pasta ou vários arquivos, `review-fix` e `qa-fix` rodam um subagente por item; a falha de um item não derruba os outros. Um fix só altera código e testes: se exigir mudar PRD/TechSpec ou uma decisão do usuário, o worker devolve `NÃO RESOLVIDO` sem editar nada, e a decisão aparece no resumo |
 
 ## Quando Usar Cada Skill — Guia Rápido
 
@@ -533,7 +533,7 @@ O framework não exige nenhuma linguagem ou stack. O que você precisa:
 | **Review geral (OBRIGATÓRIO antes do QA)** | `do-execute-review` | **Sim (até APROVADO)** |
 | Corrigir findings do review | `do-execute-review-fix` | **Sim (com do-execute-review)** |
 | QA E2E da feature completa | `do-execute-qa` | Sim (com bugfix) |
-| Corrigir bugs encontrados no QA | `do-execute-qa-bugfix` | **Sim (até zero HIGH)** |
+| Corrigir bugs encontrados no QA | `do-execute-qa-fix` | **Sim (até zero HIGH)** |
 
 ## Fluxo Completo — Exemplo Prático
 
@@ -583,7 +583,7 @@ O framework não exige nenhuma linguagem ou stack. O que você precisa:
 > [gera qa/qa-1/qa-report.md + qa/qa-1/bugs/ se houver problemas]
 
 # 7. Se houver bugs HIGH/MEDIUM: loop de correção
-[se qa/qa-1/bugs/ tem bugs abertos] → /do-execute-qa-bugfix prds/prd-projeto-exemplo/qa/qa-1/bugs/<bug>.md
+[se qa/qa-1/bugs/ tem bugs abertos] → /do-execute-qa-fix prds/prd-projeto-exemplo/qa/qa-1/bugs/<bug>.md
 > [corrige por severidade + tests de regressão]
 
 # 8. Revalida com QA novamente
@@ -591,7 +591,7 @@ O framework não exige nenhuma linguagem ou stack. O que você precisa:
 > [reteste apenas areas corrigidas ou E2E completo]
 
 # 9. Repetir steps 7-8 até zero bugs HIGH
-[se ainda tem bugs HIGH] → /do-execute-qa-bugfix projeto-exemplo → /do-execute-qa projeto-exemplo
+[se ainda tem bugs HIGH] → /do-execute-qa-fix projeto-exemplo → /do-execute-qa projeto-exemplo
 [zero bugs HIGH] → FEATURE READY! ✅
 ```
 
@@ -605,7 +605,7 @@ O framework não exige nenhuma linguagem ou stack. O que você precisa:
 | `do-shared/references/do-project-commands.md` | Como obter os comandos do próprio projeto (testes, cobertura, checagem estática, serviço) |
 | `do-shared/references/do-service-readiness.md` | Checar, reaproveitar, iniciar e encerrar os serviços necessários |
 | `do-shared/references/do-run-folders.md` | Pastas de rodada `review/review-N` e `qa/qa-N`, pendências da rodada anterior e layout legado |
-| `do-shared/references/do-fix-queue.md` | Modo fila de `review-fix` e `qa-bugfix` (um subagente por item) |
+| `do-shared/references/do-fix-queue.md` | Modo fila de `review-fix` e `qa-fix` (um subagente por item) |
 | Arquivo de configuração MCP (`.mcp.json`, `.vscode/mcp.json`, etc.) | Configuração de MCP servers ativos no projeto — localização varia por ferramenta de IA |
 | Arquivo de configuração do projeto (`CLAUDE.md`, `.github/copilot-instructions.md`, etc.) | Contexto do projeto gerado por `do-setup` — nome varia por ferramenta de IA |
 

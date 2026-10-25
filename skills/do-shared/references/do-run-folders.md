@@ -1,6 +1,6 @@
 # Pastas de Rodada (Review e QA)
 
-Procedimento padrão referenciado por `do-execute-review`, `do-execute-review-fix`, `do-execute-qa` e `do-execute-qa-bugfix`. O desenvolvedor pode rodar review e QA várias vezes sobre o mesmo PRD; cada execução grava numa **pasta própria e sequencial**, para que uma rodada nunca sobrescreva a anterior.
+Procedimento padrão referenciado por `do-execute-review`, `do-execute-review-fix`, `do-execute-qa` e `do-execute-qa-fix`. O desenvolvedor pode rodar review e QA várias vezes sobre o mesmo PRD; cada execução grava numa **pasta própria e sequencial**, para que uma rodada nunca sobrescreva a anterior.
 
 ## Layout
 
@@ -44,7 +44,7 @@ PRDs antigos têm `review-report.md`, `review-fixes/`, `qa-report.md`, `qa-bugs/
 - Não entram na contagem de `[N]` (a primeira rodada no layout novo é `review/review-1`/`qa/qa-1`).
 - Valem como "rodada anterior" para a seção de pendências (abaixo) quando não existir nenhuma rodada numerada anterior.
 
-## Descobrir a rodada a partir de um arquivo de entrada (`do-execute-review-fix`, `do-execute-qa-bugfix`)
+## Descobrir a rodada a partir de um arquivo de entrada (`do-execute-review-fix`, `do-execute-qa-fix`)
 
 O arquivo recebido (fix task ou bug) define a rodada pelo seu caminho:
 
@@ -67,5 +67,5 @@ Antes de gerar o relatório da rodada nova:
 2. Leia o relatório anterior e os arquivos da rodada anterior (`fixes/` ou `bugs/`) e reúna os itens ainda abertos (`pendente` nos fixes; `aberto` ou `novo` nos bugs).
 3. Verifique, na rodada atual, se cada item persiste (o problema continua no código/comportamento) ou não foi reproduzido.
 4. Registre-os na seção **Pendências da Rodada Anterior** do relatório: ID, severidade, resumo, rodada de origem e situação (`persiste` / `não reproduzido`).
-5. **Não** crie arquivos novos de fix ou de bug para esses itens: os arquivos da rodada anterior continuam válidos e podem ser corrigidos por `do-execute-review-fix`/`do-execute-qa-bugfix`. Só problemas **novos** geram arquivos na rodada atual.
+5. **Não** crie arquivos novos de fix ou de bug para esses itens: os arquivos da rodada anterior continuam válidos e podem ser corrigidos por `do-execute-review-fix`/`do-execute-qa-fix`. Só problemas **novos** geram arquivos na rodada atual.
 6. Se não houver rodada anterior ou itens abertos, escreva "Nenhuma pendência da rodada anterior." na seção.

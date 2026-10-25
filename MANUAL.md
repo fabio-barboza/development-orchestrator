@@ -13,7 +13,7 @@ Cada etapa do framework opera de forma completamente independente. O contexto de
 | Fase | Skills | Modelo recomendado | Por quê |
 |------|--------|--------------------|---------|
 | **Planejamento** | `do-create-prd`, `do-create-techspec`, `do-create-tasks` | Mais inteligente (ex: Opus, o1) | Requer raciocínio profundo, ambiguidade alta, decisões de arquitetura |
-| **Execução** | `do-execute-task`, `do-execute-review`, `do-execute-qa`, `do-execute-qa-bugfix` | Menor e mais rápido (ex: Sonnet, Haiku) | Segue instruções precisas dos artefatos gerados, contexto já bem definido |
+| **Execução** | `do-execute-task`, `do-execute-review`, `do-execute-qa`, `do-execute-qa-fix` | Menor e mais rápido (ex: Sonnet, Haiku) | Segue instruções precisas dos artefatos gerados, contexto já bem definido |
 
 > Troque o modelo entre as fases sem perder contexto — os artefatos em `./prds/` são a memória do projeto.
 
@@ -38,6 +38,8 @@ Um `npx skills add` repetido **não sobrescreve** as skills já instaladas. Para
 1. `npx skills update` (ou `npx skills remove` das skills `do-*` e `npx skills add` de novo; para testar uma branch, `npx skills add "fabio-barboza/development-orchestrator#<branch>"`).
 2. `/do-setup agents`: reescreve o worker (`agent-execute-task`) e, no Opencode, os comandos finos. Não mexe no arquivo de configuração do projeto, nem nas seções de skills e MCPs.
 3. Reinicie a ferramenta. O Opencode mantém agentes e comandos em cache num servidor persistente; sem reiniciar, o worker antigo continua valendo.
+
+> **Skill renomeada:** `do-execute-qa-bugfix` agora é `do-execute-qa-fix`. Quem já a tinha instalada fica com a antiga ao lado da nova: remova a antiga (`npx skills remove do-execute-qa-bugfix`) e apague `.opencode/commands/do-execute-qa-bugfix.md`, se existir. Atalhos e anotações que citam o nome antigo também precisam ser trocados.
 
 PRDs, TechSpecs e tasks já gerados **não** se adaptam sozinhos: se mudou a regra de geração (por exemplo, tasks sem task de E2E), só um PRD novo reflete a mudança.
 
@@ -262,8 +264,8 @@ Com o review aprovado, rode a validação final. O QA é o único passo que faz 
 Se bugs forem encontrados, corrija e revalide:
 
 ```
-/do-execute-qa-bugfix prds/prd-<slug>/qa/qa-1/bugs/bug-01-....md
-/do-execute-qa-bugfix prds/prd-<slug>/qa/qa-1/bugs/ --min=media
+/do-execute-qa-fix prds/prd-<slug>/qa/qa-1/bugs/bug-01-....md
+/do-execute-qa-fix prds/prd-<slug>/qa/qa-1/bugs/ --min=media
 /do-execute-qa <prd>
 ```
 
@@ -273,7 +275,7 @@ Repita até não restar nenhum bug de severidade HIGH. Feature pronta!
 
 > **Evidência no relatório:** cada requisito sai como `PASSOU` (visto rodando), `FALHOU`, `VERIFICADO NO CÓDIGO` ou `NÃO TESTADO`. Os dois últimos não contam como aprovados: se sobrar algum, o status é `APROVADO COM RESSALVAS`, no máximo.
 
-> **Mesma lógica no QA:** cada `do-execute-qa` cria `qa/qa-1/`, `qa/qa-2/`, … com `qa-report.md`, `bugs/` e `screenshots/` da rodada. O `do-execute-qa-bugfix` usa o caminho do bug (`qa/qa-N/bugs/bug-....md`) para saber em que rodada trabalhar, e o relatório da rodada nova traz os bugs ainda abertos da anterior.
+> **Mesma lógica no QA:** cada `do-execute-qa` cria `qa/qa-1/`, `qa/qa-2/`, … com `qa-report.md`, `bugs/` e `screenshots/` da rodada. O `do-execute-qa-fix` usa o caminho do bug (`qa/qa-N/bugs/bug-....md`) para saber em que rodada trabalhar, e o relatório da rodada nova traz os bugs ainda abertos da anterior.
 
 ---
 
@@ -323,7 +325,7 @@ instalar skills
   do-execute-review  ──▶  do-execute-review-fix  ──▶  (repetir até APROVADO)
       │
       ▼
-  do-execute-qa  ──▶  do-execute-qa-bugfix  ──▶  (repetir até zero HIGH)
+  do-execute-qa  ──▶  do-execute-qa-fix  ──▶  (repetir até zero HIGH)
       │
       ▼
    DONE ✓

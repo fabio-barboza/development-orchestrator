@@ -1,6 +1,6 @@
 # Comandos do Projeto
 
-Procedimento padrão referenciado pelas skills que precisam **rodar testes, checagens estáticas ou o serviço local** (`do-execute-task`, `do-execute-review`, `do-execute-review-fix`, `do-execute-qa`, `do-execute-qa-bugfix`) e pelo `do-setup`, que grava os comandos. O framework não presume linguagem, gerenciador de pacotes, framework de testes ou ferramenta de build: os comandos vêm sempre do próprio projeto.
+Procedimento padrão referenciado pelas skills que precisam **rodar testes, checagens estáticas ou o serviço local** (`do-execute-task`, `do-execute-review`, `do-execute-review-fix`, `do-execute-qa`, `do-execute-qa-fix`) e pelo `do-setup`, que grava os comandos. O framework não presume linguagem, gerenciador de pacotes, framework de testes ou ferramenta de build: os comandos vêm sempre do próprio projeto.
 
 ## Onde ficam registrados
 

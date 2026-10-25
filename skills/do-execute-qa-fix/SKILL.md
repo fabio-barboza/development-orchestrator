@@ -1,5 +1,5 @@
 ---
-name: do-execute-qa-bugfix
+name: do-execute-qa-fix
 description: "Recebe o caminho de um arquivo de bug em qa/qa-[N]/bugs/ (ex: qa/qa-1/bugs/bug-01-alta-formulario.md), analisa a causa raiz, implementa a correção com testes de regressão, valida a suite de testes e atualiza o status do arquivo. Use quando o usuário pedir para corrigir um bug específico encontrado no QA. Não use para correções em lote — invoque uma vez por bug. Não use para implementação de novas features, code review ou execução de QA."
 ---
 
@@ -23,16 +23,16 @@ If resolving the bug would require changing a requirement document, or depends o
 All files you create, read or execute MUST live **inside the project root**. Files outside it may be stale or belong to another project/run.
 
 1. **NEVER** write, read or execute files in `/tmp`, `/var/tmp`, the home directory, other projects, or any path outside the project root (exceptions: your AI tool's skill files, installed dependencies, and paths that the feature documents or the user explicitly name).
-2. Scratch files (ad-hoc scripts, intermediate outputs) go ONLY in `./.do-tmp/qa-bugfix/`. Create it with `mkdir -p` when needed; if the project is a git repository and `.gitignore` does not already ignore `.do-tmp` (with or without the trailing slash), append `.do-tmp/` once.
+2. Scratch files (ad-hoc scripts, intermediate outputs) go ONLY in `./.do-tmp/qa-fix/`. Create it with `mkdir -p` when needed; if the project is a git repository and `.gitignore` does not already ignore `.do-tmp` (with or without the trailing slash), append `.do-tmp/` once.
 3. Never reuse scratch files from other runs or from other `./.do-tmp/` folders.
 4. Tests that must persist go in the project's test location, not in `./.do-tmp/`.
-5. Delete `./.do-tmp/qa-bugfix/` before your final response.
+5. Delete `./.do-tmp/qa-fix/` before your final response.
 6. Do not redirect command output to files: filter it in the pipe (`| tail`, `| grep`). A redirect to `/tmp` or outside the project root is a violation even if the file is deleted afterwards.
 
 ## Invocation
 This skill fixes bugs from a QA round. The user provides:
 ```
-do-execute-qa-bugfix ./prds/prd-[feature-slug]/qa/qa-[N]/bugs/bug-[XX]-[severidade]-[slug].md
+do-execute-qa-fix ./prds/prd-[feature-slug]/qa/qa-[N]/bugs/bug-[XX]-[severidade]-[slug].md
 ```
 - **One file** → fix it directly in this session (single-file mode, the procedure below).
 - **A folder** (`.../bugs/`), **two or more files**, or a folder with `--min=<alta|media|baixa>` → **queue mode**: do NOT fix anything inline. Follow `do-shared/references/do-fix-queue.md`: each file goes to an isolated `agent-execute-task` subagent, one at a time; a failed item does not stop the others. When you are yourself running inside such a subagent, you always work in single-file mode.
@@ -122,7 +122,7 @@ Todos os artefatos gerados (atualizações no arquivo de bug, seções de resolu
 ## References
 - Round folders: `do-shared/references/do-run-folders.md`
 - Bug file (input): `./prds/prd-[feature-slug]/qa/qa-[N]/bugs/bug-[XX]-[severidade-completa]-[slug].md`
-- Regression test patterns: `do-execute-qa-bugfix/references/regression-test-patterns.md`
+- Regression test patterns: `do-execute-qa-fix/references/regression-test-patterns.md`
 - MCP Discovery: `do-shared/references/do-mcp-discovery-instructions.md`
 - MCP Registry: `do-shared/references/do-mcp-capabilities.md`
 - PRD: `./prds/prd-[feature-slug]/prd.md`
