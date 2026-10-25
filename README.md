@@ -516,7 +516,7 @@ O framework não exige nenhuma linguagem ou stack. O que você precisa:
 | **Execução autônoma** | Skills executam sem pausas para confirmação (exceto steps interativos explícitos) |
 | **Língua dos artifacts** | PT-BR para documentos, English para code/tech terms |
 | **Pastas de rodada** | Review e QA gravam em `review/review-N/` e `qa/qa-N/` dentro do PRD; nada sobrescreve uma rodada anterior |
-| **Raiz do projeto é o limite** | Rascunhos só em `.do-tmp/` (apagado ao fim); saída de comando é filtrada no pipe, nunca redirecionada para fora do projeto; serviços que a execução subiu são encerrados ao final |
+| **Raiz do projeto é o limite** | Rascunhos só em `.do-tmp/` (apagado ao fim); saída de comando é filtrada no pipe, nunca redirecionada para fora do projeto; serviços que a execução subiu são encerrados ao final, a árvore inteira, pelo handle ou PID guardado; só se apaga o que a própria execução criou |
 | **Fila de correções** | Com pasta ou vários arquivos, `review-fix` e `qa-fix` rodam um subagente por item; a falha de um item não derruba os outros. Um fix só altera código e testes: se exigir mudar PRD/TechSpec ou uma decisão do usuário, o worker devolve `NÃO RESOLVIDO` sem editar nada, e a decisão aparece no resumo |
 
 ## Quando Usar Cada Skill — Guia Rápido
@@ -533,7 +533,7 @@ O framework não exige nenhuma linguagem ou stack. O que você precisa:
 | Implementar task específica | `do-execute-task 1` | Sim (por cada task) |
 | **Review geral (OBRIGATÓRIO antes do QA)** | `do-execute-review` | **Sim (até APROVADO)** |
 | Corrigir findings do review | `do-execute-review-fix` | **Sim (com do-execute-review)** |
-| QA E2E da feature completa | `do-execute-qa` | Sim (com bugfix) |
+| QA E2E da feature completa | `do-execute-qa` | Sim (com `do-execute-qa-fix`) |
 | Corrigir bugs encontrados no QA | `do-execute-qa-fix` | **Sim (até zero HIGH)** |
 
 ## Fluxo Completo — Exemplo Prático
