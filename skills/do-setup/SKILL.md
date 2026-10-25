@@ -247,6 +247,8 @@ The orchestration runs on the primary agent and each task is delegated through t
 4. Confirm to the user which files were installed, for which tool, and the `<skill-dir>` used as source.
 5. **Tell the user how to load what was just installed, by tool** (this applies to the worker agent and, on Opencode, the command wrappers): **Opencode** — run `/reload`; **Claude Code** — skills are picked up live (use `/reload-skills` only if `.claude/skills/` was just created), but a `.claude/agents/` directory created during this setup is only detected after restarting the session; **Cursor** and **GitHub Copilot** — the documentation does not say, so tell the user to reload the IDE window or open a new chat session if the agent does not appear. Include this notice in the final report of Step 6.
 
+6. **Ignore the scratch folder.** The execution skills keep their temporary files in `./.do-tmp/`. If the project root is a git repository (it has a `.git`) and `.gitignore` does not already ignore `.do-tmp` (with or without the trailing slash), append `.do-tmp/` once, creating `.gitignore` if it does not exist. Add nothing else to `.gitignore`. Mention in the final report whether the entry was added or already present.
+
 > Use Bash to run `cp` commands. `<skill-dir>` is the project-local `do-setup` directory resolved in item 1 (e.g. `.agents/skills/do-setup`).
 
 **Step 6: Report Results & Sync Progress (Mandatory)**

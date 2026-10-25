@@ -172,6 +172,7 @@ PLANEJAMENTO       EXECUÇÃO           REVIEW GERAL      VALIDAÇÃO
 4. Identifica skills tecnológicas relevantes disponíveis
 5. Atualiza o arquivo de configuração do projeto com summary do projeto e convenções
 6. **Instala os agents e commands de orquestração** nos diretórios corretos da ferramenta detectada
+7. Se o projeto é um repositório git, acrescenta `.do-tmp/` ao `.gitignore` (a pasta de rascunhos das skills de execução), sem tocar em mais nada
 
 **Output:** Arquivo de configuração do projeto (`CLAUDE.md`, `.github/copilot-instructions.md`, `.cursor/rules/project.mdc`, ou `.cursorrules`) atualizado com contexto do projeto
 
