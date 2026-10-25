@@ -2,15 +2,18 @@
 
 ## Resumo
 - Data: [data]
-- Status: APROVADO / REPROVADO
+- Status: APROVADO / APROVADO COM RESSALVAS / REPROVADO
 - Total de Requisitos: [X]
-- Requisitos Atendidos: [Y]
+- Requisitos Atendidos (PASSOU): [Y]
+- Requisitos Não Atendidos (FALHOU): [W]
+- Requisitos Verificados Só no Código: [V]
+- Requisitos Não Testados: [N]
 - Bugs Encontrados: [Z]
 
 ## Requisitos Verificados
 | ID | Requisito | Status | Evidência |
 |----|-----------|--------|-----------|
-| RF-01 | [descrição] | PASSOU/FALHOU | [screenshot] |
+| RF-01 | [descrição] | PASSOU / FALHOU / VERIFICADO NO CÓDIGO / NÃO TESTADO | [screenshot, ou motivo e o que foi tentado] |
 
 ## Testes E2E Executados
 | Fluxo | Resultado | Observações |

@@ -271,6 +271,8 @@ O modo fila funciona como no review: pasta ou vários arquivos, um subagente por
 
 Repita até não restar nenhum bug de severidade HIGH. Feature pronta!
 
+> **Evidência no relatório:** cada requisito sai como `PASSOU` (visto rodando), `FALHOU`, `VERIFICADO NO CÓDIGO` ou `NÃO TESTADO`. Os dois últimos não contam como aprovados: se sobrar algum, o status é `APROVADO COM RESSALVAS`, no máximo.
+
 > **Mesma lógica no QA:** cada `do-execute-qa` cria `qa/qa-1/`, `qa/qa-2/`, … com `qa-report.md`, `bugs/` e `screenshots/` da rodada. O `do-execute-qa-bugfix` usa o caminho do bug (`qa/qa-N/bugs/bug-....md`) para saber em que rodada trabalhar, e o relatório da rodada nova traz os bugs ainda abertos da anterior.
 
 ---

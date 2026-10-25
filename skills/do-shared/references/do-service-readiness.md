@@ -64,8 +64,12 @@ For each service marked `not-running`:
 ## Step E: Cleanup Policy
 
 1. Services that were **already running** when Step B executed must remain running after the consumer skill finishes — they belong to the user.
-2. Services that were **started by Step C** belong to this run: stop them before the final response (kill the process you started, by the handle or PID you got when starting it; never kill processes you did not start). Leaving dev servers running keeps ports busy and corrupts the next run.
-3. **Never** issue `kill`, `pkill`, or `killall` against dev-server or external-service processes as part of routine readiness — that is destructive and out of scope for this procedure.
+2. Services that were **started by Step C** belong to this run: stop them before the final response, never processes you did not start. Leaving dev servers running keeps ports busy and corrupts the next run.
+   - A start command usually creates a **tree** of processes (a package-manager wrapper, a file-watcher/supervisor, the server itself). Stopping only the process that holds the port leaves the supervisor alive, and it can respawn the server.
+   - Stop the whole tree you started: use the stop/kill facility of the background handle your tool gave you when starting, or the PID you recorded and its children (`pkill -P <pid>` before `kill <pid>`, or the process group). Record the PID when you start the service.
+   - If you have no handle or PID, find the process holding the port, then walk up its parents only while the parent's command line matches the start command **you** ran; stop that top-most matching process and its children. Never go past it and never touch a process that predates your start.
+   - **Verify**: re-run the port probe (Step B.1) and `pgrep -f "<fragment of the start command>"`. Both must be empty (or contain only processes that existed before Step C) before you answer.
+3. Outside this cleanup of your own started services, **never** issue `kill`, `pkill`, or `killall` against dev-server or external-service processes — that is destructive and out of scope for this procedure.
 
 ## Error Handling
 

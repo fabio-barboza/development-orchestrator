@@ -68,7 +68,12 @@ Skill assets/references are loaded via your AI tool's native skill resolver — 
 4. For each functional requirement from the PRD, use the appropriate MCP tools (as identified in Step 2):
    - **UI-testing MCP** (requirements involving a user interface): Navigate to the feature, execute the expected flow, verify results, capture screenshot with `filename: <qa-dir>/screenshots/[name].png`. Always read the current screen state (snapshot/structure tool) before interacting. Check the interface's console/log output for errors. Verify the calls the interface makes to services, when the MCP exposes them.
    - **Service-capable MCP** (requirements involving a service): Verify the flow end-to-end using the MCP tools of the capability (see the catalog). For `messaging`: verify messages are published/consumed correctly, inspect queue state, validate side effects. For `data-store`: verify data integrity and state changes. For `api-testing`: verify requests and responses.
-5. Mark each requirement as APROVADO or REPROVADO.
+5. **Hard-to-reach states** (a denied or granted device permission, simulated device location or clock, a slow or failing service response, a very short loading state): before giving up, try what the UI-testing MCP offers — granting or setting permissions and device location, intercepting or delaying network calls, evaluating a script in the page, resizing the viewport. Only when none of them can reach the state, mark the requirement as not tested, and name in the evidence which tools you tried.
+6. Mark each requirement with exactly one status, according to the evidence you actually have:
+   - `PASSOU`: you exercised it in the running interface or service and saw the expected result.
+   - `FALHOU`: you exercised it and the result was wrong (open a bug).
+   - `VERIFICADO NO CÓDIGO`: you could only confirm it by reading the code. This is **not** end-to-end evidence and never counts as `PASSOU`.
+   - `NÃO TESTADO`: you could not reach it; say why and what you tried.
 
 **Step 4: Accessibility Verification (Mandatory — only if `ui-testing` MCP is available)**
 1. Use the accessibility standard defined by the PRD/TechSpec or the project conventions, if any. Read `references/accessibility-checklist.md` as the baseline checklist and for the UI-testing MCP instructions; adapt it to the interface type.
@@ -97,7 +102,7 @@ Skill assets/references are loaded via your AI tool's native skill resolver — 
 2. Fill in all sections with actual results, including `Pendências da Rodada Anterior` (open bugs of the previous round that still persist; do NOT create new bug files for them).
 3. Include a "Ferramentas MCP Utilizadas" section listing which MCPs were used and which capabilities were missing, and the project skills record (read / none applicable / none installed) defined in `do-shared/references/do-project-context.md`.
 4. Save the report to `./<qa-dir>/qa-report.md`.
-5. Set status to APROVADO only when ALL PRD requirements are verified and functioning.
+5. Set status to APROVADO only when ALL PRD requirements are `PASSOU`. Requirements that are `VERIFICADO NO CÓDIGO` or `NÃO TESTADO` are listed in the summary with their counts and block the APROVADO unless the user accepts them; in that case set `APROVADO COM RESSALVAS`.
 
 **Step 8: Report Results & Sync Progress (Mandatory)**
 1. **SYNC INTERNAL PROGRESS**: Once the QA report is generated and bugs are documented, if `TaskUpdate` is available (Claude Code only; skip in Copilot and Cursor), use it to mark all corresponding items in your internal task tracking as `completed`. Otherwise, skip this step.

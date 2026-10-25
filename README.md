@@ -317,6 +317,8 @@ PLANEJAMENTO       EXECUÇÃO           REVIEW GERAL      VALIDAÇÃO
 - `./prds/prd-[slug]/qa/qa-[N]/qa-report.md` (uma pasta nova a cada rodada: `qa/qa-1/`, `qa/qa-2/`…)
 - `./prds/prd-[slug]/qa/qa-[N]/bugs/bug-[XX]-....md` (se houver bugs) e `qa/qa-[N]/screenshots/`
 - O relatório inclui os bugs ainda abertos da rodada anterior
+- Cada requisito leva um de quatro status conforme a evidência: `PASSOU` (visto rodando), `FALHOU`, `VERIFICADO NO CÓDIGO` (só leitura de código, nunca conta como aprovado) ou `NÃO TESTADO` (com o motivo e o que foi tentado). Antes de marcar não testado, o QA tenta o que a MCP de interface oferece (permissões, localização simulada, interceptar rede, rodar script na página)
+- Ao terminar, encerra a árvore inteira de processos dos serviços que subiu (wrapper, supervisor e servidor), não só o que segura a porta
 
 **Status:** APROVADO apenas se TODOS requisitos verificados e funcionando
 
