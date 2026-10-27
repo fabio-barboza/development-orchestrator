@@ -4,7 +4,7 @@ Procedimento padrão referenciado pelas skills que precisam **rodar testes, chec
 
 ## Onde ficam registrados
 
-O `do-setup` grava a seção `## Project Commands` no arquivo de configuração do projeto da ferramenta de IA em uso (ver `do-project-context.md`):
+O `do-setup` grava a seção `## Project Commands` em `.do/context.md`, o arquivo de contexto local do framework (ver `do-project-context.md`):
 
 | Finalidade | Comando | Observação |
 |------------|---------|------------|
@@ -19,7 +19,7 @@ Linhas sem equivalente no projeto ficam como `—`.
 
 ## Procedimento para obter um comando
 
-1. Leia a seção `Project Commands` do arquivo de configuração do projeto. Se a linha existir, use exatamente aquele comando.
+1. Leia a seção `Project Commands` de `.do/context.md`. Se a linha existir, use exatamente aquele comando.
 2. Se a seção ou a linha não existir, **descubra no próprio projeto**, nesta ordem: os comandos declarados nos arquivos de manifesto, de build ou de tarefas na raiz; a configuração de integração contínua; o README e a documentação de contribuição. Use o comando que o projeto declara para a finalidade; não escolha um por convenção de linguagem.
 3. Se houver mais de um candidato legítimo, escolha o que o próprio projeto documenta como principal. Nunca rode dois comandos alternativos para a mesma finalidade.
 4. Se, mesmo assim, não houver comando para a finalidade:

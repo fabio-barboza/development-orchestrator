@@ -23,10 +23,10 @@ If resolving the bug would require changing a requirement document, or depends o
 All files you create, read or execute MUST live **inside the project root**. Files outside it may be stale or belong to another project/run.
 
 1. **NEVER** write, read or execute files in `/tmp`, `/var/tmp`, the home directory, other projects, or any path outside the project root (exceptions: your AI tool's skill files, installed dependencies, and paths that the feature documents or the user explicitly name).
-2. Scratch files (ad-hoc scripts, intermediate outputs) go ONLY in `./.do-tmp/qa-fix/`. Create it with `mkdir -p` when needed; if the project is a git repository and `.gitignore` does not already ignore `.do-tmp` (with or without the trailing slash), append `.do-tmp/` once.
-3. Never reuse scratch files from other runs or from other `./.do-tmp/` folders.
-4. Tests that must persist go in the project's test location, not in `./.do-tmp/`.
-5. Delete `./.do-tmp/qa-fix/` before your final response. Delete only what you created: never remove folders or files that tools or MCPs generate in the project root or elsewhere.
+2. Scratch files (ad-hoc scripts, intermediate outputs) go ONLY in `./.do/tmp/qa-fix/`. Create it with `mkdir -p` when needed; if the project is a git repository and `.gitignore` does not already ignore `.do` (with or without the trailing slash), append `.do/` once.
+3. Never reuse scratch files from other runs or from other `./.do/tmp/` folders.
+4. Tests that must persist go in the project's test location, not in `./.do/tmp/`.
+5. Delete `./.do/tmp/qa-fix/` before your final response. Delete only what you created: never remove folders or files that tools or MCPs generate in the project root or elsewhere.
 6. Do not redirect command output to files: filter it in the pipe (`| tail`, `| grep`). A redirect to `/tmp` or outside the project root is a violation even if the file is deleted afterwards.
 
 ## Invocation
@@ -57,7 +57,7 @@ Skill assets/references are loaded via your AI tool's native skill resolver — 
 3. Extract: ID, severidade, descrição, passos para reproduzir, resultado esperado/atual, componente afetado.
 4. Read the PRD at `./prds/prd-[feature-slug]/prd.md` to understand affected requirements.
 5. Read the Tech Spec at `./prds/prd-[feature-slug]/techspec.md` for technical context.
-6. Read the project configuration file (CLAUDE.md, AGENTS.md, .github/copilot-instructions.md, or .cursor/rules/project.mdc) for project conventions.
+6. Read the project's instructions file (CLAUDE.md, AGENTS.md, .github/copilot-instructions.md or .cursor rules — read-only) and the `Project Conventions` section of `.do/context.md`, when they exist, for project conventions.
 7. Load the project skills relevant to the affected component by following `do-shared/references/do-project-context.md` (Skills procedure); no specific skill is assumed to exist.
 8. **Resolve the QA round from the bug file path** following `do-shared/references/do-run-folders.md`: `<qa-dir>` is the folder that contains `bugs/` (`qa-[N]`), or the PRD root for a legacy `qa-bugs/` file. Everything produced by this fix (screenshots, newly found bugs, updates) stays in that same round.
 

@@ -38,10 +38,10 @@ When an `Edit` tool call fails, follow this escalation ladder:
 All files you create, read or execute for the task MUST live **inside the project root**. Anything outside it may be stale or belong to another project/run, and reusing it silently corrupts the work.
 
 1. **NEVER** write, read or execute files in `/tmp`, `/var/tmp`, the home directory, other projects, or any path outside the project root. Exceptions: your AI tool's skill files, installed dependencies (the project's dependency directory, global CLIs), and paths that the task file, the PRD/TechSpec or the user explicitly name (e.g. another project to analyze, a shared library).
-2. **Scratch files** (exploratory scripts, generators, ad-hoc checks, intermediate outputs) go ONLY in `./.do-tmp/task-[num]/` (e.g. `./.do-tmp/task-3/`). Create it with `mkdir -p` when first needed. If the project is a git repository and `.gitignore` does not already ignore `.do-tmp` (with or without the trailing slash), append `.do-tmp/` once; never add a second line for it.
-3. **Do not reuse scratch files from other tasks or previous runs.** Never list, read or execute anything in `./.do-tmp/` outside the current `task-[num]` folder. If you need a helper again, recreate it.
+2. **Scratch files** (exploratory scripts, generators, ad-hoc checks, intermediate outputs) go ONLY in `./.do/tmp/task-[num]/` (e.g. `./.do/tmp/task-3/`). Create it with `mkdir -p` when first needed. If the project is a git repository and `.gitignore` does not already ignore `.do` (with or without the trailing slash), append `.do/` once; never add a second line for it.
+3. **Do not reuse scratch files from other tasks or previous runs.** Never list, read or execute anything in `./.do/tmp/` outside the current `task-[num]` folder. If you need a helper again, recreate it.
 4. **Tests that validate the task are NOT scratch** — write them in the project's test location defined by the TechSpec / project conventions, so they persist and run in the full suite (Step 4B).
-5. Before finishing (Step 8), delete `./.do-tmp/task-[num]/`.
+5. Before finishing (Step 8), delete `./.do/tmp/task-[num]/`.
 6. **Do not redirect command output to files.** Filter it in the pipe instead (`| tail`, `| grep`); if you really need a file, it goes in the scratch folder. A redirect to `/tmp` or any path outside the project root is a violation even if the file is deleted afterwards.
 7. **Evidence that must persist** (screenshots or logs cited in the review) goes in `./prds/prd-[feature-slug]/task-screenshots/`: run `mkdir -p` on it first and ALWAYS pass the full relative path in the screenshot tool's `filename` parameter (e.g. `prds/prd-[feature-slug]/task-screenshots/task-[num]-<description>.png`). Never leave screenshots or other evidence files in the project root; throwaway captures go in the scratch folder.
 
@@ -71,7 +71,7 @@ Skill assets/references are loaded via your AI tool's native skill resolver — 
 
 **Step 2: Load Project Skills and MCPs**
 1. Identify the technologies and the kind of work involved in the task (UI, API, database, tests, etc.).
-2. Follow `do-shared/references/do-project-context.md` (Skills procedure): read the `Available Skills` section of the project configuration file, complete it with the skills your AI tool exposes natively (ignoring `do-*`), pick the ones relevant to this task and read their `SKILL.md`. No specific skill is assumed to exist — if none is installed or relevant, continue without them.
+2. Follow `do-shared/references/do-project-context.md` (Skills procedure): read the `Available Skills` section of `.do/context.md`, complete it with the skills your AI tool exposes natively (ignoring `do-*`), pick the ones relevant to this task and read their `SKILL.md`. No specific skill is assumed to exist — if none is installed or relevant, continue without them.
 3. If a documentation MCP (capability `documentation`) was discovered, use it to check documentation of the involved frameworks/libraries; otherwise rely on the codebase, the TechSpec or Web Search.
 4. Validation and end-to-end tasks follow the same rule: the skills for the technologies being validated are read too. "Consulted indirectly through the TechSpec" does NOT count as reading a skill.
 5. Keep the result (skills read / none applicable / none installed) for the review file (Step 7).
@@ -84,7 +84,7 @@ Skill assets/references are loaded via your AI tool's native skill resolver — 
 
 **Step 4: Implementation (SAME response as Step 3 — zero latency, zero user interaction)**
 1. Implementation begins in the same response as analysis. There is no separate "planning" message.
-2. Follow all project standards established in the project configuration file (CLAUDE.md, AGENTS.md, .github/copilot-instructions.md, or .cursor/rules/project.mdc), the project rules and the guidance of the skills read in Step 2.
+2. Follow all project standards established in the project's instructions file (CLAUDE.md, AGENTS.md, .github/copilot-instructions.md or .cursor rules — read-only), in the `Project Conventions` section of `.do/context.md`, the project rules and the guidance of the skills read in Step 2.
 3. Implement solutions without workarounds.
 4. Respect ALL `<critical>` tags identified in Step 3 — they are mandatory constraints, not suggestions.
 5. As you complete each subtask listed in the task file (X.1, X.2, etc.), mark it as `[x]` in the `[num]_task.md` file.
@@ -104,7 +104,7 @@ Skill assets/references are loaded via your AI tool's native skill resolver — 
 
 **Step 4B: ALL TESTS MUST PASS — NON-NEGOTIABLE GATE**
 
-Run the tests with the commands from `Project Commands`. Re-run only after a code change or a diagnosed cause; use the single-test command to iterate on one failure and the full-suite command once to confirm. Do not repeat the same run hoping for a different result. Variants of the declared command that only add flags (coverage, filtering, reporters) are allowed.
+Run the tests with the commands from the `Project Commands` section of `.do/context.md` (see `do-shared/references/do-project-commands.md`). Re-run only after a code change or a diagnosed cause; use the single-test command to iterate on one failure and the full-suite command once to confirm. Do not repeat the same run hoping for a different result. Variants of the declared command that only add flags (coverage, filtering, reporters) are allowed.
 
 
 **A task with failing tests is NOT a completed task. This is an ABSOLUTE, NON-NEGOTIABLE rule.**
@@ -160,7 +160,7 @@ The ONLY permitted modification to `tasks.md` is changing `[ ]` to `[x]` for the
 **Step 6: Code Review**
 1. Re-read the task file to ensure you have the latest content (context compression may have discarded earlier reads).
 2. Check if the project is a git repository by running `git rev-parse --is-inside-work-tree`. If git is available, use `git diff` and `git log` to identify files changed as part of this task and read the full context of modified files, not just the diffs. If git is NOT available, manually list all files you created or modified during implementation and read their full content for review.
-3. Read the `code-standards.md` file at `do-execute-task/references/code-standards.md`. Review the code against those criteria and verify compliance with the project configuration file if it exists.
+3. Read the `code-standards.md` file at `do-execute-task/references/code-standards.md`. Review the code against those criteria and verify compliance with the project's instructions file (CLAUDE.md, AGENTS.md, .github/copilot-instructions.md or .cursor rules — read-only) and the `Project Conventions` section of `.do/context.md`, when they exist.
 4. For each issue found, classify as:
    - **CRÍTICO**: Bugs, problemas de segurança, funcionalidade quebrada, tratamento de erros ausente.
    - **MAIOR**: Violações de padrão de código, testes ausentes, nomenclatura incorreta.
@@ -212,7 +212,7 @@ Perform ALL checks below. If ANY fails, fix it first.
 
 7. **CHECK 7 — Project skills and MCPs registered**: the review file read in CHECK 2 contains the `Skills e MCPs do Projeto` section filled in (skills read, or "nenhuma aplicável"/"nenhuma instalada"). This is a record of the Step 2 consultation, not an obligation to use a skill. If the section is missing → add it NOW and re-read the file.
 
-8. **CHECK 8 — Workspace boundary**: Confirm no file was created outside the project root during this task (Workspace Boundary rule). Remove `./.do-tmp/task-[num]/` (`rm -rf ./.do-tmp/task-[num]`) and confirm it no longer exists. Review every command you ran in this task: any redirect, `tee`, `-o`/`--output` option or script that wrote outside the project root (for example `/tmp`) is a violation. Delete those files now (they are yours) and note the violation in the review. If any task artifact ended up outside the project, move what must persist (e.g. tests) into the project and delete the rest. Also confirm that no screenshot or evidence file was left in the project root — move the ones that must persist to `./prds/prd-[feature-slug]/task-screenshots/` and delete the rest.
+8. **CHECK 8 — Workspace boundary**: Confirm no file was created outside the project root during this task (Workspace Boundary rule). Remove `./.do/tmp/task-[num]/` (`rm -rf ./.do/tmp/task-[num]`) and confirm it no longer exists. Review every command you ran in this task: any redirect, `tee`, `-o`/`--output` option or script that wrote outside the project root (for example `/tmp`) is a violation. Delete those files now (they are yours) and note the violation in the review. If any task artifact ended up outside the project, move what must persist (e.g. tests) into the project and delete the rest. Also confirm that no screenshot or evidence file was left in the project root — move the ones that must persist to `./prds/prd-[feature-slug]/task-screenshots/` and delete the rest.
 
 **BLOCKING RULE: If Check 1, 2, 3, 4, 7, or 8 fails, you are PROHIBITED from sending a final response. Fix the issue and re-run the checks. A task with failing tests is NEVER complete.**
 
@@ -225,7 +225,7 @@ Perform ALL checks below. If ANY fails, fix it first.
    - [num]_task_review.md: ✅ Criado ([STATUS])
    - tasks.md: ✅ Atualizado (task [num] marcada como concluída)
    - [num]_task.md: ✅ Subtasks marcadas como concluídas
-   - .do-tmp/task-[num]: ✅ Removido (nada criado fora do projeto)
+   - .do/tmp/task-[num]: ✅ Removido (nada criado fora do projeto)
    ```
    If any artifact shows ❌ instead of ✅, you have violated this skill's rules. Do NOT send the response — fix the artifact first.
    **Subagent exception:** when you were invoked by an orchestrator as a subagent (e.g. `agent-execute-task`), do NOT include this manifest — your final response is ONLY the short `TASK <ID>: ...` block defined in `do-execute-task/references/subagent-mode.md`.

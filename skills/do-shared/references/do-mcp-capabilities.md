@@ -49,4 +49,4 @@ Serviços externos (mensageria, armazenamento de dados, APIs de terceiros) nunca
    - **GitHub Copilot:** `.vscode/mcp.json`
    - **Cursor:** `.cursor/mcp.json`
    - **Opencode:** `opencode.json` na raiz do projeto (chave `mcp`) ou o global `~/.config/opencode/opencode.json`
-2. **Nenhuma skill nem este catálogo precisa ser editado.** Na próxima execução o server é descoberto e classificado pelas tools que expõe. Rode `/do-setup refresh` para atualizar o resumo gravado no arquivo de configuração do projeto.
+2. **Nenhuma skill nem este catálogo precisa ser editado.** Na próxima execução o server é descoberto e classificado pelas tools que expõe. Rode `/do-setup refresh` para atualizar o resumo gravado em `.do/context.md`.

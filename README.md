@@ -84,16 +84,18 @@ tasks.md            │   - Implementação + tests                   │
 │                    LOOP DE REVIEW                                           │
 │                                                                             │
 │   ┌──────────────────────┐                                                  │
-│   │  do-execute-review   │                                                  │
-│   │                      │                                                  │
-│   │  - Conformidade com  │                                                  │
-│   │    TechSpec          │                                                  │
-│   │  - Suite de testes   │                                                  │
-│   │  - Sem E2E (é do QA) │──────────────┐                                   │
+│   │  do-execute-review   │◀─────────────┐                                   │
+│   │                      │              │                                   │
+│   │  - Conformidade com  │              │                                   │
+│   │    TechSpec          │              │                                   │
+│   │  - Suite de testes   │              │                                   │
+│   │  - Sem E2E (é do QA) │              │ (repetir review)                  │
 │   │  - Padrões de código │              │                                   │
 │   └──────────┬───────────┘              │                                   │
 │              │                          │                                   │
-│  (REPROVADO / COM RESSALVAS)            │ (APROVADO)                        │
+│              ├─── (APROVADO) ─────────────────────────────────▶ sai do loop │
+│              │                          │                                   │
+│  (REPROVADO / COM RESSALVAS)            │                                   │
 │              ▼                          │                                   │
 │   ┌──────────────────────┐              │                                   │
 │   │ do-execute-review-fix│              │                                   │
@@ -103,9 +105,7 @@ tasks.md            │   - Implementação + tests                   │
 │   │  - Roda testes       │              │                                   │
 │   │  - Atualiza report   │              │                                   │
 │   └──────────┬───────────┘              │                                   │
-│              │                          │                                   │
-│              └──▶ (repetir review) ◀────┘                                   │
-│                   até APROVADO                                               │
+│              └──────────────────────────┘                                   │
 └─────────────────────────────────────────────────────────────────────────────┘
                                     │
                           (review aprovado)
@@ -119,30 +119,30 @@ tasks.md            │   - Implementação + tests                   │
 │                    LOOP DE QUALIDADE                                        │
 │                                                                             │
 │   ┌──────────────────────┐                                                  │
-│   │  do-execute-qa       │                                                  │
-│   │                      │                                                  │
-│   │  - E2E completo via  │                                                  │
-│   │    MCP (ui-testing)  │                                                  │
-│   │  - Checklist PRD     │                                                  │
-│   │  - Accessibility     │────────────┐                                     │
-│   │  - Visual verification│           │                                     │
-│   │  - Gera qa/qa-N/bugs/│            │                                     │
-│   └──────────┬───────────┘            │                                     │
-│              │                        │                                     │
-│              │ (se houver bugs)       │ (zero bugs HIGH)                    │
-│              ▼                        │                                     │
-│   ┌──────────────────────┐            │                                     │
-│   │  do-execute-qa-fix│◀───────────┘                                     │
-│   │                      │                                                  │
-│   │  - Corrige por       │                                                  │
-│   │    severidade        │                                                  │
-│   │  - Tests de regressão│                                                  │
-│   │  - E2E via MCP       │                                                  │
-│   │  - Atualiza o bug    │                                                  │
-│   └──────────┬───────────┘                                                  │
-│              │                                                              │
-│              └─────────────▶ (repetir do-execute-qa) ◀──────────────────────┘
-│                              até zero bugs HIGH
+│   │  do-execute-qa       │◀─────────────┐                                   │
+│   │                      │              │                                   │
+│   │  - E2E completo via  │              │                                   │
+│   │    MCP (ui-testing)  │              │                                   │
+│   │  - Checklist PRD     │              │ (repetir do-execute-qa)           │
+│   │  - Accessibility     │              │                                   │
+│   │  - Verificação visual│              │                                   │
+│   │  - Gera qa/qa-N/bugs/│              │                                   │
+│   └──────────┬───────────┘              │                                   │
+│              │                          │                                   │
+│              ├─── (zero bugs HIGH) ───────────────────────────▶ sai do loop │
+│              │                          │                                   │
+│       (se houver bugs)                  │                                   │
+│              ▼                          │                                   │
+│   ┌──────────────────────┐              │                                   │
+│   │  do-execute-qa-fix   │              │                                   │
+│   │                      │              │                                   │
+│   │  - Corrige por       │              │                                   │
+│   │    severidade        │              │                                   │
+│   │  - Tests de regressão│              │                                   │
+│   │  - E2E via MCP       │              │                                   │
+│   │  - Atualiza o bug    │              │                                   │
+│   └──────────┬───────────┘              │                                   │
+│              └──────────────────────────┘                                   │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -166,19 +166,19 @@ PLANEJAMENTO       EXECUÇÃO           REVIEW GERAL      VALIDAÇÃO
 **Quando usar:** Primeira vez no projeto ou ao reinstalar o ambiente.
 
 **O que faz:**
-1. Executa o comando de inicialização da ferramenta de IA (ex: `/init` no Claude Code), se disponível, ou cria o arquivo manualmente (Cursor, Copilot)
-2. Analisa profundamente o codebase (tech stack, arquitetura, padrões)
+1. Cria a pasta `.do/` e, se o projeto é um repositório git, acrescenta `.do/` ao `.gitignore`, sem tocar em mais nada
+2. Analisa profundamente o codebase (tech stack, arquitetura, padrões), lendo o arquivo de instruções do projeto (`CLAUDE.md`, `AGENTS.md` etc.) se existir
 3. Verifica infraestrutura de testes — avisa se não houver test runner configurado
-4. Identifica skills tecnológicas relevantes disponíveis
-5. Atualiza o arquivo de configuração do projeto com summary do projeto e convenções
-6. **Instala os agents e commands de orquestração** nos diretórios corretos da ferramenta detectada
-7. Se o projeto é um repositório git, acrescenta `.do-tmp/` ao `.gitignore` (a pasta de rascunhos das skills de execução), sem tocar em mais nada
+4. Identifica skills tecnológicas relevantes disponíveis e inventaria os MCPs
+5. Grava `.do/context.md` com resumo do projeto, convenções, comandos, skills e MCPs
+6. Se o projeto não tem nenhum arquivo de instruções, pergunta se deve criar um (`CLAUDE.md` no Claude Code, `AGENTS.md` nas demais) só com resumo, comandos e convenções, sem referências ao framework
+7. **Instala os agents e commands de orquestração** nos diretórios corretos da ferramenta detectada
 
-**Output:** Arquivo de configuração do projeto (`CLAUDE.md`, `.github/copilot-instructions.md`, `.cursor/rules/project.mdc`, ou `.cursorrules`) atualizado com contexto do projeto
+**Output:** `.do/context.md`, local a cada desenvolvedor e ignorado pelo git. O `do-setup` **nunca** altera um `CLAUDE.md`, `AGENTS.md` ou equivalente que já existe: esses arquivos são do projeto e de todo o time, e a lista de skills e MCPs só vale para a máquina de quem rodou o setup. Quando o projeto não tem nenhum, ele pergunta e, se você aceitar, cria o arquivo com o conteúdo que um `/init` geraria (resumo, comandos, convenções, em inglês, como o `/init`), sem nada do framework e sem adicioná-lo ao git.
 
 **Argumento opcional:** `/do-setup agents` — pula a análise do projeto e instala apenas os agents/commands (útil quando o setup já foi feito anteriormente)
 
-**Argumento opcional:** `/do-setup refresh` — redetecta as skills e os MCPs instalados (depois de instalar novos) e atualiza só as seções `Available Skills`, `Uncovered Skills` e `Available MCPs` do arquivo de configuração. O `do-setup` também **informa** no relatório final as skills e MCPs detectados e as lacunas (por exemplo, sem MCP de interface o E2E de interface é pulado). Nenhuma skill além das `do-*` é presumida: se não houver nenhuma, o resultado é só um aviso.
+**Argumento opcional:** `/do-setup refresh` — redetecta as skills e os MCPs instalados (depois de instalar novos) e atualiza só as seções `Available Skills`, `Uncovered Skills` e `Available MCPs` de `.do/context.md`. O `do-setup` também **informa** no relatório final as skills e MCPs detectados e as lacunas (por exemplo, sem MCP de interface o E2E de interface é pulado). Nenhuma skill além das `do-*` é presumida: se não houver nenhuma, o resultado é só um aviso.
 
 > **Opencode (apenas na 1ª execução):** ao contrário das outras ferramentas (Claude Code, Cursor, GitHub Copilot), o opencode **não reconhece skills via `/<skill>`**. Por isso, a *primeira* invocação do `do-setup` precisa ser feita em linguagem natural:
 > ```
@@ -466,7 +466,7 @@ Define, para cada capacidade:
 ### Adicionar Novo MCP (Zero Code Changes)
 
 1. Configurar no arquivo MCP da sua ferramenta (`.mcp.json`, `.vscode/mcp.json`, etc.)
-2. **Pronto** — o servidor é descoberto e classificado automaticamente. Nenhuma edição nas skills nem no catálogo é necessária. Rode `/do-setup refresh` para atualizar o resumo gravado no arquivo de configuração do projeto.
+2. **Pronto** — o servidor é descoberto e classificado automaticamente. Nenhuma edição nas skills nem no catálogo é necessária. Rode `/do-setup refresh` para atualizar o resumo gravado em `.do/context.md`.
 
 ## Prerequisitos do Ambiente
 
@@ -474,12 +474,19 @@ O framework não exige nenhuma linguagem ou stack. O que você precisa:
 
 - A **ferramenta de IA** escolhida (Claude Code, GitHub Copilot, Cursor ou Opencode).
 - **Git** (para versionamento e análise de diff).
-- Os **pré-requisitos do seu próprio projeto** (compilador/interpretador, gerenciador de dependências, runner de testes). O `do-setup` registra os comandos do projeto na seção `Project Commands` e as skills de execução os usam.
+- Os **pré-requisitos do seu próprio projeto** (compilador/interpretador, gerenciador de dependências, runner de testes). O `do-setup` registra os comandos do projeto na seção `Project Commands` de `.do/context.md` e as skills de execução os usam.
 - Os **pré-requisitos dos MCPs** que você optar por configurar (cada MCP documenta o que precisa).
 
 ## Estrutura de Pastas Gerada
 
 ```
+./.do/                          # local a cada desenvolvedor, ignorado pelo git
+├── context.md                  # contexto do framework (do-setup): resumo, convenções, comandos, skills, MCPs
+└── tmp/                        # rascunhos das skills de execução, apagados ao fim de cada execução
+
+./CLAUDE.md ou ./AGENTS.md      # só se o projeto não tinha nenhum arquivo de instruções e você aceitou criar (do-setup);
+                                # em inglês, sem referências ao framework, não adicionado ao git
+
 ./prds/
 └── prd-[feature-slug]/
     ├── prd.md                  # Product Requirements Document (do-create-prd)
@@ -516,7 +523,7 @@ O framework não exige nenhuma linguagem ou stack. O que você precisa:
 | **Execução autônoma** | Skills executam sem pausas para confirmação (exceto steps interativos explícitos) |
 | **Língua dos artifacts** | PT-BR para documentos, English para code/tech terms |
 | **Pastas de rodada** | Review e QA gravam em `review/review-N/` e `qa/qa-N/` dentro do PRD; nada sobrescreve uma rodada anterior |
-| **Raiz do projeto é o limite** | Rascunhos só em `.do-tmp/` (apagado ao fim); saída de comando é filtrada no pipe, nunca redirecionada para fora do projeto; serviços que a execução subiu são encerrados ao final, a árvore inteira, pelo handle ou PID guardado; só se apaga o que a própria execução criou |
+| **Raiz do projeto é o limite** | Rascunhos só em `.do/tmp/` (apagado ao fim); saída de comando é filtrada no pipe, nunca redirecionada para fora do projeto; serviços que a execução subiu são encerrados ao final, a árvore inteira, pelo handle ou PID guardado; só se apaga o que a própria execução criou |
 | **Fila de correções** | Com pasta ou vários arquivos, `review-fix` e `qa-fix` rodam um subagente por item; a falha de um item não derruba os outros. Um fix só altera código e testes: se exigir mudar PRD/TechSpec ou uma decisão do usuário, o worker devolve `NÃO RESOLVIDO` sem editar nada, e a decisão aparece no resumo |
 
 ## Quando Usar Cada Skill — Guia Rápido
@@ -608,7 +615,8 @@ O framework não exige nenhuma linguagem ou stack. O que você precisa:
 | `do-shared/references/do-run-folders.md` | Pastas de rodada `review/review-N` e `qa/qa-N`, pendências da rodada anterior e layout legado |
 | `do-shared/references/do-fix-queue.md` | Modo fila de `review-fix` e `qa-fix` (um subagente por item) |
 | Arquivo de configuração MCP (`.mcp.json`, `.vscode/mcp.json`, etc.) | Configuração de MCP servers ativos no projeto — localização varia por ferramenta de IA |
-| Arquivo de configuração do projeto (`CLAUDE.md`, `.github/copilot-instructions.md`, etc.) | Contexto do projeto gerado por `do-setup` — nome varia por ferramenta de IA |
+| `.do/context.md` | Contexto do framework gerado por `do-setup` (local, ignorado pelo git) |
+| Arquivo de instruções do projeto (`CLAUDE.md`, `AGENTS.md`, etc.) | Lido pelo framework para as convenções e nunca alterado; criado pelo `do-setup` só se não existir nenhum e você aceitar, sem referências ao framework — nome varia por ferramenta de IA |
 
 ## Compatibilidade com Ferramentas de IA
 
@@ -618,12 +626,12 @@ O DO Framework é agnóstico à ferramenta de IA. Os conceitos, o fluxo de traba
 
 **Convenções de caminho**: Os arquivos de skill referenciam internamente o diretório `.claude/skills/` (convenção do Claude Code). Se você usa outra ferramenta, os arquivos estarão no diretório equivalente dessa ferramenta (ex: `.github/` para GitHub Copilot).
 
-| Ferramenta | Diretório de Skills | Config do Projeto | Config MCP |
-|-----------|--------------------|--------------------|------------|
-| **Claude Code** | `.claude/skills/` | `CLAUDE.md` | `.mcp.json` |
-| **GitHub Copilot** | `.github/` (instructions) | `.github/copilot-instructions.md` | `.vscode/mcp.json` |
-| **Cursor** | `.agents/skills/` ou `.cursor/skills/` (regras em `.cursor/rules/`) | `.cursor/rules/project.mdc` ou `.cursorrules` | `.cursor/mcp.json` |
-| **Opencode** | `.agents/skills/` | `AGENTS.md` | `opencode.json` (chave `mcp`) |
+| Ferramenta | Diretório de Skills | Instruções do Projeto (só leitura) | Criado se não houver nenhum | Config MCP |
+|-----------|--------------------|--------------------|--------------------|------------|
+| **Claude Code** | `.claude/skills/` | `CLAUDE.md` | `CLAUDE.md` | `.mcp.json` |
+| **GitHub Copilot** | `.github/` (instructions) | `.github/copilot-instructions.md` ou `AGENTS.md` | `AGENTS.md` | `.vscode/mcp.json` |
+| **Cursor** | `.agents/skills/` ou `.cursor/skills/` (regras em `.cursor/rules/`) | `.cursor/rules/*.mdc`, `.cursorrules` ou `AGENTS.md` | `AGENTS.md` | `.cursor/mcp.json` |
+| **Opencode** | `.agents/skills/` | `AGENTS.md` | `AGENTS.md` | `opencode.json` (chave `mcp`) |
 
 ---
 
