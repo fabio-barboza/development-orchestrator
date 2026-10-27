@@ -56,7 +56,7 @@ Erros pré-existentes (somente os da linha de base, em arquivos que a task não 
 
 ## Skills e MCPs do Projeto
 
-Skills do projeto: [lidas: nomes | nenhuma aplicável | nenhuma instalada]
+Skills do projeto: [lidas antes da implementação: nomes | lidas depois (código revisto contra elas): nomes | nenhuma aplicável | nenhuma instalada]
 MCPs do projeto: [usados: nome (capacidade) | nenhum necessário | lacuna: capacidade não disponível]
 
 ## Recomendações

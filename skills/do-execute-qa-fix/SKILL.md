@@ -29,6 +29,9 @@ All files you create, read or execute MUST live **inside the project root**. Fil
 5. Delete `./.do/tmp/qa-fix/` before your final response. Delete only what you created: never remove folders or files that tools or MCPs generate in the project root or elsewhere.
 6. Do not redirect command output to files: filter it in the pipe (`| tail`, `| grep`). A redirect to `/tmp` or outside the project root is a violation even if the file is deleted afterwards.
 
+## Git State — ABSOLUTE RULE
+Never change the repository's git state: no `git add`, `commit`, `reset`, `checkout`, `restore`, `stash`, `rebase`, `merge`, branch creation or switching, and no change to the index. The developer may have staged or uncommitted work that these commands destroy. Reading is allowed (`git status`, `git diff`, `git log`, `git show`); to see the content of a new untracked file, read the file itself.
+
 ## Invocation
 This skill fixes bugs from a QA round. The user provides:
 ```
