@@ -230,7 +230,7 @@ PLANEJAMENTO       EXECUÇÃO           REVIEW GERAL      VALIDAÇÃO
 3. **High-level list (interativo)**: Apresenta lista de tasks para aprovação
 4. Gera files com tasks detalhadas e subtasks numeradas
 
-**Sem task de E2E:** o framework não cria task de validação de ponta a ponta (nem final, nem por área). Cada task valida só o seu entregável, com testes de unidade e integração e, se entrega interface ou serviço, um teste de fumaça. A fumaça exercita o fluxo principal de sucesso, nunca só um caminho de erro, e usa o serviço externo quando ele está acessível. Uma task sem nada executável omite a fumaça, e a task que torna aquilo executável a cobre. A validação completa fica no `do-execute-qa`.
+**Sem task de E2E:** o framework não cria task de validação de ponta a ponta (nem final, nem por área). Cada task valida só o seu entregável, com testes de unidade e integração e, se entrega interface ou serviço, um teste de fumaça. A fumaça exercita o fluxo principal de sucesso com o sistema no ar (nunca com mocks), nunca só um caminho de erro, e usa o serviço externo quando ele está acessível. Uma task sem nada executável omite a fumaça, e a task que torna aquilo executável a cobre. A validação completa fica no `do-execute-qa`.
 
 **Output:**
 - `./prds/prd-[slug]/tasks/tasks.md` (index)
@@ -248,7 +248,7 @@ PLANEJAMENTO       EXECUÇÃO           REVIEW GERAL      VALIDAÇÃO
 1. Le PRD, TechSpec, tasks.md e `[num]_task.md`
 2. **MCP Discovery**: Descobre quais MCPs estão configurados e aplicável
 3. Implementa com testes unit/integration
-4. **Teste de fumaça via MCP**: Valida só o fluxo principal de sucesso do que a task entregou (nunca só um caminho de erro), usando as tools dos MCPs disponíveis, conforme a capacidade (`ui-testing`, `api-testing`, `messaging`, `data-store`). O E2E completo fica no `do-execute-qa`. Um defeito de outra task não é corrigido ali: vai para o review e, se impede o fluxo principal, a task sai como `MUDANÇAS SOLICITADAS` e a fila para
+4. **Teste de fumaça via MCP**: Valida só o fluxo principal de sucesso do que a task entregou (nunca só um caminho de erro), usando as tools dos MCPs disponíveis, conforme a capacidade (`ui-testing`, `api-testing`, `messaging`, `data-store`). O E2E completo fica no `do-execute-qa`. Teste com mock nunca conta como fumaça. Um defeito de outra task (achado pela fumaça ou por um teste que já falhava) é corrigido com a menor mudança possível e registrado no review; só quando a correção exige decisão de escopo, design ou contrato a task sai como `MUDANÇAS SOLICITADAS` e a fila para. Nenhuma task é aprovada com teste falhando
 5. Code review automático contra checklist de padrões
 6. Marca task como `[x]` em `tasks.md`
 7. **Cria review artifact obrigatório**
@@ -525,7 +525,7 @@ O framework não exige nenhuma linguagem ou stack. O que você precisa:
 | **Execução autônoma** | Skills executam sem pausas para confirmação (exceto steps interativos explícitos) |
 | **Língua dos artifacts** | PT-BR para documentos, English para code/tech terms |
 | **Pastas de rodada** | Review e QA gravam em `review/review-N/` e `qa/qa-N/` dentro do PRD; nada sobrescreve uma rodada anterior |
-| **Raiz do projeto é o limite** | Rascunhos só em `.do/tmp/` (apagado ao fim); saída de comando é filtrada no pipe, nunca redirecionada para fora do projeto; serviços que a execução subiu são encerrados ao final, a árvore inteira, pelo handle ou PID guardado; só se apaga o que a própria execução criou |
+| **Raiz do projeto é o limite** | Rascunhos só em `.do/tmp/` da raiz do projeto, por caminho absoluto quando o comando roda num subdiretório (apagado ao fim); saída de comando é filtrada no pipe, nunca redirecionada para fora do projeto; serviços que a execução subiu são encerrados ao final, a árvore inteira, pelo handle ou PID guardado; só se apaga o que a própria execução criou |
 | **Estado do git é do desenvolvedor** | Nenhuma skill de execução altera o git (stage, commit, reset, checkout, stash, branch); só lê `status`, `diff`, `log` e `show` |
 | **Fila de correções** | Com pasta ou vários arquivos, `review-fix` e `qa-fix` rodam um subagente por item; a falha de um item não derruba os outros. Um fix só altera código e testes: se exigir mudar PRD/TechSpec ou uma decisão do usuário, o worker devolve `NÃO RESOLVIDO` sem editar nada, e a decisão aparece no resumo |
 

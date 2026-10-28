@@ -39,7 +39,7 @@ Skills do projeto: <lidas: a, b | nenhuma aplicável | nenhuma instalada>
 MCPs do projeto: <usados: x (capacidade) | nenhum necessário | lacuna: capacidade Y não disponível>
 ```
 
-Isso é um **registro**, não uma exigência de usar skill ou MCP: "nenhuma instalada" é um resultado válido. O objetivo é tornar verificável que a consulta foi feita.
+Isso é um **registro**, não uma exigência de usar skill ou MCP: "nenhuma instalada" é um resultado válido. O objetivo é tornar verificável que a consulta foi feita. Liste somente skills do projeto: nunca as `do-*` nem as referências do framework (`do-shared/...`).
 
 ## Como localizar os arquivos do `do-shared` e de outras skills
 

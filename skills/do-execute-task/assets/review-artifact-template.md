@@ -32,6 +32,11 @@
 [Liste cada problema menor com arquivo, linha, descrição e correção sugerida]
 [Se nenhum: "Nenhum problema menor encontrado."]
 
+## Defeitos de Outras Tasks
+
+[Para cada defeito de outra task: arquivo, causa, task de origem, correção aplicada e evidência — ou, se a correção exigiu decisão de escopo, design ou contrato, o motivo de não ter sido corrigido]
+[Se nenhum: "Nenhum."]
+
 ## ✅ Destaques Positivos
 
 [Liste as coisas que foram bem feitas]

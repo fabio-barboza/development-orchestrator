@@ -31,7 +31,7 @@
 
 - [ ] Testes de unidade
 - [ ] Testes de integração
-- [ ] Teste de fumaça do fluxo principal de sucesso do que a tarefa entrega, nunca só um caminho de erro (somente se entregar interface ou serviço; omitir caso contrário, indicando qual tarefa posterior cobre o fluxo)
+- [ ] Teste de fumaça do fluxo principal de sucesso do que a tarefa entrega, com o sistema no ar e sem mocks, nunca só um caminho de erro (somente se entregar interface ou serviço; omitir caso contrário, indicando qual tarefa posterior cobre o fluxo)
 
 <critical>SEMPRE CRIE E EXECUTE OS TESTES DA TAREFA ANTES DE CONSIDERÁ-LA FINALIZADA</critical>
 

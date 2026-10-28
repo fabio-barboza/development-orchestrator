@@ -221,7 +221,7 @@ Você também pode executar um range ou uma lista específica:
 /do-execute-all-tasks prds/prd-autenticacao-usuarios/tasks/tasks.md 1.0,3.0,5.0
 ```
 
-> Executa **uma task por vez, estritamente sequencial** (nunca em paralelo — tasks do mesmo PRD editam os mesmos arquivos e o mesmo `tasks.md`), delegando cada execução a um subagente isolado (`agent-execute-task`) — isso evita estouro da janela de contexto em filas longas. Para automaticamente em caso de falha ou de `MUDANÇAS SOLICITADAS` (por exemplo, quando o teste de fumaça de uma task encontra um defeito de outra task que impede o fluxo principal). Disponível no Claude Code, Cursor, GitHub Copilot e Opencode após o `do-setup`.
+> Executa **uma task por vez, estritamente sequencial** (nunca em paralelo — tasks do mesmo PRD editam os mesmos arquivos e o mesmo `tasks.md`), delegando cada execução a um subagente isolado (`agent-execute-task`) — isso evita estouro da janela de contexto em filas longas. Para automaticamente em caso de falha ou de `MUDANÇAS SOLICITADAS` (por exemplo, quando uma task encontra um defeito de outra task cuja correção exige uma decisão de escopo, design ou contrato; defeitos que se corrigem sem essa decisão são corrigidos e registrados no review). Disponível no Claude Code, Cursor, GitHub Copilot e Opencode após o `do-setup`.
 >
 > ⚠️ Rode o command **na sessão primária**, não dentro de um subagente. Nenhuma ferramenta suportada garante subagente-de-subagente: o Claude Code proíbe, o Copilot desabilita por default, e no opencode a fila trava esperando prompts de permissão que nunca aparecem na TUI.
 

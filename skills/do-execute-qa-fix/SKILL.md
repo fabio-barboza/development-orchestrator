@@ -23,7 +23,7 @@ If resolving the bug would require changing a requirement document, or depends o
 All files you create, read or execute MUST live **inside the project root**. Files outside it may be stale or belong to another project/run.
 
 1. **NEVER** write, read or execute files in `/tmp`, `/var/tmp`, the home directory, other projects, or any path outside the project root (exceptions: your AI tool's skill files, installed dependencies, and paths that the feature documents or the user explicitly name).
-2. Scratch files (ad-hoc scripts, intermediate outputs) go ONLY in `./.do/tmp/qa-fix/`. Create it with `mkdir -p` when needed; if the project is a git repository and `.gitignore` does not already ignore `.do` (with or without the trailing slash), append `.do/` once.
+2. Scratch files (ad-hoc scripts, intermediate outputs) go ONLY in `./.do/tmp/qa-fix/`. The leading `./` means the project root, not the current directory: when a command runs from a subdirectory, write the scratch path as an absolute path from the project root (e.g. `<project root>/.do/tmp/qa-fix/`), never as a relative path (`.do/tmp`, `../.do/tmp`). Create it with `mkdir -p` when needed; if the project is a git repository and `.gitignore` does not already ignore `.do` (with or without the trailing slash), append `.do/` once.
 3. Never reuse scratch files from other runs or from other `./.do/tmp/` folders.
 4. Tests that must persist go in the project's test location, not in `./.do/tmp/`.
 5. Delete `./.do/tmp/qa-fix/` before your final response. Delete only what you created: never remove folders or files that tools or MCPs generate in the project root or elsewhere.

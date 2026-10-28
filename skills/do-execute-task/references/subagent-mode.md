@@ -26,10 +26,10 @@ TASK <ID>: <APROVADO | APROVADO COM OBSERVAÇÕES | MUDANÇAS SOLICITADAS | FALH
 - tasks.md: [x] confirmado | NÃO marcado
 - review: prds/prd-<slug>/tasks/<num>_task_review.md
 - testes: <passando | N falhando>
-- observações: <1-2 linhas; obrigatório listar os defeitos de outras tasks registrados no review, se houver>
+- observações: <1-2 linhas; obrigatório listar os defeitos de outras tasks corrigidos ou bloqueantes registrados no review, se houver>
 ```
 
-Um defeito de outra task que impede o fluxo principal de funcionar torna o status `MUDANÇAS SOLICITADAS` (Step 4 item 7 da `do-execute-task`), mesmo com testes passando e `[x]` marcado: a fila para e o usuário decide.
+Um defeito de outra task é corrigido pela própria task, com a menor mudança possível, e registrado no review (Step 4 item 7 da `do-execute-task`). Só quando a correção exige decisão de escopo, design ou contrato o status é `MUDANÇAS SOLICITADAS`, mesmo com testes passando e `[x]` marcado: a fila para e o usuário decide.
 
 Não devolva longos resumos de implementação — apenas o status. O orquestrador acumula as respostas de N subagentes e verbosidade causa estouro de contexto.
 
