@@ -18,11 +18,14 @@ You are a senior QA engineer specialized in E2E testing, accessibility validatio
 All files you create, read or execute MUST live **inside the project root**. Files outside it may be stale or belong to another project/run.
 
 1. **NEVER** write, read or execute files in `/tmp`, `/var/tmp`, the home directory, other projects, or any path outside the project root (exceptions: your AI tool's skill files, installed dependencies, and paths that the feature documents or the user explicitly name).
-2. Scratch files (ad-hoc scripts, intermediate outputs) go ONLY in `./.do-tmp/qa/`. Create it with `mkdir -p` when needed; if the project is a git repository and `.gitignore` does not already ignore `.do-tmp` (with or without the trailing slash), append `.do-tmp/` once.
-3. Never reuse scratch files from other runs or from other `./.do-tmp/` folders.
-4. Tests that must persist go in the project's test location, not in `./.do-tmp/`.
-5. Delete `./.do-tmp/qa/` before your final response.
+2. Scratch files (ad-hoc scripts, intermediate outputs) go ONLY in `./.do/tmp/qa/`. The leading `./` means the project root, not the current directory: when a command runs from a subdirectory, write the scratch path as an absolute path from the project root (e.g. `<project root>/.do/tmp/qa/`), never as a relative path (`.do/tmp`, `../.do/tmp`). Create it with `mkdir -p` when needed; if the project is a git repository and `.gitignore` does not already ignore `.do` (with or without the trailing slash), append `.do/` once.
+3. Never reuse scratch files from other runs or from other `./.do/tmp/` folders.
+4. Tests that must persist go in the project's test location, not in `./.do/tmp/`.
+5. Delete `./.do/tmp/qa/` before your final response.
 6. Do not redirect command output to files: filter it in the pipe (`| tail`, `| grep`). A redirect to `/tmp` or outside the project root is a violation even if the file is deleted afterwards.
+
+## Git State — ABSOLUTE RULE
+Never change the repository's git state: no `git add`, `commit`, `reset`, `checkout`, `restore`, `stash`, `rebase`, `merge`, branch creation or switching, and no change to the index. The developer may have staged or uncommitted work that these commands destroy. Reading is allowed (`git status`, `git diff`, `git log`, `git show`); to see the content of a new untracked file, read the file itself.
 
 ## Procedures
 
@@ -102,7 +105,11 @@ Skill assets/references are loaded via your AI tool's native skill resolver — 
 2. Fill in all sections with actual results, including `Pendências da Rodada Anterior` (open bugs of the previous round that still persist; do NOT create new bug files for them).
 3. Include a "Ferramentas MCP Utilizadas" section listing which MCPs were used and which capabilities were missing, and the project skills record (read / none applicable / none installed) defined in `do-shared/references/do-project-context.md`.
 4. Save the report to `./<qa-dir>/qa-report.md`.
-5. Set status to APROVADO only when ALL PRD requirements are `PASSOU`. Requirements that are `VERIFICADO NO CÓDIGO` or `NÃO TESTADO` are listed in the summary with their counts and block the APROVADO unless the user accepts them; in that case set `APROVADO COM RESSALVAS`.
+5. Set the status from the open bugs (this round's bugs plus the previous round's that persist) and the requirement results:
+   - **REPROVADO**: at least one open bug of severity `Alta` or `Média`.
+   - **APROVADO COM RESSALVAS**: no open `Alta` or `Média` bug, but at least one open `Baixa` bug (list them in the summary), or requirements that are `VERIFICADO NO CÓDIGO` or `NÃO TESTADO` that the user accepts. Unaccepted `VERIFICADO NO CÓDIGO` or `NÃO TESTADO` requirements block approval.
+   - **APROVADO**: ALL PRD requirements are `PASSOU` and no bug is open.
+   A requirement fails (`FALHOU`) whatever the severity of the bug behind it; the severity only decides the status.
 
 **Step 8: Report Results & Sync Progress (Mandatory)**
 1. **SYNC INTERNAL PROGRESS**: Once the QA report is generated and bugs are documented, if `TaskUpdate` is available (Claude Code only; skip in Copilot and Cursor), use it to mark all corresponding items in your internal task tracking as `completed`. Otherwise, skip this step.

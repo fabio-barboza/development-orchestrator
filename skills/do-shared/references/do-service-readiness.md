@@ -18,11 +18,11 @@ If the current step uses only unit tests, static checks, or static analysis, **s
 
 1. List the services that the upcoming step depends on. Sources of truth:
    - The capability table at `do-shared/references/do-mcp-capabilities.md` (`Requer alvo em execução`).
-   - The project's own configuration for ports and start commands: the `Project Commands` section (see `do-shared/references/do-project-commands.md`) and the project's declared run/infrastructure files.
+   - The project's own configuration for ports and start commands: the `Project Commands` section of `.do/context.md` (see `do-shared/references/do-project-commands.md`) and the project's declared run/infrastructure files.
    - Task/PRD/TechSpec context (a feature with a user interface → the application serving it; a feature exposing a service → that service and any broker, data store or cache it mentions).
 2. For each required service, determine:
    - **Type**: `dev-server` (the project's own application, safe to auto-start) or `external` (broker, data store, cache, third-party API — never auto-start).
-   - **Expected port or address** (when known): read from the project's configuration or the `Project Commands` section; never assume a port by technology.
+   - **Expected port or address** (when known): read from the project's configuration or the `Project Commands` section of `.do/context.md`; never assume a port by technology.
    - **Health check** (when available): an HTTP probe, a health tool exposed by the MCP, or a process probe.
 
 ## Step B: Check If Already Running
@@ -51,7 +51,7 @@ For each service marked `not-running`:
 
    Whatever the mechanism, keep the handle or the PID of every service you start; Step E needs it.
 
-   If you redirect output to a log file, write it inside your skill's scratch folder (e.g. `./.do-tmp/task-[num]/<service>.log`; if your skill defines none, `./.do-tmp/<skill-name>/`) — never in `/tmp` or any path outside the project root.
+   If you redirect output to a log file, write it inside your skill's scratch folder (e.g. `./.do/tmp/task-[num]/<service>.log`; if your skill defines none, `./.do/tmp/<skill-name>/`) — never in `/tmp` or any path outside the project root.
 
    Then re-run Step B until the service responds or a 60-second timeout elapses. If the service fails to start (compile error, port already taken by an unrelated process, missing env var), do NOT modify code or configuration to work around it — report the failure (each consumer skill defines how: bug file, review finding, or HALT).
 

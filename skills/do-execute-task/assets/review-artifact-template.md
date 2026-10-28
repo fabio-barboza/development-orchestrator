@@ -32,6 +32,11 @@
 [Liste cada problema menor com arquivo, linha, descrição e correção sugerida]
 [Se nenhum: "Nenhum problema menor encontrado."]
 
+## Defeitos de Outras Tasks
+
+[Para cada defeito de outra task: arquivo, causa, task de origem, correção aplicada e evidência — ou, se a correção exigiu decisão de escopo, design ou contrato, o motivo de não ter sido corrigido]
+[Se nenhum: "Nenhum."]
+
 ## ✅ Destaques Positivos
 
 [Liste as coisas que foram bem feitas]
@@ -56,7 +61,7 @@ Erros pré-existentes (somente os da linha de base, em arquivos que a task não 
 
 ## Skills e MCPs do Projeto
 
-Skills do projeto: [lidas: nomes | nenhuma aplicável | nenhuma instalada]
+Skills do projeto: [lidas antes da implementação: nomes | lidas depois (código revisto contra elas): nomes | nenhuma aplicável | nenhuma instalada]
 MCPs do projeto: [usados: nome (capacidade) | nenhum necessário | lacuna: capacidade não disponível]
 
 ## Recomendações

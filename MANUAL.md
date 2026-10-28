@@ -36,10 +36,12 @@ Isso instala todas as skills do framework (`do-setup`, `do-create-prd`, `do-crea
 Um `npx skills add` repetido **não sobrescreve** as skills já instaladas. Para trazer uma versão nova:
 
 1. `npx skills update` (ou `npx skills remove` das skills `do-*` e `npx skills add` de novo; para testar uma branch, `npx skills add "fabio-barboza/development-orchestrator#<branch>"`).
-2. `/do-setup agents`: reescreve o worker (`agent-execute-task`) e, no Opencode, os comandos finos. Não mexe no arquivo de configuração do projeto, nem nas seções de skills e MCPs.
+2. `/do-setup agents`: reescreve o worker (`agent-execute-task`) e, no Opencode, os comandos finos. Não mexe em `.do/context.md`.
 3. Reinicie a ferramenta. O Opencode mantém agentes e comandos em cache num servidor persistente; sem reiniciar, o worker antigo continua valendo.
 
 > **Skill renomeada:** `do-execute-qa-bugfix` agora é `do-execute-qa-fix`. Quem já a tinha instalada fica com a antiga ao lado da nova: remova a antiga (`npx skills remove do-execute-qa-bugfix`) e apague `.opencode/commands/do-execute-qa-bugfix.md`, se existir. Atalhos e anotações que citam o nome antigo também precisam ser trocados.
+
+> **Vindo de uma versão anterior à 1.1.0:** o contexto do framework saiu do `CLAUDE.md`/`AGENTS.md` e foi para `.do/context.md`, e os rascunhos saíram de `.do-tmp/` para `.do/tmp/`. Rode `/do-setup` (completo) uma vez para gerar `.do/context.md`. O framework não edita mais o seu arquivo de instruções: o `do-setup` avisa quais seções antigas (`Available Skills`, `Uncovered Skills`, `Available MCPs`, `Project Commands`) ainda estão lá, para você remover à mão, e se a linha `.do-tmp/` do `.gitignore` pode sair.
 
 PRDs, TechSpecs e tasks já gerados **não** se adaptam sozinhos: se mudou a regra de geração (por exemplo, tasks sem task de E2E), só um PRD novo reflete a mudança.
 
@@ -65,7 +67,7 @@ Além das skills do DO Framework, você pode instalar skills específicas para a
 >
 > As tasks já geradas continuam válidas (elas não dependem de skills específicas, mesmo que citem alguma de passagem; o executor escolhe a skill pelo "quando usar"). Já a TechSpec foi escrita sem consultar a skill nova: se ela alterar uma decisão, ajuste a TechSpec (à mão ou pedindo ao agente) antes de executar.
 
-> Procure skills disponíveis em [skills.sh](https://skills.sh). Nenhuma skill além das `do-*` é obrigatória: o framework funciona sem elas. Após instalar, o `do-setup` (ou `/do-setup refresh`) detecta quais são relevantes ao projeto e as registra no arquivo de configuração.
+> Procure skills disponíveis em [skills.sh](https://skills.sh). Nenhuma skill além das `do-*` é obrigatória: o framework funciona sem elas. Após instalar, o `do-setup` (ou `/do-setup refresh`) detecta quais são relevantes ao projeto e as registra em `.do/context.md`.
 
 ---
 
@@ -89,7 +91,7 @@ MCPs habilitam testes E2E automáticos e consulta a documentação. O framework 
 
 Para outras ferramentas (Cursor, Copilot, Opencode), veja a tabela no [README.md](README.md#como-configurar-mcps-no-seu-projeto).
 
-> Prefira configurar os MCPs **por projeto**, não globalmente: cada MCP entra no prompt de toda sessão, mesmo em projetos que não o usam, e as skills descobrem os MCPs lendo o arquivo de configuração do projeto.
+> Prefira configurar os MCPs **por projeto**, não globalmente: cada MCP entra no prompt de toda sessão, mesmo em projetos que não o usam, e as skills descobrem os MCPs lendo o arquivo de configuração de MCP do projeto.
 
 ---
 
@@ -101,7 +103,15 @@ Rode **uma única vez** por projeto:
 /do-setup
 ```
 
-Isso analisa o codebase, gera o arquivo de configuração do projeto (`CLAUDE.md`, `.cursorrules`, etc.) com contexto e convenções, e **instala os agents de orquestração** nos diretórios corretos da sua ferramenta de IA.
+Isso analisa o codebase, grava o contexto do framework em `.do/context.md` (resumo, convenções, comandos, skills e MCPs) e **instala os agents de orquestração** nos diretórios corretos da sua ferramenta de IA.
+
+> **O `do-setup` nunca altera um `CLAUDE.md`, `AGENTS.md` ou equivalente que já existe.** Esses arquivos são do projeto e de todo o time, inclusive de quem não usa o framework ou tem outras skills e MCPs instalados. O framework só os lê, para as convenções. Se o projeto não tem nenhum, o `do-setup` pergunta se deve criar um (`CLAUDE.md` no Claude Code, `AGENTS.md` no Opencode, no Cursor e no GitHub Copilot, que leem esse arquivo) com o que um `/init` geraria: resumo, comandos e convenções, em inglês (o idioma padrão do `/init`), sem nenhuma referência ao framework, a skills ou a MCPs. O arquivo não é adicionado ao git: você revisa e decide se faz o commit. Tudo do framework fica em `.do/`, uma pasta local de cada desenvolvedor, ignorada pelo git:
+>
+> ```
+> .do/
+>   context.md   # gerado pelo do-setup
+>   tmp/         # rascunhos das skills de execução, apagados ao fim de cada execução
+> ```
 
 O `do-setup` também **inventaria o que está instalado** e informa no relatório final:
 
@@ -109,7 +119,7 @@ O `do-setup` também **inventaria o que está instalado** e informa no relatóri
 - **MCPs** configurados, com a capacidade de cada um (`ui-testing`, `documentation`, etc.);
 - **Lacunas**, por exemplo "sem MCP de interface: o E2E de interface será pulado".
 
-O `do-setup` também registra os **comandos do próprio projeto** (instalar dependências, rodar testes, rodar testes com cobertura, checagem estática, iniciar o serviço local) na seção `Project Commands`, lidos do que o projeto já declara; as skills de execução usam esses comandos em vez de presumir uma linguagem ou ferramenta. Se o projeto é um repositório git, o `do-setup` também acrescenta `.do-tmp/` (a pasta de rascunhos das skills de execução) ao `.gitignore`. O resultado do inventário fica nas seções `Available Skills` e `Available MCPs` do arquivo de configuração. Nenhuma skill além das `do-*` é presumida: se não houver nenhuma, é só um aviso, não um erro. Durante a execução, as skills do framework consultam essas seções (e a lista nativa da ferramenta), leem as skills relevantes à tarefa e registram no review quais usaram.
+O `do-setup` também registra os **comandos do próprio projeto** (instalar dependências, rodar testes, rodar testes com cobertura, checagem estática, iniciar o serviço local) na seção `Project Commands` de `.do/context.md`, lidos do que o projeto já declara; as skills de execução usam esses comandos em vez de presumir uma linguagem ou ferramenta. Se o projeto é um repositório git, o `do-setup` acrescenta `.do/` ao `.gitignore`. O resultado do inventário fica nas seções `Available Skills` e `Available MCPs` de `.do/context.md`. Nenhuma skill além das `do-*` é presumida: se não houver nenhuma, é só um aviso, não um erro. Durante a execução, as skills do framework consultam essas seções (e a lista nativa da ferramenta), leem as skills relevantes à tarefa e registram no review quais usaram.
 
 > **Opencode (apenas na 1ª execução):** o opencode **não reconhece skills via `/<skill>`** — então a *primeira* invocação do `do-setup` precisa ser em linguagem natural:
 > ```
@@ -122,13 +132,11 @@ O `do-setup` também registra os **comandos do próprio projeto** (instalar depe
 > /do-setup agents
 > ```
 
-> Se instalou **novas skills ou MCPs depois do setup**, atualize só a lista registrada no arquivo de configuração com:
+> Se instalou **novas skills ou MCPs depois do setup**, atualize só a lista registrada em `.do/context.md` com:
 > ```
 > /do-setup refresh
 > ```
 > Ele redetecta skills e MCPs e reescreve apenas as seções `Available Skills`, `Uncovered Skills` e `Available MCPs`, sem reanalisar o projeto nem reinstalar os agents. Exige que o setup completo já tenha sido feito.
-
-> **`CLAUDE.md` e `AGENTS.md` juntos:** se o projeto tiver os dois, o Claude Code lê só o `CLAUDE.md` e o Opencode lê o `AGENTS.md`, então as seções geradas pelo `do-setup` só chegam à ferramenta escolhida. O `do-setup` avisa disso e não altera o outro arquivo. Para unificar, mantenha o conteúdo no `AGENTS.md` e deixe no `CLAUDE.md` a linha `@AGENTS.md`.
 
 ---
 
@@ -213,11 +221,11 @@ Você também pode executar um range ou uma lista específica:
 /do-execute-all-tasks prds/prd-autenticacao-usuarios/tasks/tasks.md 1.0,3.0,5.0
 ```
 
-> Executa **uma task por vez, estritamente sequencial** (nunca em paralelo — tasks do mesmo PRD editam os mesmos arquivos e o mesmo `tasks.md`), delegando cada execução a um subagente isolado (`agent-execute-task`) — isso evita estouro da janela de contexto em filas longas. Para automaticamente em caso de falha. Disponível no Claude Code, Cursor, GitHub Copilot e Opencode após o `do-setup`.
+> Executa **uma task por vez, estritamente sequencial** (nunca em paralelo — tasks do mesmo PRD editam os mesmos arquivos e o mesmo `tasks.md`), delegando cada execução a um subagente isolado (`agent-execute-task`) — isso evita estouro da janela de contexto em filas longas. Para automaticamente em caso de falha ou de `MUDANÇAS SOLICITADAS` (por exemplo, quando uma task encontra um defeito de outra task cuja correção exige uma decisão de escopo, design ou contrato; defeitos que se corrigem sem essa decisão são corrigidos e registrados no review). Disponível no Claude Code, Cursor, GitHub Copilot e Opencode após o `do-setup`.
 >
 > ⚠️ Rode o command **na sessão primária**, não dentro de um subagente. Nenhuma ferramenta suportada garante subagente-de-subagente: o Claude Code proíbe, o Copilot desabilita por default, e no opencode a fila trava esperando prompts de permissão que nunca aparecem na TUI.
 
-A skill (e o agent) implementam o código, rodam os testes e geram um review file por task. Para acompanhar o progresso a qualquer momento:
+A skill (e o agent) implementam o código, rodam os testes e geram um review file por task. O resumo final lista as observações registradas nos reviews e **não** significa que a feature está validada de ponta a ponta: isso é feito pelo review geral e pelo QA (Passos 7 e 8). Para acompanhar o progresso a qualquer momento:
 
 ```
 /do-status
@@ -271,7 +279,7 @@ Se bugs forem encontrados, corrija e revalide:
 
 O modo fila funciona como no review: pasta ou vários arquivos, um subagente por bug, falha isolada.
 
-Repita até não restar nenhum bug de severidade HIGH. Feature pronta!
+Repita até não restar nenhum bug de severidade média ou alta: só bugs de severidade baixa deixam o QA em `APROVADO COM RESSALVAS`, não em `REPROVADO`. Feature pronta!
 
 > **Evidência no relatório:** cada requisito sai como `PASSOU` (visto rodando), `FALHOU`, `VERIFICADO NO CÓDIGO` ou `NÃO TESTADO`. Os dois últimos não contam como aprovados: se sobrar algum, o status é `APROVADO COM RESSALVAS`, no máximo.
 

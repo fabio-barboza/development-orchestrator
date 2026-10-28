@@ -26,8 +26,10 @@ TASK <ID>: <APROVADO | APROVADO COM OBSERVAÇÕES | MUDANÇAS SOLICITADAS | FALH
 - tasks.md: [x] confirmado | NÃO marcado
 - review: prds/prd-<slug>/tasks/<num>_task_review.md
 - testes: <passando | N falhando>
-- observações: <1-2 linhas, opcional>
+- observações: <1-2 linhas; obrigatório listar os defeitos de outras tasks corrigidos ou bloqueantes registrados no review, se houver>
 ```
+
+Um defeito de outra task é corrigido pela própria task, com a menor mudança possível, e registrado no review (Step 4 item 7 da `do-execute-task`). Só quando a correção exige decisão de escopo, design ou contrato o status é `MUDANÇAS SOLICITADAS`, mesmo com testes passando e `[x]` marcado: a fila para e o usuário decide.
 
 Não devolva longos resumos de implementação — apenas o status. O orquestrador acumula as respostas de N subagentes e verbosidade causa estouro de contexto.
 
@@ -52,7 +54,8 @@ O mesmo subagente executa também **um** fix task de review ou **um** bug de QA,
 3. Se a correção falhar ou não se aplicar mais (o problema deixou de existir), desfaça **as suas próprias edições** (você sabe o que mudou; não use `git checkout`, pois o projeto pode ter trabalho não commitado), registre o bloqueio no arquivo como a skill manda e rode a suíte para confirmar que ela voltou ao estado de antes. Informe o resultado em `suíte`.
 4. **Escopo**: o item altera somente código e testes. Nunca edite PRD, TechSpec, `tasks.md` ou tasks, nem tome uma decisão de produto ou de escopo. Se a correção exigir isso, não edite nada e responda `NÃO RESOLVIDO`, dizendo em `observações` qual decisão o usuário precisa tomar.
 5. **Ambiente**: guarde o handle ou o PID de todo serviço que subir (sem subshell `( cmd & )`), encerre a árvore inteira antes de responder e apague apenas o que você mesmo criou.
-6. Resposta final, curta:
+6. **Git**: nunca altere o estado do git (stage, commit, reset, checkout, restore, stash, branch); apenas leia (`status`, `diff`, `log`, `show`).
+7. Resposta final, curta:
 
 ```
 FIX <ID>: <RESOLVIDO | NÃO RESOLVIDO | FALHA>

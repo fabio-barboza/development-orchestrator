@@ -77,12 +77,12 @@ Para **cada** task na fila:
 
 #### 2.2. Delegação em subagente isolado
 
-**Nomes de arquivo:** `<ID>` é o ID da task como aparece no `tasks.md` (`1.0`, `11.0`). `<num>` é a **parte inteira** do ID (`1.0` → `1`; `11.0` → `11`). O arquivo da task é sempre `<num>_task.md` (`1_task.md`), **nunca** `<ID>_task.md` (`1.0_task.md`). Idem para o review (`<num>_task_review.md`) e a pasta de rascunho (`.do-tmp/task-<num>/`).
+**Nomes de arquivo:** `<ID>` é o ID da task como aparece no `tasks.md` (`1.0`, `11.0`). `<num>` é a **parte inteira** do ID (`1.0` → `1`; `11.0` → `11`). O arquivo da task é sempre `<num>_task.md` (`1_task.md`), **nunca** `<ID>_task.md` (`1.0_task.md`). Idem para o review (`<num>_task_review.md`) e a pasta de rascunho (`.do/tmp/task-<num>/`).
 
 **Esta é a etapa que garante o isolamento de contexto.** Chame a ferramenta de delegação (tabela acima) apontando para `agent-execute-task`, com a descrição "Executar task <ID>" e este prompt:
 
 ```
-Execute a task <ID> do PRD localizado em prds/prd-<nome>/. Task file: prds/prd-<nome>/tasks/<num>_task.md. Siga RIGOROSAMENTE o SKILL.md da skill do-execute-task na íntegra (Step 0 a Step 8): leitura de PRD/TechSpec, análise, implementação, gate de testes, marcação [x] em tasks.md, code review, criação do arquivo <num>_task_review.md e gate final de artefatos. Não pule etapas. Não pare para pedir confirmação — você não tem canal com o usuário. Se faltar informação, retorne FALHA. Regras de ambiente: trabalhe somente dentro da raiz do projeto (exceto caminhos que a task indicar explicitamente); rascunhos apenas em .do-tmp/task-<num>/ — não leia rascunhos de outras tasks e apague a pasta ao final; para o teste de fumaça (somente o fluxo principal do que a task entregou) use as tools do MCP disponíveis na sessão, nunca scripts que acionem uma biblioteca de automação diretamente nem CLI; nunca redirecione saída de comando para fora do projeto e encerre os serviços que você mesmo subiu; se um serviço necessário estiver fora do ar, restabeleça-o em vez de trocar o método de teste; evidências (screenshots) em prds/prd-<nome>/task-screenshots/. Antes de implementar, consulte as skills e MCPs do projeto conforme do-shared/references/do-project-context.md (seções Available Skills e Available MCPs do arquivo de configuração do projeto; use somente o que existir) e registre o resultado no arquivo de review. Os arquivos do-shared ficam no diretório de skills, ao lado de do-execute-task; leia-os pelo caminho completo, pois buscas glob ignoram diretórios ocultos como .agents/. Retorne resposta curta no formato definido em do-execute-task/references/subagent-mode.md.
+Execute a task <ID> do PRD localizado em prds/prd-<nome>/. Task file: prds/prd-<nome>/tasks/<num>_task.md. Siga RIGOROSAMENTE o SKILL.md da skill do-execute-task na íntegra (Step 0 a Step 8): leitura de PRD/TechSpec, análise, implementação, gate de testes, marcação [x] em tasks.md, code review, criação do arquivo <num>_task_review.md e gate final de artefatos. Não pule etapas. Não pare para pedir confirmação — você não tem canal com o usuário. Se faltar informação, retorne FALHA. Regras de ambiente: trabalhe somente dentro da raiz do projeto (exceto caminhos que a task indicar explicitamente); rascunhos apenas em .do/tmp/task-<num>/ — não leia rascunhos de outras tasks e apague a pasta ao final; para o teste de fumaça (somente o fluxo principal de sucesso do que a task entregou, com o sistema no ar e sem mocks, nunca só um caminho de erro) use as tools do MCP disponíveis na sessão, nunca scripts que acionem uma biblioteca de automação diretamente nem CLI; nunca redirecione saída de comando para fora do projeto e encerre os serviços que você mesmo subiu; se um serviço necessário estiver fora do ar, restabeleça-o em vez de trocar o método de teste; evidências (screenshots) em prds/prd-<nome>/task-screenshots/. Antes de implementar, consulte as skills e MCPs do projeto conforme do-shared/references/do-project-context.md (seções Available Skills e Available MCPs de .do/context.md; use somente o que existir) e registre o resultado no arquivo de review. Os arquivos do-shared ficam no diretório de skills, ao lado de do-execute-task; leia-os pelo caminho completo, pois buscas glob ignoram diretórios ocultos como .agents/. Nunca altere o estado do git (só leitura). Retorne resposta curta no formato definido em do-execute-task/references/subagent-mode.md.
 ```
 
 **Apenas UMA chamada por response**, em foreground. **Aguarde o retorno** antes de prosseguir: cada invocação roda em sessão isolada, sem herdar histórico nem tool results da task anterior — isto é o isolamento real.
@@ -106,10 +106,11 @@ Decisão:
    ```
    === TASK <ID> CONCLUÍDA ===
    ```
+   Se o campo `observações` não estiver vazio, guarde-o (ID da task + texto) para o resumo final. É a única coisa que você acumula além do status.
 2. `FALHA` **ou** `MUDANÇAS SOLICITADAS` **ou** `tasks.md: NÃO marcado` **ou** retorno vazio/malformado:
    - **PARE** o loop.
    - **Apenas neste caso**, releia `tasks.md` UMA vez para diagnóstico.
-   - Reporte: task com problema, motivo e próximos passos.
+   - Reporte: task com problema, motivo (inclusive as `observações` do retorno: um `MUDANÇAS SOLICITADAS` com testes passando costuma ser um defeito de outra task cuja correção exige decisão de escopo, design ou contrato) e próximos passos.
    - Não prossiga sem instrução explícita do usuário.
 
 #### 2.4. Próxima task
@@ -122,13 +123,16 @@ Volte ao passo **2.1**. Entre tasks: **NÃO** releia `tasks.md`, **NÃO** liste 
 ### 3. Encerramento
 
 Quando a fila estiver vazia:
-1. Releia `tasks.md` e gere o resumo final:
+1. Releia `tasks.md` e gere o resumo final, com as observações acumuladas **antes** da lista de tasks:
    ```
-   ✅ Execução concluída
+   Fila concluída: <N> tasks implementadas
+   Observações registradas nos reviews das tasks:
+   - <ID>: <observação>
+   (ou: nenhuma)
    Tasks executadas: <lista de IDs>
    Tasks ainda pendentes no PRD: <lista, se houver>
    ```
-2. Sugira próximos passos (ex.: `do-execute-review` ou `do-execute-qa`).
+2. Diga explicitamente que a fila implementa e testa cada task isoladamente e **não** valida a feature de ponta a ponta: isso é feito por `do-execute-review` e `do-execute-qa`, que são os próximos passos. Não descreva a feature como pronta ou funcionando.
 
 ## Checkpoint obrigatório antes de cada delegação
 
@@ -149,7 +153,7 @@ Antes de **qualquer** chamada da ferramenta de delegação, verifique as quatro 
 4. **Falha = parada.** Inclui retorno vazio, malformado ou timeout do subagente.
 5. **Nunca** edite `tasks.md` diretamente — quem marca `[x]` é a skill `do-execute-task` dentro do subagente.
 6. **Mantenha o orquestrador magro — UMA leitura inicial e UMA final, mais nada.**
-7. Respeite as convenções descritas no arquivo de configuração do projeto.
+7. Respeite as convenções do projeto (arquivo de instruções do projeto, somente leitura, e seção `Project Conventions` de `.do/context.md`).
 
 ## Exemplo
 

@@ -4,23 +4,18 @@ Procedimento padrão referenciado pelas skills `do-*` que implementam, revisam, 
 
 ## Onde a lista fica registrada
 
-O `do-setup` grava duas seções no arquivo de configuração do projeto da ferramenta de IA em uso:
-
-| Ferramenta | Arquivo de configuração |
-|------------|-------------------------|
-| Claude Code | `CLAUDE.md` (ou `AGENTS.md`, quando não existe `CLAUDE.md`) |
-| Opencode | `AGENTS.md` |
-| GitHub Copilot | `.github/copilot-instructions.md` |
-| Cursor AI | `.cursor/rules/project.mdc` (ou `.cursorrules`) |
+O `do-setup` grava duas seções em `.do/context.md`, o arquivo de contexto do framework na raiz do projeto:
 
 - `## Available Skills`: tabela `Skill | Caminho | Quando usar`.
 - `## Available MCPs`: tabela `MCP | Capacidade | Quando usar`.
+
+`.do/` é local a cada desenvolvedor e ignorado pelo git: as skills e os MCPs listados são os da máquina de quem rodou o `do-setup`. O arquivo de instruções do projeto (`CLAUDE.md`, `AGENTS.md` etc.) não guarda essa lista: o framework só o lê, para as convenções, e nunca o edita. Quando o projeto não tem nenhum, o `do-setup` pode criá-lo com o consentimento do usuário, mas só com o conteúdo do projeto (resumo, comandos, convenções).
 
 Essas seções são um **resumo gravado no momento do setup**. Podem estar ausentes, vazias ou desatualizadas (uma skill instalada depois do setup não aparece nelas). Por isso o procedimento abaixo sempre confirma contra o que a sessão realmente enxerga.
 
 ## Procedimento — Skills
 
-1. Leia o arquivo de configuração do projeto (tabela acima) e extraia a seção `Available Skills`. Se o arquivo ou a seção não existir, siga para o passo 2.
+1. Leia a seção `Available Skills` de `.do/context.md`. Se o arquivo ou a seção não existir, siga para o passo 2.
 2. Complete a lista com as skills que a sua ferramenta expõe nativamente (por exemplo a tool `skill` ou a lista de skills disponíveis na sessão). Ignore todas as `do-*`.
 3. Escolha as skills **relevantes para a tarefa atual** pelo critério "Quando usar" (ou pela `description` do `SKILL.md`): linguagem/framework envolvido, tipo de trabalho (UI, testes, revisão, banco de dados etc.).
 4. Para cada skill escolhida, leia o `SKILL.md` (pelo caminho da tabela ou pela tool `skill`) e incorpore suas regras ao trabalho.
@@ -31,7 +26,7 @@ Essas seções são um **resumo gravado no momento do setup**. Podem estar ausen
 ## Procedimento — MCPs
 
 1. Execute a descoberta de `do-shared/references/do-mcp-discovery-instructions.md` (arquivo de configuração de MCP da ferramenta + tools expostas na sessão). Essa descoberta é a fonte de verdade em tempo de execução.
-2. A seção `Available MCPs` do arquivo de configuração serve só como resumo para saber o que esperar; se divergir da descoberta, vale a descoberta.
+2. A seção `Available MCPs` de `.do/context.md` serve só como resumo para saber o que esperar; se divergir da descoberta, vale a descoberta.
 3. Use um MCP somente se a capacidade correspondente foi descoberta. Sem MCP para a capacidade necessária, documente a lacuna e continue pelo caminho alternativo (testes unitários/integração, busca na web, leitura do código).
 4. **Documentação de bibliotecas:** se existir um MCP com capacidade `documentation`, use-o para consultar a documentação oficial. Caso contrário, use busca na web ou o próprio código e a TechSpec. Nenhum MCP específico é obrigatório.
 
@@ -44,7 +39,7 @@ Skills do projeto: <lidas: a, b | nenhuma aplicável | nenhuma instalada>
 MCPs do projeto: <usados: x (capacidade) | nenhum necessário | lacuna: capacidade Y não disponível>
 ```
 
-Isso é um **registro**, não uma exigência de usar skill ou MCP: "nenhuma instalada" é um resultado válido. O objetivo é tornar verificável que a consulta foi feita.
+Isso é um **registro**, não uma exigência de usar skill ou MCP: "nenhuma instalada" é um resultado válido. O objetivo é tornar verificável que a consulta foi feita. Liste somente skills do projeto: nunca as `do-*` nem as referências do framework (`do-shared/...`).
 
 ## Como localizar os arquivos do `do-shared` e de outras skills
 

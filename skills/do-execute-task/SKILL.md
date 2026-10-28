@@ -38,12 +38,15 @@ When an `Edit` tool call fails, follow this escalation ladder:
 All files you create, read or execute for the task MUST live **inside the project root**. Anything outside it may be stale or belong to another project/run, and reusing it silently corrupts the work.
 
 1. **NEVER** write, read or execute files in `/tmp`, `/var/tmp`, the home directory, other projects, or any path outside the project root. Exceptions: your AI tool's skill files, installed dependencies (the project's dependency directory, global CLIs), and paths that the task file, the PRD/TechSpec or the user explicitly name (e.g. another project to analyze, a shared library).
-2. **Scratch files** (exploratory scripts, generators, ad-hoc checks, intermediate outputs) go ONLY in `./.do-tmp/task-[num]/` (e.g. `./.do-tmp/task-3/`). Create it with `mkdir -p` when first needed. If the project is a git repository and `.gitignore` does not already ignore `.do-tmp` (with or without the trailing slash), append `.do-tmp/` once; never add a second line for it.
-3. **Do not reuse scratch files from other tasks or previous runs.** Never list, read or execute anything in `./.do-tmp/` outside the current `task-[num]` folder. If you need a helper again, recreate it.
+2. **Scratch files** (exploratory scripts, generators, ad-hoc checks, intermediate outputs) go ONLY in `./.do/tmp/task-[num]/` (e.g. `./.do/tmp/task-3/`). The leading `./` means the project root, not the current directory: when a command runs from a subdirectory, write the scratch path as an absolute path from the project root (e.g. `<project root>/.do/tmp/task-[num]/`), never as a relative path (`.do/tmp`, `../.do/tmp`). Create it with `mkdir -p` when first needed. If the project is a git repository and `.gitignore` does not already ignore `.do` (with or without the trailing slash), append `.do/` once; never add a second line for it.
+3. **Do not reuse scratch files from other tasks or previous runs.** Never list, read or execute anything in `./.do/tmp/` outside the current `task-[num]` folder. If you need a helper again, recreate it.
 4. **Tests that validate the task are NOT scratch** — write them in the project's test location defined by the TechSpec / project conventions, so they persist and run in the full suite (Step 4B).
-5. Before finishing (Step 8), delete `./.do-tmp/task-[num]/`.
+5. Before finishing (Step 8), delete `./.do/tmp/task-[num]/`.
 6. **Do not redirect command output to files.** Filter it in the pipe instead (`| tail`, `| grep`); if you really need a file, it goes in the scratch folder. A redirect to `/tmp` or any path outside the project root is a violation even if the file is deleted afterwards.
 7. **Evidence that must persist** (screenshots or logs cited in the review) goes in `./prds/prd-[feature-slug]/task-screenshots/`: run `mkdir -p` on it first and ALWAYS pass the full relative path in the screenshot tool's `filename` parameter (e.g. `prds/prd-[feature-slug]/task-screenshots/task-[num]-<description>.png`). Never leave screenshots or other evidence files in the project root; throwaway captures go in the scratch folder.
+
+## Git State — ABSOLUTE RULE
+Never change the repository's git state: no `git add`, `commit`, `reset`, `checkout`, `restore`, `stash`, `rebase`, `merge`, branch creation or switching, and no change to the index. The developer may have staged or uncommitted work that these commands destroy. Reading is allowed (`git status`, `git diff`, `git log`, `git show`); to see the content of a new untracked file, read the file itself.
 
 ## Context Compaction
 If your context is compacted or summarized in the middle of the task (you can no longer see the text of this SKILL.md in your context), **re-read this SKILL.md and the task file before continuing**. Rules that were only in the discarded context still apply — in particular the Workspace Boundary rule and the Step 8 final gate.
@@ -71,10 +74,10 @@ Skill assets/references are loaded via your AI tool's native skill resolver — 
 
 **Step 2: Load Project Skills and MCPs**
 1. Identify the technologies and the kind of work involved in the task (UI, API, database, tests, etc.).
-2. Follow `do-shared/references/do-project-context.md` (Skills procedure): read the `Available Skills` section of the project configuration file, complete it with the skills your AI tool exposes natively (ignoring `do-*`), pick the ones relevant to this task and read their `SKILL.md`. No specific skill is assumed to exist — if none is installed or relevant, continue without them.
+2. Follow `do-shared/references/do-project-context.md` (Skills procedure): read the `Available Skills` section of `.do/context.md`, complete it with the skills your AI tool exposes natively (ignoring `do-*`), pick the ones relevant to this task and read their `SKILL.md`. No specific skill is assumed to exist — if none is installed or relevant, continue without them.
 3. If a documentation MCP (capability `documentation`) was discovered, use it to check documentation of the involved frameworks/libraries; otherwise rely on the codebase, the TechSpec or Web Search.
 4. Validation and end-to-end tasks follow the same rule: the skills for the technologies being validated are read too. "Consulted indirectly through the TechSpec" does NOT count as reading a skill.
-5. Keep the result (skills read / none applicable / none installed) for the review file (Step 7).
+5. Do this **before** Step 3 and before any code change: a skill read only after implementing did not guide the implementation. Keep the result (skills read / none applicable / none installed) for the review file (Step 7), stating for each skill read whether it was read before or after the implementation.
 
 **Step 3: Task Analysis (INTERNAL ONLY — do NOT output as standalone message)**
 1. Briefly analyze: main objectives, how the task fits the project, dependencies.
@@ -84,7 +87,7 @@ Skill assets/references are loaded via your AI tool's native skill resolver — 
 
 **Step 4: Implementation (SAME response as Step 3 — zero latency, zero user interaction)**
 1. Implementation begins in the same response as analysis. There is no separate "planning" message.
-2. Follow all project standards established in the project configuration file (CLAUDE.md, AGENTS.md, .github/copilot-instructions.md, or .cursor/rules/project.mdc), the project rules and the guidance of the skills read in Step 2.
+2. Follow all project standards established in the project's instructions file (CLAUDE.md, AGENTS.md, .github/copilot-instructions.md or .cursor rules — read-only), in the `Project Conventions` section of `.do/context.md`, the project rules and the guidance of the skills read in Step 2.
 3. Implement solutions without workarounds.
 4. Respect ALL `<critical>` tags identified in Step 3 — they are mandatory constraints, not suggestions.
 5. As you complete each subtask listed in the task file (X.1, X.2, etc.), mark it as `[x]` in the `[num]_task.md` file.
@@ -97,25 +100,26 @@ Skill assets/references are loaded via your AI tool's native skill resolver — 
       - Task exposing a service + service-capable MCP available (`api-testing`, `messaging`, `data-store`) → run service E2E via that MCP.
       - UI + service, with both kinds available → run both.
       - Task type + no relevant MCP → skip E2E, continue with unit/integration tests, document gap in review.
-   **Scope: smoke check only.** Validate the main happy-path flow of what THIS task delivered (one flow per capability) and nothing else. Do not audit accessibility, test several viewports, sweep error states or hunt bugs in the rest of the feature: that is `do-execute-qa`. If the smoke check finds a defect in what this task delivered, fix it as part of the task; a defect in another task's work goes in the review as an observation, without stopping the queue.
+   **Scope: smoke check only.** Validate the main happy-path flow of what THIS task delivered (one flow per capability) and nothing else. Do not audit accessibility, test several viewports, sweep error states or hunt bugs in the rest of the feature: that is `do-execute-qa`. An error path alone is never a smoke check: if the task file defines a smoke check that does not exercise the main success flow, run the main success flow anyway and note the divergence in the review. When the task file states that this task covers a flow delivered by an earlier task, that flow is part of this smoke check. The smoke check runs against the running system through the MCPs; a test with mocks or stubs is a unit or integration test, never a smoke check, even when the task file calls it one.
+   **Defects in another task's work** (found by the smoke check or by a test that fails without any change of yours causing it): fix it as part of this task with the smallest change that restores the behavior the PRD/TechSpec define, without changing that task's scope, design or contracts, and record it in the review under `Defeitos de outras tasks` with file, cause, task of origin, fix and evidence. Never weaken or delete a test to make it pass; change a test only when it contradicts the PRD/TechSpec, and record that too. If the fix requires a scope, design or contract decision (a requirement, an interface or the TechSpec would have to change), do not fix it: it is a **CRÍTICO** finding and the review status is **MUDANÇAS SOLICITADAS** (Step 7), which stops the queue.
 8. **HOW TO RUN E2E tests**: MUST be executed via the appropriate MCP tools, as described for the capability in the catalog — **NEVER via CLI**.
 9. **Service readiness — MANDATORY before invoking any MCP/E2E that depends on a running service**: Follow the procedure at `do-shared/references/do-service-readiness.md`. The rule is **check first, reuse if running, start only when needed, never kill running services**. For capabilities that require a running target, probe the service before invoking tools; if it is not running, start it only with the project's own local start command (see `do-shared/references/do-project-commands.md`); for brokers, data stores or other external services, document the gap instead of attempting to start them automatically.
 10. **If an MCP is unavailable** (connection error, tools not responding): Follow the "Se indisponível" handling of the capability in the catalog. Continue with unit/integration tests and document the E2E gap in the review. A connection-refused (or similar) error from the *target service* is NOT MCP unavailability — the service went down: bring it back with the service-readiness procedure (item 9) and retry. Never switch the validation method — do not replace the MCP with scripts that drive an automation library directly or with a CLI.
 
 **Step 4B: ALL TESTS MUST PASS — NON-NEGOTIABLE GATE**
 
-Run the tests with the commands from `Project Commands`. Re-run only after a code change or a diagnosed cause; use the single-test command to iterate on one failure and the full-suite command once to confirm. Do not repeat the same run hoping for a different result. Variants of the declared command that only add flags (coverage, filtering, reporters) are allowed.
+Run the tests with the commands from the `Project Commands` section of `.do/context.md` (see `do-shared/references/do-project-commands.md`). Re-run only after a code change or a diagnosed cause; use the single-test command to iterate on one failure and the full-suite command once to confirm. Do not repeat the same run hoping for a different result. Variants of the declared command that only add flags (coverage, filtering, reporters) are allowed.
 
 
 **A task with failing tests is NOT a completed task. This is an ABSOLUTE, NON-NEGOTIABLE rule.**
 
 1. After implementation, run the FULL test suite (unit, integration, and the project's static checks if it defines any), using the commands resolved in Step 4 item 6.
-   **Static checks gate**: any error in a file this task created or changed is yours and counts as a failure of this step, even when the cause is the project's configuration not recognizing what your code uses (for example a linter without the globals of the test framework): adjust the configuration as part of the task. An error may be called "pre-existing" only if it is in the baseline from Step 4 item 6 and in a file this task did not touch; list each such error in the review (Step 7). Running static checks only on your own files does not replace the full run.
+   **Static checks gate**: any error in a file this task created or changed is yours and counts as a failure of this step, even when the cause is the project's configuration not recognizing what your code uses (for example a linter without the globals of the test framework): adjust the configuration as part of the task, with the narrowest scope (only the files that use it) and never by disabling rules, downgrading errors or excluding files (see `do-shared/references/do-project-commands.md`, item 7). An error may be called "pre-existing" only if it is in the baseline from Step 4 item 6 and in a file this task did not touch; list each such error in the review (Step 7). Running static checks only on your own files does not replace the full run.
 2. If ALL tests pass and the static checks show no error of yours → proceed to Step 5.
 3. If ANY test fails → **YOU ARE PROHIBITED FROM PROCEEDING TO STEP 5.** You MUST:
    a. Read the failing test output carefully. If the failure is that the project's dependencies are not installed, run the project's dependency install command once (see `do-shared/references/do-project-commands.md`, item 5) and re-run the suite instead of treating it as a code failure.
    b. Diagnose the root cause.
-   c. Fix the code (NOT the test, unless the test itself is wrong due to your changes).
+   c. Fix the code (NOT the test, unless the test itself is wrong due to your changes). A failure in another task's work that your changes did not cause follows the "Defects in another task's work" rule of Step 4 item 7: the suite must still end green, never approved with a known failure.
    d. Re-run the FULL test suite.
    e. Repeat until ALL tests pass.
 4. **Loop protection**: Track fix attempts. After **5 failed fix-and-retest cycles**, STOP and report to the user:
@@ -160,14 +164,15 @@ The ONLY permitted modification to `tasks.md` is changing `[ ]` to `[x]` for the
 **Step 6: Code Review**
 1. Re-read the task file to ensure you have the latest content (context compression may have discarded earlier reads).
 2. Check if the project is a git repository by running `git rev-parse --is-inside-work-tree`. If git is available, use `git diff` and `git log` to identify files changed as part of this task and read the full context of modified files, not just the diffs. If git is NOT available, manually list all files you created or modified during implementation and read their full content for review.
-3. Read the `code-standards.md` file at `do-execute-task/references/code-standards.md`. Review the code against those criteria and verify compliance with the project configuration file if it exists.
+3. Read the `code-standards.md` file at `do-execute-task/references/code-standards.md`. Review the code against those criteria and verify compliance with the project's instructions file (CLAUDE.md, AGENTS.md, .github/copilot-instructions.md or .cursor rules — read-only) and the `Project Conventions` section of `.do/context.md`, when they exist.
 4. For each issue found, classify as:
    - **CRÍTICO**: Bugs, problemas de segurança, funcionalidade quebrada, tratamento de erros ausente.
    - **MAIOR**: Violações de padrão de código, testes ausentes, nomenclatura incorreta.
    - **MENOR**: Sugestões de estilo, melhorias menores.
    - **POSITIVO**: Coisas bem feitas que merecem reconhecimento.
-5. Run the test suite and, if the project defines them, its static checks (commands from Step 4 item 6). Include any failures as critical issues. Compare the static checks with the baseline from Step 4 item 6: a new error, or an error in a file this task created or changed, is a critical issue; a remaining baseline error is only an observation.
-6. Address any issues identified. **Iteration limit**: You may perform a maximum of 3 fix-and-review cycles. If critical issues persist after 3 cycles, mark as **MUDANÇAS SOLICITADAS** in Step 7.
+5. **Tests at external boundaries**: where a test replaces an external dependency with a mock or stub, it must assert the complete contract of what the code sends across that boundary (the whole request, address, message or query as the dependency receives it), not only that some fragments are present. A test that would still pass with a malformed request is a **MAIOR** finding: fix it in this task.
+6. Run the test suite and, if the project defines them, its static checks (commands from Step 4 item 6). Include any failures as critical issues. Compare the static checks with the baseline from Step 4 item 6: a new error, or an error in a file this task created or changed, is a critical issue; a remaining baseline error is only an observation.
+7. Address any issues identified. **Iteration limit**: You may perform a maximum of 3 fix-and-review cycles. If critical issues persist after 3 cycles, mark as **MUDANÇAS SOLICITADAS** in Step 7.
 
 **Step 7: Create Review File (Mandatory)**
 
@@ -175,7 +180,7 @@ The ONLY permitted modification to `tasks.md` is changing `[ ]` to `[x]` for the
 2. Determine the review status based on Step 6 findings:
    - **APROVADO**: Sem problemas críticos/maiores.
    - **APROVADO COM OBSERVAÇÕES**: Sem críticos, problemas menores ou poucos maiores não bloqueantes.
-   - **MUDANÇAS SOLICITADAS**: Problemas críticos ou múltiplos problemas maiores.
+   - **MUDANÇAS SOLICITADAS**: Problemas críticos ou múltiplos problemas maiores, incluindo um defeito de outra task cuja correção exige decisão de escopo, design ou contrato (Step 4 item 7).
 3. **CREATE THE FILE**: Use the `Write` tool to create `[num]_task_review.md` in `./prds/prd-[feature-slug]/tasks/`. This is the MOST IMPORTANT action in this step.
    **MANDATORY FILENAME RULE — ABSOLUTE, NON-NEGOTIABLE:**
    - The filename MUST be exactly `<integer>_task_review.md` matching the integer of the task being reviewed (e.g., task `11_task.md` → review `11_task_review.md`).
@@ -210,9 +215,9 @@ Perform ALL checks below. If ANY fails, fix it first.
 
 6. **CHECK 6 — Critical tags**: Verify all `<critical>` tags from the task file were satisfied.
 
-7. **CHECK 7 — Project skills and MCPs registered**: the review file read in CHECK 2 contains the `Skills e MCPs do Projeto` section filled in (skills read, or "nenhuma aplicável"/"nenhuma instalada"). This is a record of the Step 2 consultation, not an obligation to use a skill. If the section is missing → add it NOW and re-read the file.
+7. **CHECK 7 — Project skills and MCPs registered**: the review file read in CHECK 2 contains the `Skills e MCPs do Projeto` section filled in (skills read, or "nenhuma aplicável"/"nenhuma instalada"). This is a record of the Step 2 consultation, not an obligation to use a skill. If the section is missing → add it NOW and re-read the file. If a skill relevant to the task was read only after the implementation, re-check the code against that skill now, fix what diverges (re-running Step 4B) and record it in the review.
 
-8. **CHECK 8 — Workspace boundary**: Confirm no file was created outside the project root during this task (Workspace Boundary rule). Remove `./.do-tmp/task-[num]/` (`rm -rf ./.do-tmp/task-[num]`) and confirm it no longer exists. Review every command you ran in this task: any redirect, `tee`, `-o`/`--output` option or script that wrote outside the project root (for example `/tmp`) is a violation. Delete those files now (they are yours) and note the violation in the review. If any task artifact ended up outside the project, move what must persist (e.g. tests) into the project and delete the rest. Also confirm that no screenshot or evidence file was left in the project root — move the ones that must persist to `./prds/prd-[feature-slug]/task-screenshots/` and delete the rest.
+8. **CHECK 8 — Workspace boundary**: Confirm no file was created outside the project root during this task (Workspace Boundary rule). Remove `./.do/tmp/task-[num]/` (`rm -rf ./.do/tmp/task-[num]`) and confirm it no longer exists. Review every command you ran in this task: any redirect, `tee`, `-o`/`--output` option or script that wrote outside the project root (for example `/tmp`) is a violation. Delete those files now (they are yours) and note the violation in the review. If any task artifact ended up outside the project, move what must persist (e.g. tests) into the project and delete the rest. Also confirm that no screenshot or evidence file was left in the project root — move the ones that must persist to `./prds/prd-[feature-slug]/task-screenshots/` and delete the rest.
 
 **BLOCKING RULE: If Check 1, 2, 3, 4, 7, or 8 fails, you are PROHIBITED from sending a final response. Fix the issue and re-run the checks. A task with failing tests is NEVER complete.**
 
@@ -225,7 +230,7 @@ Perform ALL checks below. If ANY fails, fix it first.
    - [num]_task_review.md: ✅ Criado ([STATUS])
    - tasks.md: ✅ Atualizado (task [num] marcada como concluída)
    - [num]_task.md: ✅ Subtasks marcadas como concluídas
-   - .do-tmp/task-[num]: ✅ Removido (nada criado fora do projeto)
+   - .do/tmp/task-[num]: ✅ Removido (nada criado fora do projeto)
    ```
    If any artifact shows ❌ instead of ✅, you have violated this skill's rules. Do NOT send the response — fix the artifact first.
    **Subagent exception:** when you were invoked by an orchestrator as a subagent (e.g. `agent-execute-task`), do NOT include this manifest — your final response is ONLY the short `TASK <ID>: ...` block defined in `do-execute-task/references/subagent-mode.md`.

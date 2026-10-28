@@ -1,6 +1,6 @@
 # Code Standards Reference
 
-**Precedence:** the conventions of the project always win. Take them from the `Project Conventions` section of the project configuration file, from the project's linter/formatter configuration, and from the existing code. The rules below are language-neutral defaults, applied only where the project defines nothing different.
+**Precedence:** the conventions of the project always win. Take them from the project's instructions file (CLAUDE.md, AGENTS.md or equivalent — read-only), from the `Project Conventions` section of `.do/context.md`, from the project's linter/formatter configuration, and from the existing code. The rules below are language-neutral defaults, applied only where the project defines nothing different.
 
 ## Naming Conventions
 - Follow the identifier and file-naming conventions of the language and of the project (casing, separators, file layout) as found in the existing code.

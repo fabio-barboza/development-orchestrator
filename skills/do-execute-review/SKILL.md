@@ -18,11 +18,14 @@ You are a senior code reviewer focused on quality, standards compliance, and pro
 All files you create, read or execute MUST live **inside the project root**. Files outside it may be stale or belong to another project/run.
 
 1. **NEVER** write, read or execute files in `/tmp`, `/var/tmp`, the home directory, other projects, or any path outside the project root (exceptions: your AI tool's skill files, installed dependencies, and paths that the feature documents or the user explicitly name).
-2. Scratch files (ad-hoc scripts, intermediate outputs) go ONLY in `./.do-tmp/review/`. Create it with `mkdir -p` when needed; if the project is a git repository and `.gitignore` does not already ignore `.do-tmp` (with or without the trailing slash), append `.do-tmp/` once.
-3. Never reuse scratch files from other runs or from other `./.do-tmp/` folders.
-4. Tests that must persist go in the project's test location, not in `./.do-tmp/`.
-5. Delete `./.do-tmp/review/` before your final response.
+2. Scratch files (ad-hoc scripts, intermediate outputs) go ONLY in `./.do/tmp/review/`. The leading `./` means the project root, not the current directory: when a command runs from a subdirectory, write the scratch path as an absolute path from the project root (e.g. `<project root>/.do/tmp/review/`), never as a relative path (`.do/tmp`, `../.do/tmp`). Create it with `mkdir -p` when needed; if the project is a git repository and `.gitignore` does not already ignore `.do` (with or without the trailing slash), append `.do/` once.
+3. Never reuse scratch files from other runs or from other `./.do/tmp/` folders.
+4. Tests that must persist go in the project's test location, not in `./.do/tmp/`.
+5. Delete `./.do/tmp/review/` before your final response.
 6. Do not redirect command output to files: filter it in the pipe (`| tail`, `| grep`). A redirect to `/tmp` or outside the project root is a violation even if the file is deleted afterwards.
+
+## Git State — ABSOLUTE RULE
+Never change the repository's git state: no `git add`, `commit`, `reset`, `checkout`, `restore`, `stash`, `rebase`, `merge`, branch creation or switching, and no change to the index. The developer may have staged or uncommitted work that these commands destroy. Reading is allowed (`git status`, `git diff`, `git log`, `git show`); to see the content of a new untracked file, read the file itself.
 
 ## Procedures
 
@@ -118,7 +121,7 @@ Skill assets/references are loaded via your AI tool's native skill resolver — 
    a. Assign a sequential ID (R-01, R-02, …) if not already assigned.
    b. Generate a `brief-slug` from the finding description (lowercase, hyphen-separated, max 5 words).
    c. Fill the template with the finding's ID, severity, status (`pendente`), affected file/line, description, and suggested correction.
-   d. Save to `./<review-dir>/fixes/fix-[R-XX]-[severidade-completa]-[brief-slug].md`, where `[severidade-completa]` is the full severity word in lowercase: `critico`, `maior` or `menor`. Do NOT abbreviate (e.g. `fix-R01-critico-campo-senha-exposto.md`, NOT `fix-R01-crit-campo-senha.md`).
+   d. Save to `./<review-dir>/fixes/fix-[R-XX]-[severidade-completa]-[brief-slug].md`, where `[severidade-completa]` is the full severity word in lowercase: `critico`, `maior` or `menor`. Do NOT abbreviate (e.g. `fix-R-01-critico-campo-senha-exposto.md`, NOT `fix-R-01-crit-campo-senha.md`).
 3. **Every fix task must be executable by an unattended subagent**: the suggested correction changes code or tests only. Never write "confirm with the requester" and never suggest editing the PRD, the TechSpec or `tasks.md` as the fix. When something is really a scope or requirement question (the requirement is ambiguous, or the code and the document disagree and either could be right), it is not a finding with a fix: do NOT create a fix task for it. List it in the report's `Recomendações` as `Decisão do usuário: <pergunta>` so the user decides before anything is changed.
 4. Create the `fixes/` directory automatically if it does not exist — no need to run `mkdir`, simply write the first file to the path.
 5. If there are no findings (status APROVADO), skip this step entirely — do NOT create an empty directory.

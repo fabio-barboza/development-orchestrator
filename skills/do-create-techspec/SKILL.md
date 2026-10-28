@@ -62,7 +62,7 @@ Skill assets/references are loaded via your AI tool's native skill resolver - do
 3. Do NOT proceed until answers are received.
 
 **Step 6: Standards Compliance Mapping (Mandatory)**
-1. Identify the project skills relevant to this feature by following `do-shared/references/do-project-context.md` (Skills procedure: `Available Skills` section of the project configuration file plus the skills your AI tool exposes natively; do not assume any specific skill exists). **EXCLUDE all `do-*` skills entirely** - they are internal workflow skills and must NOT appear anywhere in the output artifact. Read the relevant ones and check the spec against their conventions. If none are installed or relevant, state that in the spec's standards section.
+1. Identify the project skills relevant to this feature by following `do-shared/references/do-project-context.md` (Skills procedure: `Available Skills` section of `.do/context.md` plus the skills your AI tool exposes natively; do not assume any specific skill exists). **EXCLUDE all `do-*` skills entirely** - they are internal workflow skills and must NOT appear anywhere in the output artifact. Read the relevant ones and check the spec against their conventions. If none are installed or relevant, state that in the spec's standards section.
 2. Highlight deviations with justification and compliant alternatives.
 
 **Step 7: Generate Tech Spec (Mandatory)**
