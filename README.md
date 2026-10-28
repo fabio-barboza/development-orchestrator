@@ -323,7 +323,7 @@ PLANEJAMENTO       EXECUÇÃO           REVIEW GERAL      VALIDAÇÃO
 - Cada requisito leva um de quatro status conforme a evidência: `PASSOU` (visto rodando), `FALHOU`, `VERIFICADO NO CÓDIGO` (só leitura de código, nunca conta como aprovado) ou `NÃO TESTADO` (com o motivo e o que foi tentado). Antes de marcar não testado, o QA tenta o que a MCP de interface oferece (permissões, localização simulada, interceptar rede, rodar script na página)
 - Ao terminar, encerra a árvore inteira de processos dos serviços que subiu (wrapper, supervisor e servidor), não só o que segura a porta
 
-**Status:** APROVADO apenas se TODOS requisitos verificados e funcionando
+**Status:** APROVADO se todos os requisitos passaram e não há bug aberto; APROVADO COM RESSALVAS se só restam bugs de severidade baixa (ou requisitos não testados que você aceitar); REPROVADO se há bug aberto de severidade média ou alta
 
 ---
 
@@ -501,7 +501,7 @@ O framework não exige nenhuma linguagem ou stack. O que você precisa:
     ├── review/
     │   └── review-1/           # 1ª rodada de review (do-execute-review); a próxima será review-2/...
     │       ├── review-report.md
-    │       └── fixes/fix-R01-critico-....md
+    │       └── fixes/fix-R-01-critico-....md
     ├── review-report.md        # (legado) relatório solto na raiz, de PRDs anteriores às pastas de rodada
     ├── qa-report.md            # (legado) idem para o QA
     └── tasks/

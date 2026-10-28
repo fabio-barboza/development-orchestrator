@@ -279,7 +279,7 @@ Se bugs forem encontrados, corrija e revalide:
 
 O modo fila funciona como no review: pasta ou vários arquivos, um subagente por bug, falha isolada.
 
-Repita até não restar nenhum bug de severidade HIGH. Feature pronta!
+Repita até não restar nenhum bug de severidade média ou alta: só bugs de severidade baixa deixam o QA em `APROVADO COM RESSALVAS`, não em `REPROVADO`. Feature pronta!
 
 > **Evidência no relatório:** cada requisito sai como `PASSOU` (visto rodando), `FALHOU`, `VERIFICADO NO CÓDIGO` ou `NÃO TESTADO`. Os dois últimos não contam como aprovados: se sobrar algum, o status é `APROVADO COM RESSALVAS`, no máximo.
 

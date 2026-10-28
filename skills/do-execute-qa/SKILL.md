@@ -105,7 +105,11 @@ Skill assets/references are loaded via your AI tool's native skill resolver — 
 2. Fill in all sections with actual results, including `Pendências da Rodada Anterior` (open bugs of the previous round that still persist; do NOT create new bug files for them).
 3. Include a "Ferramentas MCP Utilizadas" section listing which MCPs were used and which capabilities were missing, and the project skills record (read / none applicable / none installed) defined in `do-shared/references/do-project-context.md`.
 4. Save the report to `./<qa-dir>/qa-report.md`.
-5. Set status to APROVADO only when ALL PRD requirements are `PASSOU`. Requirements that are `VERIFICADO NO CÓDIGO` or `NÃO TESTADO` are listed in the summary with their counts and block the APROVADO unless the user accepts them; in that case set `APROVADO COM RESSALVAS`.
+5. Set the status from the open bugs (this round's bugs plus the previous round's that persist) and the requirement results:
+   - **REPROVADO**: at least one open bug of severity `Alta` or `Média`.
+   - **APROVADO COM RESSALVAS**: no open `Alta` or `Média` bug, but at least one open `Baixa` bug (list them in the summary), or requirements that are `VERIFICADO NO CÓDIGO` or `NÃO TESTADO` that the user accepts. Unaccepted `VERIFICADO NO CÓDIGO` or `NÃO TESTADO` requirements block approval.
+   - **APROVADO**: ALL PRD requirements are `PASSOU` and no bug is open.
+   A requirement fails (`FALHOU`) whatever the severity of the bug behind it; the severity only decides the status.
 
 **Step 8: Report Results & Sync Progress (Mandatory)**
 1. **SYNC INTERNAL PROGRESS**: Once the QA report is generated and bugs are documented, if `TaskUpdate` is available (Claude Code only; skip in Copilot and Cursor), use it to mark all corresponding items in your internal task tracking as `completed`. Otherwise, skip this step.
